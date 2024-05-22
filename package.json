@@ -1,0 +1,19 @@
+{
+  "name": "screamer-lang",
+  "version": "0.0.1",
+  "description": "A domain-specific language for live coding performances using ray marching",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "live",
+    "coding",
+    "ray",
+    "marching",
+    "graphics",
+    "performance"
+  ],
+  "author": "Charlie Roberts",
+  "license": "MIT"
+}
