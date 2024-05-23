@@ -2,7 +2,7 @@
 
 *Screamer* is a declarative live coding language for creating visuals using ray marching. It builds on top of [marching.js](https://charlieroberts.github.io/marching), a JavaScript library that compiles GLSL shaders. In comparison to marching.js, screamer is intended to be more concise and enable faster iteration / experimentation.
 
-In music, a "screamer" is a sped-up march used in circuses to ["stir audiences into a frenzy"](https://en.wikipedia.org/wiki/Screamer_(march).
+In music, a "screamer" is a sped-up march used in circuses to ["stir audiences into a frenzy"](https://en.wikipedia.org/wiki/Screamer_(march)).
 
 ## Play
 [Try the playground](https://charlieroberts.github.io/screamer/playground). Here's a few keyboard commands worth knowing:
@@ -15,7 +15,7 @@ In music, a "screamer" is a sped-up march used in circuses to ["stir audiences i
 ## Reference
 The main programmatic elements of screamer are:
 
-- *Configuaration*: Used to control global properties of the renderer, for example, post-processing effects and render quality
+- *Configuration*: Used to control global properties of the renderer, for example, post-processing effects and render quality
 - *Geometries*: mmmm enough said
 - *Combinators*: Operators used to combine geometries or to nest combinators.
 - *Modifcations*: Single-character operators to transform geometries and combinators in various ways.
@@ -54,25 +54,25 @@ Most of the geometries available in screamer are very simple; the fun comes in r
 ### Combinators
 Combinators are operators that are used to combine geometries (or multiple combinators). 
 
-- *++*: Union. Adds two geometries. Example: `box ++ sphere(1.2)`
-- *+++*: RoundUnion. Adds two geometries and creates a smooth transition between them, with an argument smoothing coefficient. Example:`box +++(.75) sphere(1.2)`.
-- *++++*: StairsUnion. Adds two geometries and creates a stepped transition, with argument transition size and number of steps. Example:`box ++++(.35,6) sphere(1.2)`
-- *--*: Difference. Subtracts two geometries. Example: `box -- sphere(1.2)`
-- *---*: RoundDifference. Subtracts two geometries and creates a smooth transition between them, with an argument smoothing coefficient. Example:`box ---(.75) sphere(1.2)`.
-- *----*: StairsDifference. Subtracts two geometries and creates a stepped transition, with argument transition size and number of steps. Example:`box ----(.35,6) sphere(1.2)`
-- *\*\**: Intersection. Creates the intersection of two geometries. Example: `box *** sphere(1.2)`
-- *\*\*\**: RoundIntersection. Intersects two geometries and creates a smooth transition between them, with an argument smoothing coefficient. Example:`box ***(.75) sphere(1.2)`.
-- *\*\*\*\**: StairsIntersection. Intersects two geometries and creates a stepped transition, with argument transition size and number of steps. Example:`box ****(.35,6) sphere(1.2)`
+- `++`: Union. Adds two geometries. Example: `box ++ sphere(1.2)`
+- `+++`: RoundUnion. Adds two geometries and creates a smooth transition between them, with an argument smoothing coefficient. Example:`box +++(.75) sphere(1.2)`.
+- `++++`: StairsUnion. Adds two geometries and creates a stepped transition, with argument transition size and number of steps. Example:`box ++++(.35,6) sphere(1.2)`
+- `--`: Difference. Subtracts two geometries. Example: `box -- sphere(1.2)`
+- `---`: RoundDifference. Subtracts two geometries and creates a smooth transition between them, with an argument smoothing coefficient. Example:`box ---(.75) sphere(1.2)`.
+- `----`: StairsDifference. Subtracts two geometries and creates a stepped transition, with argument transition size and number of steps. Example:`box ----(.35,6) sphere(1.2)`
+- `**`: Intersection. Creates the intersection of two geometries. Example: `box *** sphere(1.2)`
+- `***`: RoundIntersection. Intersects two geometries and creates a smooth transition between them, with an argument smoothing coefficient. Example:`box ***(.75) sphere(1.2)`.
+- `***`: StairsIntersection. Intersects two geometries and creates a stepped transition, with argument transition size and number of steps. Example:`box ****(.35,6) sphere(1.2)`
 
 ### Modifiers
 Modifiers are (mostly) single-character operators to modify the geometry, combinator, or modifier to their left.
 
-- *^*: Scale. A uniform scaling coefficient. Example: `julia^2`
-- *@*: Rotate. Rotate an argument number of degrees around an argument axis. Example: `box@(45,1,0,0)`
-- *>*: Translate. Move along three axes. Example: `sphere>(1,0,0)`
-- *|*: Repeat. Repeat on all three axes. Example: `sphere | 3`
-- *:*: Color. Apply a color preset. Colors include `red`, `green`, `blue`, `cyan`, `magenta`, `yellow`, `white`, `black`, `grey`.
-- *::*: Texture. Apply texture preset. Textures include `rainbow`, `stripes`, `dots`, `truchet`, `noise`, `cellular`, `zigzag`, and `voronoi`. Example: `box::truchet`
+- `^`: Scale. A uniform scaling coefficient. Example: `julia^2`
+- `@`: Rotate. Rotate an argument number of degrees around an argument axis. Example: `box@(45,1,0,0)`
+- `>`: Translate. Move along three axes. Example: `sphere>(1,0,0)`
+- `|`: Repeat. Repeat on all three axes. Example: `sphere | 3`
+- `:`: Color. Apply a color preset. Colors include `red`, `green`, `blue`, `cyan`, `magenta`, `yellow`, `white`, `black`, `grey`.
+- `::`: Texture. Apply texture preset. Textures include `rainbow`, `stripes`, `dots`, `truchet`, `noise`, `cellular`, `zigzag`, and `voronoi`. Example: `box::truchet`
 
 ### Variables
 
@@ -84,11 +84,11 @@ Modifiers are (mostly) single-character operators to modify the geometry, combin
 - *high*: High frequency analysis of audio input mapped to 0--1. Example: `box@(high*90, low, 0, mid)`
 
 ### Math
-- *+* Addition. Adds two numbers/variables together.
-- *-* Subtractive. Subtracts two numbers/variables together.
-- *\** Multiply. Multiplies two numbers/variables together.
-- */* Divide. Divide two numbers / variables.
-- *%* Modules. Calculates the remainder of dividing two numbers.
+- `+` Addition. Adds two numbers/variables together.
+- `-` Subtraction. Subtracts two numbers/variables together.
+- `*` Multiply. Multiplies two numbers/variables together.
+- `/` Divide. Divide two numbers / variables.
+- `%` Modules. Calculates the remainder of dividing two numbers.
 - *sin*: Calculate the sin of the arugment. Example: `sphere( .5 + sin(time) * .35 )`
 - *cos*: Calculate the cosine of the arguments. Example: `box | 3 + sin(time)`
 - *random*: Generates a random number from 0--1. Example: `sphere( .5 + random() * .5)`
