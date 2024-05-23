@@ -4,6 +4,14 @@
 
 In music, a "screamer" is a sped-up march used in circuses to ["stir audiences into a frenzy"](https://en.wikipedia.org/wiki/Screamer_(march).
 
+## Play
+[Try the playground](https://charlieroberts.github.io/screamer/playground). Here's a few keyboard commands worth knowing:
+
+- `Ctrl+Enter`: Execute the current line (as defined by where the cursor is placed), or all selected code if a selection has been made.
+- `Shift+Ctrl+Enter`: Execute all lines.
+- `Ctrl+.`: Clear the current scene.
+- `Alt+C`: Enable camera controls. Use WASD + the arrow keys to move through the 3D scene. Hit `Alt+C` again to disable the controls and return to editing.
+
 ## Reference
 The main programmatic elements of screamer are:
 
@@ -13,6 +21,8 @@ The main programmatic elements of screamer are:
 - *Modifcations*: Single-character operators to transform geometries and combinators in various ways.
 - *Variables*: Values that change over time that can be modified with math expressions; these changes are declared once and then applied continuously ("reactive" programming).
 - *Math*: A small assortment of operators and functions primarily intended to manipulate variables over time.
+
+`//` is the operator for a single-line comment.
 
 ### Configuration
 Configuration primarily consists of assigning numbers, keywords, or lists to global properties
