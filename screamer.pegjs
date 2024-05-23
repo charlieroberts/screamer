@@ -1,9 +1,11 @@
 out "out" = body:statement+ 
 
-statement = _ __* body:(config / assignment / expr ) _ __* { 
+statement = _ __* body:(comment / config / assignment / expr ) _ __* { 
   //console.log( body )
   return body
 }
+
+comment = '//' _ .*  _ __* { return ['comment'] }
 
 config "config" = name:config_name _ '=' _ value:(word / pp / listparen / number) {
   return ['config', name, value ]
