@@ -24347,6 +24347,19 @@ const screamer = {
         case 'time': out = t => t; break;
         case 'mousex': out = t => mouse.x; break;
         case 'mousey': out = t => mouse.y; break;
+        case 'low':
+          Marching.FFT.start();
+          out = t => Marching.FFT.low;
+          break
+        case 'med':
+          Marching.FFT.start();
+          out = t => Marching.FFT.med;
+          break
+        case 'high':
+          Marching.FFT.start();
+          out = t => Marching.FFT.high;
+          break
+
       }
     }else {
       const val = parseFloat( obj );
