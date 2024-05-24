@@ -27262,6 +27262,7 @@ const defaultCode =
 sphere
 
 // also try box, cone, cylinder, julia, mandelbox...
+// feel free to edit and try each one
 box
 
 // bigger sphere?
@@ -27342,4 +27343,12 @@ post = ( antialias(3) )
 // fun with postprocessing and mouse
 post = ( edge, invert(1) )
 (box:red -- box:green^mousey/4|.2+mousex/3)^1.6@(time*15,0,1,1)
+
+// use low and high audio analysis to drive fractal
+// the first time you use the low,med,or high variables
+// your browser will request permission to access your
+// audio input. shushing into your mic works well for 
+// this demo :)
+render=fractal.med
+mandalay( high*5, low/4, 2 )^.75@(time*5,0,0,1)::rainbow
 `;
