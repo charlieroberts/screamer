@@ -140,7 +140,7 @@ const screamer = {
               args.push( screamer.walk( obj[ i ] ) )
             }
           }else{
-            args.push( screamer.walk( obj[ i ][0] ) )
+            args.push( ...obj[ i ].map( screamer.walk ))
           }
         }else{
           if( !Array.isArray( obj[i] ) ) {

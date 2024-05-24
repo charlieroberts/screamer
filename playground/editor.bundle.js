@@ -24392,7 +24392,7 @@ const screamer = {
               args.push( screamer.walk( obj[ i ] ) );
             }
           }else {
-            args.push( screamer.walk( obj[ i ][0] ) );
+            args.push( ...obj[ i ].map( screamer.walk ));
           }
         }else {
           if( !Array.isArray( obj[i] ) ) {
@@ -24407,7 +24407,6 @@ const screamer = {
     }else if( obj[0] === 'mod' ) {
       const geo = screamer.walk( obj[1] );
       for( let mod of obj[2] ) {
-        debugger
         const name = mods[ mod[0] ];
 
         if( name === 'scale' || name === 'translate' || name === 'rotate' ) {
