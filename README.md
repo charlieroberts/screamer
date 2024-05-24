@@ -22,6 +22,8 @@ The main programmatic elements of screamer are:
 - *Variables*: Values that change over time that can be modified with math expressions; these changes are declared once and then applied continuously ("reactive" programming).
 - *Math*: A small assortment of operators and functions primarily intended to manipulate variables over time.
 
+`(` and `)` begin and end a *group*, which can have modifications (like repeat and scale) applied to them. This is a simple way to make groupings explicit to the language parser.... if you have trouble running complex lines of code try grouping elements together.
+
 `//` is the operator for a single-line comment.
 
 ### Configuration
@@ -80,10 +82,12 @@ Modifiers are (mostly) single-character operators to modify the geometry, combin
 - *mousex*: The x position of the mouse mapped from 0--1. Example: `sphere(mousex)`
 - *mousey*: The y position of the mouse mapped from 0--1. Example: `sphere | mousey * 6`
 - *low*: Low frequency analysis of audio input mapped to 0--1. Example: `sphere(low)`
-- *med*: Mid frequency analysis of audio input mapped to 0--1. Example: `box(med)`
+- *mid*: Mid frequency analysis of audio input mapped to 0--1. Example: `box(mid)`
 - *high*: High frequency analysis of audio input mapped to 0--1. Example: `box@(high*90, low, 0, mid)`
 
 ### Math
+Note: traditional parenthesis `()` do not currently work in math expressions, as they're currently used by the language to group combinators, geometries, and modifiers together... this is a todo to fix.
+
 - `+` Addition. Adds two numbers/variables together.
 - `-` Subtraction. Subtracts two numbers/variables together.
 - `*` Multiply. Multiplies two numbers/variables together.

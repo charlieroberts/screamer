@@ -24272,6 +24272,7 @@ const screamer = {
     fog: [0,0,0,0],
     background:[0,0,0],
     post: []
+      
   },
 
   init() {
@@ -24353,9 +24354,9 @@ const screamer = {
           Marching.FFT.start();
           out = t => Marching.FFT.low;
           break
-        case 'med':
+        case 'mid':
           Marching.FFT.start();
-          out = t => Marching.FFT.med;
+          out = t => Marching.FFT.mid;
           break
         case 'high':
           Marching.FFT.start();
@@ -24406,6 +24407,7 @@ const screamer = {
     }else if( obj[0] === 'mod' ) {
       const geo = screamer.walk( obj[1] );
       for( let mod of obj[2] ) {
+        debugger
         const name = mods[ mod[0] ];
 
         if( name === 'scale' || name === 'translate' || name === 'rotate' ) {
@@ -24501,13 +24503,6 @@ const screamer = {
 
   run( code ) {
     try {
-      /*const selectedCode = getSelectionCodeColumn( cm, isBlock )
-
-        flash( cm, selectedCode.selection )
-
-        const code = selectedCode.code
-        */
-      //const code = cm.state.doc.toString()
       console.log( 'code:', code );
       const tree = walking.parse( code );
       let out;
