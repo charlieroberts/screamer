@@ -27136,7 +27136,7 @@ const setupEditor = function() {
       { 
         key: "Ctrl-Enter", 
         run(e) { 
-          localStorage.setItem("src", e.state.doc.toString());
+          //localStorage.setItem("src", e.state.doc.toString())
           screamer.run( getCurrentLine( e ) );
           return true
         } 
@@ -27144,7 +27144,7 @@ const setupEditor = function() {
       { 
         key: "Shift-Ctrl-Enter", 
         run(e) { 
-          localStorage.setItem("src", e.state.doc.toString());
+          //localStorage.setItem("src", e.state.doc.toString())
           screamer.run( getAllCode( e ) );
           return true
         } 
@@ -27159,8 +27159,8 @@ const setupEditor = function() {
     ])
   );
 
-  let src = localStorage.getItem("src");
-  src = src == null ? shaderDefault : src;
+  //let src = localStorage.getItem("src")
+  //src = src == null ? shaderDefault : src
 
   window.editor = new EditorView({
     doc: getStarterCode(),
