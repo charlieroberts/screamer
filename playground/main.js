@@ -14,14 +14,15 @@ const init = async function() {
   src = src == null ? shaderDefault : src
 
   screamer.init()
+  const canvas = setupMarching()
   setupEditor()
-  setupMarching()
 
-
+  canvas.onclick = () => editor.focus() 
 }
 
 const setupMarching = function() {
-  Marching.init( document.querySelector('canvas') )
+  const c = document.querySelector('canvas')
+  Marching.init( c )
   Marching.export( window )
   Marching.keys = {
     w:0,
@@ -30,6 +31,8 @@ const setupMarching = function() {
     d:0,
     alt:0
   }
+
+  return c
 }
 
 window.onload = init
@@ -49,6 +52,19 @@ const toggleCamera = function( shouldToggleGUI=true) {
   })
 
   if( !Marching.cameraEnabled ) editor.focus()
+}
+
+const getStarterCode = function() {
+  let out = defaultCode
+  if( window.location.search !== '' ) {
+    // use slice to get rid of ?
+    const query = window.location.search.slice(1)
+    const params = query.split('&')
+    out = atob( params[0] )
+    screamer.run( out )
+  }
+  
+  return out
 }
 
 const setupEditor = function() {
@@ -84,7 +100,7 @@ const setupEditor = function() {
   src = src == null ? shaderDefault : src
 
   window.editor = new EditorView({
-    doc: shaderDefault,
+    doc: getStarterCode(),
     extensions: [
       basicSetup, 
       javascript(),
@@ -114,7 +130,68 @@ const setupEditor = function() {
   editor.focus()
 }
 
-const shaderDefault = 
+// taken wih gratitude from https://stackoverflow.com/a/52082569
+function copyToClipboard(text) {
+    var selected = false
+    var el = document.createElement('textarea')
+    el.value = text
+    el.setAttribute('readonly', '')
+    el.style.position = 'absolute'
+    el.style.left = '-9999px'
+    document.body.appendChild(el)
+    if (document.getSelection().rangeCount > 0) {
+        selected = document.getSelection().getRangeAt(0)
+    }
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+    if (selected) {
+        document.getSelection().removeAllRanges()
+        document.getSelection().addRange(selected)
+    }
+}
+
+window.getlink = function( name='link' ) {
+  const lines = getAllCode( window.editor )
+  if( lines[ lines.length - 1].indexOf('getlink') > -1 ) {
+    lines.pop()
+  }
+
+  const code = btoa( lines )
+  const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${code}`
+
+
+  // DRY... also used for gabber button
+  const menu = document.createElement('div')
+  menu.setAttribute('id', 'connectmenu')
+  menu.style.fontFamily = 'sans-serif'
+  menu.style.background = 'rgba(255,255,255,.85)'
+  menu.style.color = 'black'
+  menu.style.width = '12.5em'
+  menu.style.height = '3.5em'
+  menu.style.position = 'fixed'
+  menu.style.display = 'block'
+  menu.style.border = '1px var(--f_inv) solid'
+  menu.style.borderTop = 0
+  menu.style.top = 0
+  menu.style.right = 0 
+  menu.style.zIndex = 1000
+
+  menu.innerHTML = `<p style='font-size:.7em; margin:.5em; margin-bottom:1.5em; color:var(--f_inv)'>Click here to copy a link that runs your code.</p>`
+
+  document.body.appendChild( menu )
+
+  const blurfnc = ()=> {
+    copyToClipboard( link )
+    menu.remove()
+    document.body.removeEventListener( 'click', blurfnc )
+  }
+  document.body.addEventListener( 'click', blurfnc )
+
+  return link
+}
+
+const defaultCode = 
 `// place your cursor in the line below and hit Ctrl+Enter
 sphere
 
