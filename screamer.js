@@ -96,6 +96,8 @@ const screamer = {
         case 'mousex': out = t => mouse.x; break;
         case 'mousey': out = t => mouse.y; break;
         case 'low':
+          // .start() is a null operation if audio
+          // has already been initialized
           Marching.FFT.start()
           out = t => Marching.FFT.low
           break
@@ -107,7 +109,6 @@ const screamer = {
           Marching.FFT.start()
           out = t => Marching.FFT.high
           break
-
       }
     }else{
       const val = parseFloat( obj )
