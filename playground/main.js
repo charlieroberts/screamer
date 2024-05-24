@@ -285,4 +285,7 @@ post = ( edge, invert(1) )
 // this demo :)
 render=fractal.med
 mandalay( high*5, low/4, 2 )^.75@(time*5,0,0,1)::rainbow
+
+// for a more complete reference see
+// https://charlieroberts.github.io/screamer
 `
