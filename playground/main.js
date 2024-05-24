@@ -10,9 +10,6 @@ import { basicDark } from 'cm6-theme-basic-dark'
 
 let run
 const init = async function() {
-  let src = localStorage.getItem("src")
-  src = src == null ? shaderDefault : src
-
   screamer.init()
   const canvas = setupMarching()
   setupEditor()

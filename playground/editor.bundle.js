@@ -27076,9 +27076,6 @@ const basicDark = [
 ];
 
 const init = async function() {
-  let src = localStorage.getItem("src");
-  src = src == null ? shaderDefault : src;
-
   screamer.init();
   const canvas = setupMarching();
   setupEditor();
