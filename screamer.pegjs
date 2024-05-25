@@ -5,7 +5,7 @@ statement = _ __* body:(comment / config / assignment / expr ) _ __* {
   return body
 }
 
-comment = '//' _ .*  _ __* { return ['comment'] }
+comment = '//' _ (!'\n' .)*  _ '\n' { return ['comment'] }
 
 config "config" = name:config_name _ '=' _ value:(word / pp / listparen / number) {
   return ['config', name, value ]
