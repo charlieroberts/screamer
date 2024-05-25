@@ -24376,7 +24376,7 @@ const screamer = {
           if( obj[0] === 'combinator' ){ 
             if( i === 4 ) {
               obj[i].forEach( v => {
-                args.push( v );
+                args.push( Array.isArray(v) ? screamer.walk(v) : v );
               });
             }else {
               args.push( screamer.walk( obj[ i ] ) );
@@ -24386,7 +24386,7 @@ const screamer = {
           }
         }else {
           if( !Array.isArray( obj[i] ) ) {
-            if( obj[i] !== null )
+            if( obj[i] !== null && obj[i] !== undefined )
               args.push( obj[ i ] );
           }else {
             args.push( ...obj[i] );
@@ -27290,10 +27290,11 @@ box | 3
 box^.1 | .4
 
 // we can specify better render settings for large repeats
-// run these lines one by one or highlight them both
-// and hit ctrl+enter. alternatively you can run the code
-// block your cursor is inside of using Alt+Enter; the block
-// is defined as having blank lines on both sides of it.
+// run these lines one by one. alternatively you can run the 
+// code block your cursor is inside of using Alt+Enter; the block
+// is defined as having blank lines on both sides of it. this
+// the quickest way to run most examples in this tutorial...
+// just click in a block and hit alt+enter.
 render = repeat.med
 box^.1 | .4
 

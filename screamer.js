@@ -124,7 +124,7 @@ const screamer = {
           if( obj[0] === 'combinator' ){ 
             if( i === 4 ) {
               obj[i].forEach( v => {
-                args.push( v )
+                args.push( Array.isArray(v) ? screamer.walk(v) : v )
               })
             }else{
               args.push( screamer.walk( obj[ i ] ) )
@@ -134,7 +134,7 @@ const screamer = {
           }
         }else{
           if( !Array.isArray( obj[i] ) ) {
-            if( obj[i] !== null )
+            if( obj[i] !== null && obj[i] !== undefined )
               args.push( obj[ i ] )
           }else{
             args.push( ...obj[i] )
