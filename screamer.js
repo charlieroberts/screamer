@@ -176,6 +176,8 @@ const screamer = {
       }
     } else if( obj[0] === 'config' ) {
       if( obj[1] === 'post' ) {
+        // correct for lists
+        if( !Array.isArray( obj[2] )) { obj[2] = obj[2].values }
         obj[2] = obj[2].map( v => {
           const func = window[ v[0][0].toUpperCase() + v[0].slice(1) ]
           const out = v[1] !== null
@@ -254,8 +256,8 @@ const screamer = {
       if( out !== false ) {
         march( out )
           .fog( 
-            config.fog[0], 
-            [ config.fog[1], config.fog[2], config.fog[3] ]
+            config.fog.length > 0 ? config.fog[0] : 0, 
+            config.fog.length > 0 ? [ config.fog[1], config.fog[2], config.fog[3] ] : [0,0,0]
           )
           .background( Vec3(...config.background ) )
           .post(   ...config.post )
