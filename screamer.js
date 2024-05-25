@@ -24,16 +24,6 @@ const screamer = {
   },
 
   init() {
-    /*const p = new Promise( (reject, resolve) => {
-      const script = document.createElement( 'script' )
-      script.src = '../screamer-lang.js'
-
-      document.querySelector( 'head' ).appendChild( script )
-      
-
-      script.onload = resolve
-    })*/
-
     window.onmousemove = function(e) {
       mouse.x = e.clientX / window.innerWidth
       mouse.y = e.clientY / window.innerHeight

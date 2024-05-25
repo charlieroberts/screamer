@@ -7,8 +7,9 @@ In music, a "screamer" is a sped-up march used in circuses to ["stir audiences i
 ## Play
 [Try the playground](https://charlieroberts.github.io/screamer/playground). Here's a few keyboard commands worth knowing:
 
-- `Ctrl+Enter`: Execute the current line (as defined by where the cursor is placed), or all selected code if a selection has been made.
+- `Ctrl+Enter`: Execute the current line (as defined by where the cursor is placed).
 - `Shift+Ctrl+Enter`: Execute all lines.
+- `Alt+Enter`: Execute current code "block". Blocks are delimited by blank lines in the editor. 
 - `Ctrl+.`: Clear the current scene.
 - `Alt+C`: Enable camera controls. Use WASD + the arrow keys to move through the 3D scene. Hit `Alt+C` again to disable the controls and return to editing.
 

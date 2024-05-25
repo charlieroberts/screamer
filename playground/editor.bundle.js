@@ -24276,16 +24276,6 @@ const screamer = {
   },
 
   init() {
-    /*const p = new Promise( (reject, resolve) => {
-      const script = document.createElement( 'script' )
-      script.src = '../screamer-lang.js'
-
-      document.querySelector( 'head' ).appendChild( script )
-      
-
-      script.onload = resolve
-    })*/
-
     window.onmousemove = function(e) {
       mouse.x = e.clientX / window.innerWidth;
       mouse.y = e.clientY / window.innerHeight;
@@ -27130,10 +27120,35 @@ const getStarterCode = function() {
   return out
 };
 
+const getBlock = function( cm ) {
+  let startline = cm.state.doc.lineAt( cm.state.selection.main.head ).number, 
+      endline = startline;
+      
+  
+  while ( startline >= 1 && cm.state.doc.line( startline ).text !== "" ) { startline--; }
+  while ( endline < cm.state.doc.lines && cm.state.doc.line( endline ).text !== "" ) { endline++; }
+
+  const text = cm.state.sliceDoc(
+    cm.state.doc.line( startline+1 ).from, 
+    cm.state.doc.line( endline ).to
+  );
+
+  return text
+};
+
 const setupEditor = function() {
   const p = Prec.highest(
     keymap.of([
       { 
+        key: "Alt-Enter", 
+        run(e) { 
+          //localStorage.setItem("src", e.state.doc.toString())
+          const code = getBlock( e ); 
+          screamer.run( code );
+          return true
+        } 
+      }, 
+      {
         key: "Ctrl-Enter", 
         run(e) { 
           //localStorage.setItem("src", e.state.doc.toString())
@@ -27276,7 +27291,9 @@ box^.1 | .4
 
 // we can specify better render settings for large repeats
 // run these lines one by one or highlight them both
-// and hit ctrl+enter
+// and hit ctrl+enter. alternatively you can run the code
+// block your cursor is inside of using Alt+Enter; the block
+// is defined as having blank lines on both sides of it.
 render = repeat.med
 box^.1 | .4
 
