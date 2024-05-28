@@ -1,12 +1,14 @@
-import { basicSetup, EditorView } from "codemirror"
+import { basicSetup, minimalSetup, EditorView } from "codemirror"
+import { closeBrackets } from "@codemirror/autocomplete"
 import { keymap } from "@codemirror/view"
-import screamer from '../screamer.js'
 import { Prec, Compartment } from "@codemirror/state"
-import { javascript } from "@codemirror/lang-javascript"
+import { javascript, javascriptLanguage } from "@codemirror/lang-javascript"
 import { defaultKeymap } from "@codemirror/commands"
 import { basicDark } from 'cm6-theme-basic-dark'
+import { StreamLanguage } from "@codemirror/language"
 
-
+import { screamer_def } from "./screamer-def.js"
+import screamer from '../screamer.js'
 
 let run
 const init = async function() {
@@ -121,14 +123,20 @@ const setupEditor = function() {
   //let src = localStorage.getItem("src")
   //src = src == null ? shaderDefault : src
 
+
+  const sd = StreamLanguage.define( screamer_def )
+
   window.editor = new EditorView({
     doc: getStarterCode(),
     extensions: [
-      basicSetup, 
-      javascript(),
+      minimalSetup, 
+      closeBrackets(),
+      sd,
       p,
       basicDark,
-      editableCompartment.of(EditorView.editable.of(true)),
+      //editableCompartment.of(EditorView.editable.of(true)),
+      // only close ( and [
+      sd.data.of({closeBrackets: {brackets: ['(', '[']}})
     ],
     parent: document.body,
   });
@@ -222,16 +230,16 @@ sphere
 box
 
 // bigger sphere?
-sphere^1.5
+sphere'1.5
 
 // bigger cone?
-cone^5
+cone'5
 
 // repeated boxes?
 box | 3
 
 // smaller boxes, more repeats
-box^.1 | .4
+box'.1 | .4
 
 // we can specify better render settings for large repeats
 // run these lines one by one. alternatively you can run the 
@@ -240,68 +248,68 @@ box^.1 | .4
 // the quickest way to run most examples in this tutorial...
 // just click in a block and hit alt+enter.
 render = repeat.med
-box^.1 | .4
+box'.1 | .4
 
 // a little fog makes things purdy
 // first, the amount of fog, then, the color
 // screamer will also remember your last used
 // render settings (repeat.med)
 fog = (.25,0,0,0)
-sphere ^.1 | .4
+sphere '.1 | .4
 
 // play with your mouse
-sphere ^ mousex | mousey * 4
+sphere ' mousex | mousey * 4
 
 // animate with time
 fog = (0,0,0,0)
-sphere ^ 1 + sin(time)
+sphere ' 1 + sin(time)
 
 // combine two shapes
-sphere^1.3 ++ box
+sphere'1.3 ++ box
 
 // smoother
-sphere^1.3 +++ box
+sphere'1.3 +++ box
 
 // stepped
-sphere^1.3 ++++ box
+sphere'1.3 ++++ box
 
 // group with parenthesis and rotate
 // rotate (@) takes an amount in degrees, followed by an axis
-(sphere^1.3 ++++ box)@(time*20, sin(time), 1, 0)
+(sphere'1.3 ++++ box)@(time*20, sin(time), 1, 0)
 
 // get the difference of two shapes
 box -- julia
 
 // animate julia fractal folding and rotate
-((box -- julia( 4 + sin(time ))^1.3 ) @ (time*20,0,1,0)) ^ 1.35
+((box -- julia( 4 + sin(time ))'1.3 ) @ (time*20,0,1,0)) ' 1.35
 
 // color julia red,green,blue,cyan,magenta,yellow,black,white,grey
-julia(time)^2.5 : red
+julia(time)'2.5 : red
 
 // texture julia
 render = fractal.med
 fog = (.125,0,0,0)
-julia( 5+sin(time/3) ) ^2 : red :: stripes
+julia( 5+sin(time/3) ) '2 : red :: stripes
 
 // texture boxes
 render = repeat.med
 fog = (.25,0,0,0)
-(box@(time*25,0,1,0)::rainbow^.2 | .75)
+(box@(time*25,0,1,0)::rainbow'.2 | .75)
 
 // hit alt+c, then use WASD and the arrow keys to explore
 // hit alt+c again to resume editing
 
 // subtract a repeat
 fog = (0,0,0,0)
-(box:red -- box:green^.1|.3)@(time*5,0,1,1)
+(box:red -- box:green'.1|.3)@(time*5,0,1,1)
 
 // smooth out the jaggies with post-processing
 post = ( antialias(3) )
-(box:red -- box:green^.1|.3)@(time*5,0,1,1)
+(box:red -- box:green'.1|.3)@(time*5,0,1,1)
 
 // fun with postprocessing and mouse
 post = ( edge, invert(1) )
-(box:red -- box:green^mousey/4|.2+mousex/3)^1.6@(time*15,0,1,1)
+(box:red -- box:green'mousey/4|.2+mousex/3)'1.6@(time*15,0,1,1)
 
 // use low and high audio analysis to drive fractal
 // the first time you use the low,med,or high variables
@@ -309,7 +317,7 @@ post = ( edge, invert(1) )
 // audio input. shushing into your mic works well for 
 // this demo :)
 render=fractal.med
-mandalay( high*5, low/4, 2 )^.75@(time*5,0,0,1)::rainbow
+mandalay( high*5, low/4, 2 )'.75@(time*5,0,0,1)::rainbow
 
 // for a more complete reference see
 // https://charlieroberts.github.io/screamer
