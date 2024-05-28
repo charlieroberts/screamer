@@ -19,6 +19,11 @@ pp = lp fx:(post (lp arguments rp)? ','?)+ rp {
 
 listparen = lp _ values:arguments _ rp { return { name:'list', values } }
 
+loop "loop" = _ '[' _ obj:(operation / group / geometry) _ num:int _ mods:( modchar _ (mathoperation/listparen))* _ ']' _ {
+  mods = mods.map( v => [ v[0], v[2] ] )
+  return ['loop', obj, num, mods]
+}
+
 assignment "assign" = name:word _ '=' _ statement:(expr/vector) {
   return [ 'assignment', name, statement ]
 }
@@ -29,7 +34,7 @@ group "group" = _ '(' body:expr ')' _ {
   return body 
 }
 
-expr "expr" = operation / group / geometry / operand / mathoperand
+expr "expr" = operation / group / loop / geometry / operand / mathoperand
 
 operation = 
   stairsunion /
@@ -87,17 +92,17 @@ mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)* {
   return isFinalTerm ? a : ['math',b[0][0], a,b[0][2] ] 
 }
 
-modchar = '^' / '||' / '|' / '::' / ':' / '@' / '>'
-modoperation "modop" = a:(geometry/group) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen))* {
+modchar = '\'\'' / '\'' / '||' / '|' / '::' / ':' / '@' / '>>' / '>' 
+modoperation "modop" = a:(geometry/group/loop) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen))* {
   const isFinalTerm = b[0] === undefined
   return isFinalTerm ? a : ['mod', a, b.map(v=>[v[0],v[2]]) ] 
 }
 
 operandargs = lp alist:list rp { return alist }
-operand  "operand" = modoperation / group / geometry / function
+operand  "operand" = modoperation / group / geometry / loop / function
 
 mathoperand "mathoperand" = number / variable / function 
-variable = "time" / "low" / "mid" / "high" / "mousex" / "mousey"
+variable = "time" / "low" / "mid" / "high" / "mousex" / "mousey" / "i"
 
 function = maths / geometry
 
@@ -117,7 +122,7 @@ math =
   "abs" /
   "floor" /
   "random" /
-  "ceil"
+  "ceil" 
 
 geometry_name = _ name:(
   "box" /
@@ -191,6 +196,7 @@ rp = _')'_ { return ')' }
 lp = _'('_ { return '(' }
 
 number = "-"? (([0-9]+ "." [0-9]*) / ("."? [0-9]+)) { return +text() }
+int = num:$[0-9]+ { return parseInt( num ) }
 
 word = _ letters:char+ _ { return letters.join('') } 
 char = [a-zA-Z.]

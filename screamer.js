@@ -1,13 +1,16 @@
 const globals = {}
 
 const mods = {
-  '^':  'scale',
+  '\'':  'scale',
+  '\'\'': 'scaleBy', 
   '|':  'Repeat',
-  '||': 'SmoothRepetition',
+  '||': 'PolarRepeat',
   ':':  'material',
   '::': 'texture',
   '>':  'translate',
-  '@':  'rotate'
+  '>>': 'moveBy',
+  '@':  'rotate',
+  '@@':  'rotateBy'
 }
  
 const mouse = { x:0, y:0 }
@@ -15,6 +18,7 @@ const mouse = { x:0, y:0 }
 const vecMembers = ['x','y','z','w']
 
 const screamer = {
+  __i:0,
   config : {
     render: 'med',
     fog: [0,0,0,0],
@@ -83,6 +87,10 @@ const screamer = {
       }
     }else if( typeof obj === 'string' ) {       
       switch( obj ) {
+        case 'i' : 
+          const i = screamer.__i
+          out = t => i
+          break
         case 'time': out = t => t; break;
         case 'mousex': out = t => mouse.x; break;
         case 'mousey': out = t => mouse.y; break;
@@ -109,12 +117,59 @@ const screamer = {
     return out
   },
 
+  processMod( obj, mod ) {
+    let out
+    const name = mods[ mod[0] ]
+
+    if( name === 'scale' || name === 'translate' || name === 'rotate' || name === 'scaleBy'  ) {
+      let args, isList = false
+
+      if( mod[1].name === 'list' ) {
+        isList = true
+        const vec = []
+        args = mod[1].values.map( screamer.mathwalk )
+
+        Marching.postrendercallbacks.push( time => {
+          const __args = args.map( v => v( time ))
+          obj[ name ]( ...__args )
+        })
+      }else{
+        args = screamer.mathwalk( mod[1] )  
+      }
+
+      if( isList ) { 
+        out = obj[ name ]( ...args  )
+        
+      }else{
+        out = obj[ name ]( args )
+      }
+    }else if( name === 'material' || name === 'texture' ) {
+      out = obj[ name ]( mod[1] )
+    }else{
+      out = typeof mod[1] === 'object' && mod[1].values !== undefined
+            ? window[ name ]( obj, ...mod[1].values.map( screamer.mathwalk ) )
+            : window[ name ]( obj, screamer.mathwalk( mod[1] ) )
+    }
+    
+    return out
+  },
+
   walk( obj ) {
     let out = null, isConfig = false
 
     if( obj[0] === 'comment' ) {
       out = false
-    } else if( obj[0] === 'geometry' || obj[0] === 'combinator' ) {
+    } else if( obj[0] === 'loop' ) { 
+      out = screamer.walk( obj[1] )
+      const mods = obj[3]
+      for( let i = 0; i < obj[2]; i++ ) {
+        screamer.__i = i   
+        mods.forEach( mod => {
+          out = screamer.processMod( out, mod )
+        })
+        screamer.__i = 0
+      }
+    }else if( obj[0] === 'geometry' || obj[0] === 'combinator' ) {
       const constructor = window[ obj[1] ]
       const args = []
       for( let i = 2; i < obj.length; i++ ) {
@@ -147,7 +202,12 @@ const screamer = {
       for( let mod of obj[2] ) {
         const name = mods[ mod[0] ]
 
-        if( name === 'scale' || name === 'translate' || name === 'rotate' ) {
+        if( name === 'scale' 
+          || name === 'translate' 
+          || name === 'rotate'
+          || name === 'rotateBy'
+          || name === 'scaleBy' 
+          || name === 'moveBy' ) {
           let args, isList = false
 
           if( mod[1].name === 'list' ) {
@@ -171,7 +231,9 @@ const screamer = {
         }else if( name === 'material' || name === 'texture' ) {
           out = geo[ name ]( mod[1] )
         }else{
-          out = window[ name ]( geo, screamer.mathwalk( mod[1] ) )
+          out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
+            ? window[ name ]( geo, ...mod[1].values.map( screamer.mathwalk ) )
+            : window[ name ]( geo, screamer.mathwalk( mod[1] ) )
         }
       }
     } else if( obj[0] === 'config' ) {
