@@ -34,7 +34,7 @@ group "group" = _ '(' body:expr ')' _ {
   return body 
 }
 
-expr "expr" = operation / group / loop / geometry / operand / mathoperand
+expr "expr" = operation / group / loop /  geometry / operand / mathoperand
 
 operation = 
   stairsunion /
@@ -46,7 +46,6 @@ operation =
   stairsintersection /
   roundintersection /
   intersection /
-  monop /
   modoperation /
   mathoperation
 
@@ -92,14 +91,10 @@ mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)* {
   return isFinalTerm ? a : ['math',b[0][0], a,b[0][2] ] 
 }
 
-monop = a:(modoperation/material/texture/geometry/group/loop) _ op:('|') _ {
-  return ['mod', a, '|' ]
-} 
-
-modchar = '\'\'' / '\'' / '::' / ':' / '@' / '>>' / '>' / '##' / '#'
-modoperation "modop" = a:(geometry/group/loop) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen/monop))* {
+modchar = '\'\'' / '\'' / '::' / ':' / '@' / '>>' / '>' / '##' / '#' / '||' / '|'
+modoperation "modop" = a:(geometry/group/loop) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen)*)* {
   const isFinalTerm = b[0] === undefined
-  return isFinalTerm ? a : ['mod', a, b.map(v=>[v[0],v[2]]) ] 
+  return isFinalTerm ? a : ['mod', a, b.map(v=>[v[0],v[2][0]]) ] 
 }
 
 operandargs = lp alist:list rp { return alist }
