@@ -320,6 +320,34 @@ post   = ()
 render = fractal.med
 mandalay( high*5, low/4, 2 )'.75@(time*5,0,0,1)::rainbow
 
+// mirror a julia
+julia(time)'2 |
+
+// mirror a box
+box |
+
+// hmmm... it does nothing?
+// this is because a centered
+// box is symmetrical, so you
+// don't see the effects of
+// mirroring. try translating
+// and then mirroring.
+box(.25) >(.35,0,0) |
+
+// more please
+(((octahedron(.2) >(.25,0,0) |) >(.6,.5,.4) @(time,0,sin(time),cos(time)) |) >(.5,.5,.5) |)'1.25
+
+// as you might imagine you can
+// chain a lot of mirrors together.
+// as an alternative, screamer 
+// provides a loop [] operator.
+// here's 8 loops of translations,
+// rotations, and scalings.
+
+render = high
+post = ( antialias, focus(.1,.025) )
+[octahedron(.125) 8 >(.25,.1,.05) @(45,cos(i+time/3),0,1) | ]
+
 // for a more complete reference see
 // https://charlieroberts.github.io/screamer
 `
