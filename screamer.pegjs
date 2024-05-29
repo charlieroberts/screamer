@@ -46,11 +46,11 @@ operation =
   stairsintersection /
   roundintersection /
   intersection /
+  monop /
   modoperation /
-  mathoperation 
+  mathoperation
 
 // union
-/*union "union" = ah:operand _ '++' _ b:expr* { return ['combinator', 'Union', a, b[0] ] }*/
 union "union"   = a:operand _ '++' args:operandargs? _ b:expr* { 
   return ['combinator', 'Union', a,b[0],args ] 
 }
@@ -92,8 +92,12 @@ mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)* {
   return isFinalTerm ? a : ['math',b[0][0], a,b[0][2] ] 
 }
 
-modchar = '\'\'' / '\'' / '||' / '|' / '::' / ':' / '@' / '>>' / '>' 
-modoperation "modop" = a:(geometry/group/loop) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen))* {
+monop = a:(modoperation/material/texture/geometry/group/loop) _ op:('|') _ {
+  return ['mod', a, '|' ]
+} 
+
+modchar = '\'\'' / '\'' / '::' / ':' / '@' / '>>' / '>' / '##' / '#'
+modoperation "modop" = a:(geometry/group/loop) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen/monop))* {
   const isFinalTerm = b[0] === undefined
   return isFinalTerm ? a : ['mod', a, b.map(v=>[v[0],v[2]]) ] 
 }
