@@ -327,9 +327,13 @@ const screamer = {
           out = geo[ name ]( mod[1] )
         }else{
           // mirror / repeat / polarrepeat etc.
-          out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
-            ? window[ name ]( geo, ...mod[1].values.map( screamer.mathwalk ) )
-            : window[ name ]( geo, screamer.mathwalk( mod[1] ) )
+          if( mod[1] !== null ) {
+            out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
+              ? window[ name ]( geo, ...mod[1].values.map( screamer.mathwalk ) )
+              : window[ name ]( geo, screamer.mathwalk( mod[1] ) )
+          }else{
+            out = window[ name ]( geo )
+          }
         }
       }
 

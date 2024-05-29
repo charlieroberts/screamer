@@ -19,7 +19,7 @@ pp = lp fx:(post (lp arguments rp)? ','?)+ rp {
 
 listparen = lp _ values:arguments _ rp { return { name:'list', values } }
 
-loop "loop" = _ '[' _ obj:(operation / group / geometry) _ num:int _ mods:( modchar _ (mathoperation/listparen))* _ ']' _ {
+loop "loop" = _ '[' _ obj:(operation / group / geometry) _ num:int _ mods:( modchar _ (mathoperation/listparen)?)* _ ']' _ {
   mods = mods.map( v => [ v[0], v[2] ] )
   return ['loop', obj, num, mods]
 }
@@ -92,9 +92,18 @@ mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)* {
 }
 
 modchar = '\'\'' / '\'' / '::' / ':' / '@' / '>>' / '>' / '##' / '#' / '||' / '|'
-modoperation "modop" = a:(geometry/group/loop) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen)*)* {
-  const isFinalTerm = b[0] === undefined
-  return isFinalTerm ? a : ['mod', a, b.map(v=>[v[0],v[2][0]]) ] 
+/*modoperation "modop" = a:(geometry/group/loop) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen)?)* {*/
+/*  const isFinalTerm = b[0] === undefined*/
+/*  return isFinalTerm ? a : ['mod', a, b.map(v=>[v[0],v[2]!==null ? v[2][0] : null ]) ] */
+/*}*/
+modoperation "modop" = a:(geometry/group/loop) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen)?)* {
+  const isBNull = b === null
+  if( !isBNull ) {
+    const isFinalTerm = b !== null && b[0] === undefined
+    return isFinalTerm ? a : ['mod', a, b.map(v=>[v[0],v[2]]) ] 
+  }else{
+    return a
+  }
 }
 
 operandargs = lp alist:list rp { return alist }
@@ -125,6 +134,7 @@ math =
 
 geometry_name = _ name:(
   "box" /
+  "roundbox" /
   "capsule" /
   "cone" /
   "cylinder" /
@@ -137,11 +147,9 @@ geometry_name = _ name:(
   "octahedron" /
   "plane" /
   "quad" /
-  "roundbox" /
   "sphere" /
-  "torus" /
-  "torus88" /
   "torus82" /
+  "torus" /
   "triangle"
   ) _ { return name }
 
