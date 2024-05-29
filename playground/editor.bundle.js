@@ -2429,14 +2429,14 @@ function mergeTransaction(a, b, sequential) {
     };
 }
 function resolveTransactionInner(state, spec, docSize) {
-    let sel = spec.selection, annotations = asArray$1(spec.annotations);
+    let sel = spec.selection, annotations = asArray(spec.annotations);
     if (spec.userEvent)
         annotations = annotations.concat(Transaction.userEvent.of(spec.userEvent));
     return {
         changes: spec.changes instanceof ChangeSet ? spec.changes
             : ChangeSet.of(spec.changes || [], docSize, state.facet(lineSeparator)),
         selection: sel && (sel instanceof EditorSelection ? sel : EditorSelection.single(sel.anchor, sel.head)),
-        effects: asArray$1(spec.effects),
+        effects: asArray(spec.effects),
         annotations,
         scrollIntoView: !!spec.scrollIntoView
     };
@@ -2490,7 +2490,7 @@ function filterTransaction(tr) {
         else if (Array.isArray(filtered) && filtered.length == 1 && filtered[0] instanceof Transaction)
             tr = filtered[0];
         else
-            tr = resolveTransaction(state, asArray$1(filtered), false);
+            tr = resolveTransaction(state, asArray(filtered), false);
     }
     return tr;
 }
@@ -2503,9 +2503,9 @@ function extendTransaction(tr) {
     }
     return spec == tr ? tr : Transaction.create(state, tr.changes, tr.selection, spec.effects, spec.annotations, spec.scrollIntoView);
 }
-const none$2 = [];
-function asArray$1(value) {
-    return value == null ? none$2 : Array.isArray(value) ? value : [value];
+const none$1 = [];
+function asArray(value) {
+    return value == null ? none$1 : Array.isArray(value) ? value : [value];
 }
 
 /**
@@ -2645,7 +2645,7 @@ class EditorState {
             }
             else if (effect.is(StateEffect.appendConfig)) {
                 conf = null;
-                base = asArray$1(base).concat(effect.value);
+                base = asArray(base).concat(effect.value);
             }
         }
         let startValues;
@@ -2685,7 +2685,7 @@ class EditorState {
         let sel = this.selection;
         let result1 = f(sel.ranges[0]);
         let changes = this.changes(result1.changes), ranges = [result1.range];
-        let effects = asArray$1(result1.effects);
+        let effects = asArray(result1.effects);
         for (let i = 1; i < sel.ranges.length; i++) {
             let result = f(sel.ranges[i]);
             let newChanges = this.changes(result.changes), newMapped = newChanges.map(changes);
@@ -2694,7 +2694,7 @@ class EditorState {
             let mapBy = changes.mapDesc(newChanges, true);
             ranges.push(result.range.map(mapBy));
             changes = changes.compose(newMapped);
-            effects = StateEffect.mapEffects(effects, newMapped).concat(StateEffect.mapEffects(asArray$1(result.effects), mapBy));
+            effects = StateEffect.mapEffects(effects, newMapped).concat(StateEffect.mapEffects(asArray(result.effects), mapBy));
         }
         return {
             changes,
@@ -4232,7 +4232,7 @@ function getSelection(root) {
     }
     return target.getSelection();
 }
-function contains(dom, node) {
+function contains$1(dom, node) {
     return node ? dom == node || dom.contains(node.nodeType != 1 ? node.parentNode : node) : false;
 }
 function deepActiveElement(doc) {
@@ -4248,7 +4248,7 @@ function hasSelection(dom, selection) {
         // Firefox will raise 'permission denied' errors when accessing
         // properties of `sel.anchorNode` when it's in a generated CSS
         // element.
-        return contains(dom, selection.anchorNode);
+        return contains$1(dom, selection.anchorNode);
     }
     catch (_) {
         return false;
@@ -6580,7 +6580,7 @@ class ScrollTarget {
             new ScrollTarget(EditorSelection.cursor(state.doc.length), this.y, this.x, this.yMargin, this.xMargin, this.isSnapshot);
     }
 }
-const scrollIntoView$1 = /*@__PURE__*/StateEffect.define({ map: (t, ch) => t.map(ch) });
+const scrollIntoView = /*@__PURE__*/StateEffect.define({ map: (t, ch) => t.map(ch) });
 /**
 Log or report an unhandled exception in client code. Should
 probably only be used by extension code that allows client code to
@@ -8923,11 +8923,11 @@ class BlockInfo {
         return new BlockInfo(this.from, this.length + other.length, this.top, this.height + other.height, content);
     }
 }
-var QueryType$1 = /*@__PURE__*/(function (QueryType) {
+var QueryType = /*@__PURE__*/(function (QueryType) {
     QueryType[QueryType["ByPos"] = 0] = "ByPos";
     QueryType[QueryType["ByHeight"] = 1] = "ByHeight";
     QueryType[QueryType["ByPosNoHeight"] = 2] = "ByPosNoHeight";
-return QueryType})(QueryType$1 || (QueryType$1 = {}));
+return QueryType})(QueryType || (QueryType = {}));
 const Epsilon = 1e-3;
 class HeightMap {
     constructor(length, // The number of characters covered
@@ -8959,8 +8959,8 @@ class HeightMap {
         let me = this, doc = oracle.doc;
         for (let i = changes.length - 1; i >= 0; i--) {
             let { fromA, toA, fromB, toB } = changes[i];
-            let start = me.lineAt(fromA, QueryType$1.ByPosNoHeight, oracle.setDoc(oldDoc), 0, 0);
-            let end = start.to >= toA ? start : me.lineAt(toA, QueryType$1.ByPosNoHeight, oracle, 0, 0);
+            let start = me.lineAt(fromA, QueryType.ByPosNoHeight, oracle.setDoc(oldDoc), 0, 0);
+            let end = start.to >= toA ? start : me.lineAt(toA, QueryType.ByPosNoHeight, oracle, 0, 0);
             toB += end.to - toA;
             toA = end.to;
             while (i > 0 && start.from <= changes[i - 1].toA) {
@@ -8968,7 +8968,7 @@ class HeightMap {
                 fromB = changes[i - 1].fromB;
                 i--;
                 if (fromA < start.from)
-                    start = me.lineAt(fromA, QueryType$1.ByPosNoHeight, oracle, 0, 0);
+                    start = me.lineAt(fromA, QueryType.ByPosNoHeight, oracle, 0, 0);
             }
             fromB += start.from - fromA;
             fromA = start.from;
@@ -9129,9 +9129,9 @@ class HeightMapGap extends HeightMap {
         }
     }
     lineAt(value, type, oracle, top, offset) {
-        if (type == QueryType$1.ByHeight)
+        if (type == QueryType.ByHeight)
             return this.blockAt(value, oracle, top, offset);
-        if (type == QueryType$1.ByPosNoHeight) {
+        if (type == QueryType.ByPosNoHeight) {
             let { from, to } = oracle.doc.lineAt(value);
             return new BlockInfo(from, to - from, 0, 0, 0);
         }
@@ -9236,12 +9236,12 @@ class HeightMapBranch extends HeightMap {
     }
     lineAt(value, type, oracle, top, offset) {
         let rightTop = top + this.left.height, rightOffset = offset + this.left.length + this.break;
-        let left = type == QueryType$1.ByHeight ? value < rightTop : value < rightOffset;
+        let left = type == QueryType.ByHeight ? value < rightTop : value < rightOffset;
         let base = left ? this.left.lineAt(value, type, oracle, top, offset)
             : this.right.lineAt(value, type, oracle, rightTop, rightOffset);
         if (this.break || (left ? base.to < rightOffset : base.from > rightOffset))
             return base;
-        let subQuery = type == QueryType$1.ByPosNoHeight ? QueryType$1.ByPosNoHeight : QueryType$1.ByPos;
+        let subQuery = type == QueryType.ByPosNoHeight ? QueryType.ByPosNoHeight : QueryType.ByPos;
         if (left)
             return base.join(this.right.lineAt(rightOffset, subQuery, oracle, rightTop, rightOffset));
         else
@@ -9256,7 +9256,7 @@ class HeightMapBranch extends HeightMap {
                 this.right.forEachLine(from, to, oracle, rightTop, rightOffset, f);
         }
         else {
-            let mid = this.lineAt(rightOffset, QueryType$1.ByPos, oracle, top, offset);
+            let mid = this.lineAt(rightOffset, QueryType.ByPos, oracle, top, offset);
             if (from < mid.from)
                 this.left.forEachLine(from, mid.from - 1, oracle, top, offset, f);
             if (mid.to >= from && mid.from <= to)
@@ -9789,35 +9789,35 @@ class ViewState {
         let marginTop = 0.5 - Math.max(-0.5, Math.min(0.5, bias / 1000 /* VP.Margin */ / 2));
         let map = this.heightMap, oracle = this.heightOracle;
         let { visibleTop, visibleBottom } = this;
-        let viewport = new Viewport(map.lineAt(visibleTop - marginTop * 1000 /* VP.Margin */, QueryType$1.ByHeight, oracle, 0, 0).from, map.lineAt(visibleBottom + (1 - marginTop) * 1000 /* VP.Margin */, QueryType$1.ByHeight, oracle, 0, 0).to);
+        let viewport = new Viewport(map.lineAt(visibleTop - marginTop * 1000 /* VP.Margin */, QueryType.ByHeight, oracle, 0, 0).from, map.lineAt(visibleBottom + (1 - marginTop) * 1000 /* VP.Margin */, QueryType.ByHeight, oracle, 0, 0).to);
         // If scrollTarget is given, make sure the viewport includes that position
         if (scrollTarget) {
             let { head } = scrollTarget.range;
             if (head < viewport.from || head > viewport.to) {
                 let viewHeight = Math.min(this.editorHeight, this.pixelViewport.bottom - this.pixelViewport.top);
-                let block = map.lineAt(head, QueryType$1.ByPos, oracle, 0, 0), topPos;
+                let block = map.lineAt(head, QueryType.ByPos, oracle, 0, 0), topPos;
                 if (scrollTarget.y == "center")
                     topPos = (block.top + block.bottom) / 2 - viewHeight / 2;
                 else if (scrollTarget.y == "start" || scrollTarget.y == "nearest" && head < viewport.from)
                     topPos = block.top;
                 else
                     topPos = block.bottom - viewHeight;
-                viewport = new Viewport(map.lineAt(topPos - 1000 /* VP.Margin */ / 2, QueryType$1.ByHeight, oracle, 0, 0).from, map.lineAt(topPos + viewHeight + 1000 /* VP.Margin */ / 2, QueryType$1.ByHeight, oracle, 0, 0).to);
+                viewport = new Viewport(map.lineAt(topPos - 1000 /* VP.Margin */ / 2, QueryType.ByHeight, oracle, 0, 0).from, map.lineAt(topPos + viewHeight + 1000 /* VP.Margin */ / 2, QueryType.ByHeight, oracle, 0, 0).to);
             }
         }
         return viewport;
     }
     mapViewport(viewport, changes) {
         let from = changes.mapPos(viewport.from, -1), to = changes.mapPos(viewport.to, 1);
-        return new Viewport(this.heightMap.lineAt(from, QueryType$1.ByPos, this.heightOracle, 0, 0).from, this.heightMap.lineAt(to, QueryType$1.ByPos, this.heightOracle, 0, 0).to);
+        return new Viewport(this.heightMap.lineAt(from, QueryType.ByPos, this.heightOracle, 0, 0).from, this.heightMap.lineAt(to, QueryType.ByPos, this.heightOracle, 0, 0).to);
     }
     // Checks if a given viewport covers the visible part of the
     // document and not too much beyond that.
     viewportIsAppropriate({ from, to }, bias = 0) {
         if (!this.inView)
             return true;
-        let { top } = this.heightMap.lineAt(from, QueryType$1.ByPos, this.heightOracle, 0, 0);
-        let { bottom } = this.heightMap.lineAt(to, QueryType$1.ByPos, this.heightOracle, 0, 0);
+        let { top } = this.heightMap.lineAt(from, QueryType.ByPos, this.heightOracle, 0, 0);
+        let { bottom } = this.heightMap.lineAt(to, QueryType.ByPos, this.heightOracle, 0, 0);
         let { visibleTop, visibleBottom } = this;
         return (from == 0 || top <= visibleTop - Math.max(10 /* VP.MinCoverMargin */, Math.min(-bias, 250 /* VP.MaxCoverMargin */))) &&
             (to == this.state.doc.length ||
@@ -9954,10 +9954,10 @@ class ViewState {
     }
     lineBlockAt(pos) {
         return (pos >= this.viewport.from && pos <= this.viewport.to && this.viewportLines.find(b => b.from <= pos && b.to >= pos)) ||
-            scaleBlock(this.heightMap.lineAt(pos, QueryType$1.ByPos, this.heightOracle, 0, 0), this.scaler);
+            scaleBlock(this.heightMap.lineAt(pos, QueryType.ByPos, this.heightOracle, 0, 0), this.scaler);
     }
     lineBlockAtHeight(height) {
-        return scaleBlock(this.heightMap.lineAt(this.scaler.fromDOM(height), QueryType$1.ByHeight, this.heightOracle, 0, 0), this.scaler);
+        return scaleBlock(this.heightMap.lineAt(this.scaler.fromDOM(height), QueryType.ByHeight, this.heightOracle, 0, 0), this.scaler);
     }
     scrollAnchorAt(scrollTop) {
         let block = this.lineBlockAtHeight(scrollTop + 8);
@@ -10041,8 +10041,8 @@ class BigScaler {
     constructor(oracle, heightMap, viewports) {
         let vpHeight = 0, base = 0, domBase = 0;
         this.viewports = viewports.map(({ from, to }) => {
-            let top = heightMap.lineAt(from, QueryType$1.ByPos, oracle, 0, 0).top;
-            let bottom = heightMap.lineAt(to, QueryType$1.ByPos, oracle, 0, 0).bottom;
+            let top = heightMap.lineAt(from, QueryType.ByPos, oracle, 0, 0).top;
+            let bottom = heightMap.lineAt(to, QueryType.ByPos, oracle, 0, 0).bottom;
             vpHeight += bottom - top;
             return { from, to, top, bottom, domTop: 0, domBottom: 0 };
         });
@@ -10100,7 +10100,7 @@ function buildTheme(main, spec, scopes) {
         }
     });
 }
-const baseTheme$1$3 = /*@__PURE__*/buildTheme("." + baseThemeID, {
+const baseTheme$1 = /*@__PURE__*/buildTheme("." + baseThemeID, {
     "&": {
         position: "relative !important",
         boxSizing: "border-box",
@@ -10481,11 +10481,11 @@ class DOMChange {
         else {
             let domSel = view.observer.selectionRange;
             let head = iHead && iHead.node == domSel.focusNode && iHead.offset == domSel.focusOffset ||
-                !contains(view.contentDOM, domSel.focusNode)
+                !contains$1(view.contentDOM, domSel.focusNode)
                 ? view.state.selection.main.head
                 : view.docView.posFromDOM(domSel.focusNode, domSel.focusOffset);
             let anchor = iAnchor && iAnchor.node == domSel.anchorNode && iAnchor.offset == domSel.anchorOffset ||
-                !contains(view.contentDOM, domSel.anchorNode)
+                !contains$1(view.contentDOM, domSel.anchorNode)
                 ? view.state.selection.main.anchor
                 : view.docView.posFromDOM(domSel.anchorNode, domSel.anchorOffset);
             // iOS will refuse to select the block gaps when doing
@@ -11311,7 +11311,7 @@ class EditorView {
         this.dispatch = this.dispatch.bind(this);
         this._root = (config.root || getRoot(config.parent) || document);
         this.viewState = new ViewState(config.state || EditorState.create(config));
-        if (config.scrollTo && config.scrollTo.is(scrollIntoView$1))
+        if (config.scrollTo && config.scrollTo.is(scrollIntoView))
             this.viewState.scrollTarget = config.scrollTo.value.clip(this.viewState.state);
         this.plugins = this.state.facet(viewPlugin).map(spec => new PluginInstance(spec));
         for (let plugin of this.plugins)
@@ -11397,7 +11397,7 @@ class EditorView {
                     scrollTarget = new ScrollTarget(main.empty ? main : EditorSelection.cursor(main.head, main.head > main.anchor ? -1 : 1));
                 }
                 for (let e of tr.effects)
-                    if (e.is(scrollIntoView$1))
+                    if (e.is(scrollIntoView))
                         scrollTarget = e.value.clip(this.state);
             }
             this.viewState.update(update, scrollTarget);
@@ -11690,7 +11690,7 @@ class EditorView {
     mountStyles() {
         this.styleModules = this.state.facet(styleModule);
         let nonce = this.state.facet(EditorView.cspNonce);
-        StyleModule.mount(this.root, this.styleModules.concat(baseTheme$1$3).reverse(), nonce ? { nonce } : undefined);
+        StyleModule.mount(this.root, this.styleModules.concat(baseTheme$1).reverse(), nonce ? { nonce } : undefined);
     }
     readMeasured() {
         if (this.updateState == 2 /* UpdateState.Updating */)
@@ -12038,7 +12038,7 @@ class EditorView {
     cause it to scroll the given position or range into view.
     */
     static scrollIntoView(pos, options = {}) {
-        return scrollIntoView$1.of(new ScrollTarget(typeof pos == "number" ? EditorSelection.cursor(pos) : pos, options.y, options.x, options.yMargin, options.xMargin));
+        return scrollIntoView.of(new ScrollTarget(typeof pos == "number" ? EditorSelection.cursor(pos) : pos, options.y, options.x, options.yMargin, options.xMargin));
     }
     /**
     Return an effect that resets the editor to its current (at the
@@ -12055,7 +12055,7 @@ class EditorView {
     scrollSnapshot() {
         let { scrollTop, scrollLeft } = this.scrollDOM;
         let ref = this.viewState.scrollAnchorAt(scrollTop);
-        return scrollIntoView$1.of(new ScrollTarget(EditorSelection.cursor(ref.from), "start", "start", ref.top - scrollTop, scrollLeft, true));
+        return scrollIntoView.of(new ScrollTarget(EditorSelection.cursor(ref.from), "start", "start", ref.top - scrollTop, scrollLeft, true));
     }
     /**
     Returns an extension that can be used to add DOM event handlers.
@@ -12408,14 +12408,6 @@ function getKeymap(state) {
     if (!map)
         Keymaps.set(bindings, map = buildKeymap(bindings.reduce((a, b) => a.concat(b), [])));
     return map;
-}
-/**
-Run the key handlers registered for a given scope. The event
-object should be a `"keydown"` event. Returns true if any of the
-handlers handled it.
-*/
-function runScopeHandlers(view, event, scope) {
-    return runHandlers(getKeymap(view.state), event, view, scope);
 }
 let storedPrefix = null;
 const PrefixTimeout = 4000;
@@ -12905,100 +12897,6 @@ if (CanHidePrimary) {
 }
 const hideNativeSelection = /*@__PURE__*/Prec.highest(/*@__PURE__*/EditorView.theme(themeSpec));
 
-const setDropCursorPos = /*@__PURE__*/StateEffect.define({
-    map(pos, mapping) { return pos == null ? null : mapping.mapPos(pos); }
-});
-const dropCursorPos = /*@__PURE__*/StateField.define({
-    create() { return null; },
-    update(pos, tr) {
-        if (pos != null)
-            pos = tr.changes.mapPos(pos);
-        return tr.effects.reduce((pos, e) => e.is(setDropCursorPos) ? e.value : pos, pos);
-    }
-});
-const drawDropCursor = /*@__PURE__*/ViewPlugin.fromClass(class {
-    constructor(view) {
-        this.view = view;
-        this.cursor = null;
-        this.measureReq = { read: this.readPos.bind(this), write: this.drawCursor.bind(this) };
-    }
-    update(update) {
-        var _a;
-        let cursorPos = update.state.field(dropCursorPos);
-        if (cursorPos == null) {
-            if (this.cursor != null) {
-                (_a = this.cursor) === null || _a === void 0 ? void 0 : _a.remove();
-                this.cursor = null;
-            }
-        }
-        else {
-            if (!this.cursor) {
-                this.cursor = this.view.scrollDOM.appendChild(document.createElement("div"));
-                this.cursor.className = "cm-dropCursor";
-            }
-            if (update.startState.field(dropCursorPos) != cursorPos || update.docChanged || update.geometryChanged)
-                this.view.requestMeasure(this.measureReq);
-        }
-    }
-    readPos() {
-        let { view } = this;
-        let pos = view.state.field(dropCursorPos);
-        let rect = pos != null && view.coordsAtPos(pos);
-        if (!rect)
-            return null;
-        let outer = view.scrollDOM.getBoundingClientRect();
-        return {
-            left: rect.left - outer.left + view.scrollDOM.scrollLeft * view.scaleX,
-            top: rect.top - outer.top + view.scrollDOM.scrollTop * view.scaleY,
-            height: rect.bottom - rect.top
-        };
-    }
-    drawCursor(pos) {
-        if (this.cursor) {
-            let { scaleX, scaleY } = this.view;
-            if (pos) {
-                this.cursor.style.left = pos.left / scaleX + "px";
-                this.cursor.style.top = pos.top / scaleY + "px";
-                this.cursor.style.height = pos.height / scaleY + "px";
-            }
-            else {
-                this.cursor.style.left = "-100000px";
-            }
-        }
-    }
-    destroy() {
-        if (this.cursor)
-            this.cursor.remove();
-    }
-    setDropPos(pos) {
-        if (this.view.state.field(dropCursorPos) != pos)
-            this.view.dispatch({ effects: setDropCursorPos.of(pos) });
-    }
-}, {
-    eventObservers: {
-        dragover(event) {
-            this.setDropPos(this.view.posAtCoords({ x: event.clientX, y: event.clientY }));
-        },
-        dragleave(event) {
-            if (event.target == this.view.contentDOM || !this.view.contentDOM.contains(event.relatedTarget))
-                this.setDropPos(null);
-        },
-        dragend() {
-            this.setDropPos(null);
-        },
-        drop() {
-            this.setDropPos(null);
-        }
-    }
-});
-/**
-Draws a cursor at the current drop position when something is
-dragged over the editor.
-*/
-function dropCursor() {
-    return [dropCursorPos, drawDropCursor];
-}
-
 function iterMatches(doc, re, from, to, f) {
     re.lastIndex = 0;
     for (let cursor = doc.iterRange(from, to), pos = from, m; !cursor.next().done; pos += cursor.value.length) {
@@ -13274,998 +13172,6 @@ class TabWidget extends WidgetType {
 }
 
 /**
-Mark lines that have a cursor on them with the `"cm-activeLine"`
-DOM class.
-*/
-function highlightActiveLine() {
-    return activeLineHighlighter;
-}
-const lineDeco = /*@__PURE__*/Decoration.line({ class: "cm-activeLine" });
-const activeLineHighlighter = /*@__PURE__*/ViewPlugin.fromClass(class {
-    constructor(view) {
-        this.decorations = this.getDeco(view);
-    }
-    update(update) {
-        if (update.docChanged || update.selectionSet)
-            this.decorations = this.getDeco(update.view);
-    }
-    getDeco(view) {
-        let lastLineStart = -1, deco = [];
-        for (let r of view.state.selection.ranges) {
-            let line = view.lineBlockAt(r.head);
-            if (line.from > lastLineStart) {
-                deco.push(lineDeco.range(line.from));
-                lastLineStart = line.from;
-            }
-        }
-        return Decoration.set(deco);
-    }
-}, {
-    decorations: v => v.decorations
-});
-
-// Don't compute precise column positions for line offsets above this
-// (since it could get expensive). Assume offset==column for them.
-const MaxOff = 2000;
-function rectangleFor(state, a, b) {
-    let startLine = Math.min(a.line, b.line), endLine = Math.max(a.line, b.line);
-    let ranges = [];
-    if (a.off > MaxOff || b.off > MaxOff || a.col < 0 || b.col < 0) {
-        let startOff = Math.min(a.off, b.off), endOff = Math.max(a.off, b.off);
-        for (let i = startLine; i <= endLine; i++) {
-            let line = state.doc.line(i);
-            if (line.length <= endOff)
-                ranges.push(EditorSelection.range(line.from + startOff, line.to + endOff));
-        }
-    }
-    else {
-        let startCol = Math.min(a.col, b.col), endCol = Math.max(a.col, b.col);
-        for (let i = startLine; i <= endLine; i++) {
-            let line = state.doc.line(i);
-            let start = findColumn(line.text, startCol, state.tabSize, true);
-            if (start < 0) {
-                ranges.push(EditorSelection.cursor(line.to));
-            }
-            else {
-                let end = findColumn(line.text, endCol, state.tabSize);
-                ranges.push(EditorSelection.range(line.from + start, line.from + end));
-            }
-        }
-    }
-    return ranges;
-}
-function absoluteColumn(view, x) {
-    let ref = view.coordsAtPos(view.viewport.from);
-    return ref ? Math.round(Math.abs((ref.left - x) / view.defaultCharacterWidth)) : -1;
-}
-function getPos(view, event) {
-    let offset = view.posAtCoords({ x: event.clientX, y: event.clientY }, false);
-    let line = view.state.doc.lineAt(offset), off = offset - line.from;
-    let col = off > MaxOff ? -1
-        : off == line.length ? absoluteColumn(view, event.clientX)
-            : countColumn(line.text, view.state.tabSize, offset - line.from);
-    return { line: line.number, col, off };
-}
-function rectangleSelectionStyle(view, event) {
-    let start = getPos(view, event), startSel = view.state.selection;
-    if (!start)
-        return null;
-    return {
-        update(update) {
-            if (update.docChanged) {
-                let newStart = update.changes.mapPos(update.startState.doc.line(start.line).from);
-                let newLine = update.state.doc.lineAt(newStart);
-                start = { line: newLine.number, col: start.col, off: Math.min(start.off, newLine.length) };
-                startSel = startSel.map(update.changes);
-            }
-        },
-        get(event, _extend, multiple) {
-            let cur = getPos(view, event);
-            if (!cur)
-                return startSel;
-            let ranges = rectangleFor(view.state, start, cur);
-            if (!ranges.length)
-                return startSel;
-            if (multiple)
-                return EditorSelection.create(ranges.concat(startSel.ranges));
-            else
-                return EditorSelection.create(ranges);
-        }
-    };
-}
-/**
-Create an extension that enables rectangular selections. By
-default, it will react to left mouse drag with the Alt key held
-down. When such a selection occurs, the text within the rectangle
-that was dragged over will be selected, as one selection
-[range](https://codemirror.net/6/docs/ref/#state.SelectionRange) per line.
-*/
-function rectangularSelection(options) {
-    let filter = (options === null || options === void 0 ? void 0 : options.eventFilter) || (e => e.altKey && e.button == 0);
-    return EditorView.mouseSelectionStyle.of((view, event) => filter(event) ? rectangleSelectionStyle(view, event) : null);
-}
-const keys = {
-    Alt: [18, e => !!e.altKey],
-    Control: [17, e => !!e.ctrlKey],
-    Shift: [16, e => !!e.shiftKey],
-    Meta: [91, e => !!e.metaKey]
-};
-const showCrosshair = { style: "cursor: crosshair" };
-/**
-Returns an extension that turns the pointer cursor into a
-crosshair when a given modifier key, defaulting to Alt, is held
-down. Can serve as a visual hint that rectangular selection is
-going to happen when paired with
-[`rectangularSelection`](https://codemirror.net/6/docs/ref/#view.rectangularSelection).
-*/
-function crosshairCursor(options = {}) {
-    let [code, getter] = keys[options.key || "Alt"];
-    let plugin = ViewPlugin.fromClass(class {
-        constructor(view) {
-            this.view = view;
-            this.isDown = false;
-        }
-        set(isDown) {
-            if (this.isDown != isDown) {
-                this.isDown = isDown;
-                this.view.update([]);
-            }
-        }
-    }, {
-        eventObservers: {
-            keydown(e) {
-                this.set(e.keyCode == code || getter(e));
-            },
-            keyup(e) {
-                if (e.keyCode == code || !getter(e))
-                    this.set(false);
-            },
-            mousemove(e) {
-                this.set(getter(e));
-            }
-        }
-    });
-    return [
-        plugin,
-        EditorView.contentAttributes.of(view => { var _a; return ((_a = view.plugin(plugin)) === null || _a === void 0 ? void 0 : _a.isDown) ? showCrosshair : null; })
-    ];
-}
-
-const Outside = "-10000px";
-class TooltipViewManager {
-    constructor(view, facet, createTooltipView, removeTooltipView) {
-        this.facet = facet;
-        this.createTooltipView = createTooltipView;
-        this.removeTooltipView = removeTooltipView;
-        this.input = view.state.facet(facet);
-        this.tooltips = this.input.filter(t => t);
-        let prev = null;
-        this.tooltipViews = this.tooltips.map(t => prev = createTooltipView(t, prev));
-    }
-    update(update, above) {
-        var _a;
-        let input = update.state.facet(this.facet);
-        let tooltips = input.filter(x => x);
-        if (input === this.input) {
-            for (let t of this.tooltipViews)
-                if (t.update)
-                    t.update(update);
-            return false;
-        }
-        let tooltipViews = [], newAbove = above ? [] : null;
-        for (let i = 0; i < tooltips.length; i++) {
-            let tip = tooltips[i], known = -1;
-            if (!tip)
-                continue;
-            for (let i = 0; i < this.tooltips.length; i++) {
-                let other = this.tooltips[i];
-                if (other && other.create == tip.create)
-                    known = i;
-            }
-            if (known < 0) {
-                tooltipViews[i] = this.createTooltipView(tip, i ? tooltipViews[i - 1] : null);
-                if (newAbove)
-                    newAbove[i] = !!tip.above;
-            }
-            else {
-                let tooltipView = tooltipViews[i] = this.tooltipViews[known];
-                if (newAbove)
-                    newAbove[i] = above[known];
-                if (tooltipView.update)
-                    tooltipView.update(update);
-            }
-        }
-        for (let t of this.tooltipViews)
-            if (tooltipViews.indexOf(t) < 0) {
-                this.removeTooltipView(t);
-                (_a = t.destroy) === null || _a === void 0 ? void 0 : _a.call(t);
-            }
-        if (above) {
-            newAbove.forEach((val, i) => above[i] = val);
-            above.length = newAbove.length;
-        }
-        this.input = input;
-        this.tooltips = tooltips;
-        this.tooltipViews = tooltipViews;
-        return true;
-    }
-}
-function windowSpace(view) {
-    let { win } = view;
-    return { top: 0, left: 0, bottom: win.innerHeight, right: win.innerWidth };
-}
-const tooltipConfig = /*@__PURE__*/Facet.define({
-    combine: values => {
-        var _a, _b, _c;
-        return ({
-            position: browser.ios ? "absolute" : ((_a = values.find(conf => conf.position)) === null || _a === void 0 ? void 0 : _a.position) || "fixed",
-            parent: ((_b = values.find(conf => conf.parent)) === null || _b === void 0 ? void 0 : _b.parent) || null,
-            tooltipSpace: ((_c = values.find(conf => conf.tooltipSpace)) === null || _c === void 0 ? void 0 : _c.tooltipSpace) || windowSpace,
-        });
-    }
-});
-const knownHeight = /*@__PURE__*/new WeakMap();
-const tooltipPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
-    constructor(view) {
-        this.view = view;
-        this.above = [];
-        this.inView = true;
-        this.madeAbsolute = false;
-        this.lastTransaction = 0;
-        this.measureTimeout = -1;
-        let config = view.state.facet(tooltipConfig);
-        this.position = config.position;
-        this.parent = config.parent;
-        this.classes = view.themeClasses;
-        this.createContainer();
-        this.measureReq = { read: this.readMeasure.bind(this), write: this.writeMeasure.bind(this), key: this };
-        this.resizeObserver = typeof ResizeObserver == "function" ? new ResizeObserver(() => this.measureSoon()) : null;
-        this.manager = new TooltipViewManager(view, showTooltip, (t, p) => this.createTooltip(t, p), t => {
-            if (this.resizeObserver)
-                this.resizeObserver.unobserve(t.dom);
-            t.dom.remove();
-        });
-        this.above = this.manager.tooltips.map(t => !!t.above);
-        this.intersectionObserver = typeof IntersectionObserver == "function" ? new IntersectionObserver(entries => {
-            if (Date.now() > this.lastTransaction - 50 &&
-                entries.length > 0 && entries[entries.length - 1].intersectionRatio < 1)
-                this.measureSoon();
-        }, { threshold: [1] }) : null;
-        this.observeIntersection();
-        view.win.addEventListener("resize", this.measureSoon = this.measureSoon.bind(this));
-        this.maybeMeasure();
-    }
-    createContainer() {
-        if (this.parent) {
-            this.container = document.createElement("div");
-            this.container.style.position = "relative";
-            this.container.className = this.view.themeClasses;
-            this.parent.appendChild(this.container);
-        }
-        else {
-            this.container = this.view.dom;
-        }
-    }
-    observeIntersection() {
-        if (this.intersectionObserver) {
-            this.intersectionObserver.disconnect();
-            for (let tooltip of this.manager.tooltipViews)
-                this.intersectionObserver.observe(tooltip.dom);
-        }
-    }
-    measureSoon() {
-        if (this.measureTimeout < 0)
-            this.measureTimeout = setTimeout(() => {
-                this.measureTimeout = -1;
-                this.maybeMeasure();
-            }, 50);
-    }
-    update(update) {
-        if (update.transactions.length)
-            this.lastTransaction = Date.now();
-        let updated = this.manager.update(update, this.above);
-        if (updated)
-            this.observeIntersection();
-        let shouldMeasure = updated || update.geometryChanged;
-        let newConfig = update.state.facet(tooltipConfig);
-        if (newConfig.position != this.position && !this.madeAbsolute) {
-            this.position = newConfig.position;
-            for (let t of this.manager.tooltipViews)
-                t.dom.style.position = this.position;
-            shouldMeasure = true;
-        }
-        if (newConfig.parent != this.parent) {
-            if (this.parent)
-                this.container.remove();
-            this.parent = newConfig.parent;
-            this.createContainer();
-            for (let t of this.manager.tooltipViews)
-                this.container.appendChild(t.dom);
-            shouldMeasure = true;
-        }
-        else if (this.parent && this.view.themeClasses != this.classes) {
-            this.classes = this.container.className = this.view.themeClasses;
-        }
-        if (shouldMeasure)
-            this.maybeMeasure();
-    }
-    createTooltip(tooltip, prev) {
-        let tooltipView = tooltip.create(this.view);
-        let before = prev ? prev.dom : null;
-        tooltipView.dom.classList.add("cm-tooltip");
-        if (tooltip.arrow && !tooltipView.dom.querySelector(".cm-tooltip > .cm-tooltip-arrow")) {
-            let arrow = document.createElement("div");
-            arrow.className = "cm-tooltip-arrow";
-            tooltipView.dom.appendChild(arrow);
-        }
-        tooltipView.dom.style.position = this.position;
-        tooltipView.dom.style.top = Outside;
-        tooltipView.dom.style.left = "0px";
-        this.container.insertBefore(tooltipView.dom, before);
-        if (tooltipView.mount)
-            tooltipView.mount(this.view);
-        if (this.resizeObserver)
-            this.resizeObserver.observe(tooltipView.dom);
-        return tooltipView;
-    }
-    destroy() {
-        var _a, _b, _c;
-        this.view.win.removeEventListener("resize", this.measureSoon);
-        for (let tooltipView of this.manager.tooltipViews) {
-            tooltipView.dom.remove();
-            (_a = tooltipView.destroy) === null || _a === void 0 ? void 0 : _a.call(tooltipView);
-        }
-        if (this.parent)
-            this.container.remove();
-        (_b = this.resizeObserver) === null || _b === void 0 ? void 0 : _b.disconnect();
-        (_c = this.intersectionObserver) === null || _c === void 0 ? void 0 : _c.disconnect();
-        clearTimeout(this.measureTimeout);
-    }
-    readMeasure() {
-        let editor = this.view.dom.getBoundingClientRect();
-        let scaleX = 1, scaleY = 1, makeAbsolute = false;
-        if (this.position == "fixed" && this.manager.tooltipViews.length) {
-            let { dom } = this.manager.tooltipViews[0];
-            if (browser.gecko) {
-                // Firefox sets the element's `offsetParent` to the
-                // transformed element when a transform interferes with fixed
-                // positioning.
-                makeAbsolute = dom.offsetParent != this.container.ownerDocument.body;
-            }
-            else if (dom.style.top == Outside && dom.style.left == "0px") {
-                // On other browsers, we have to awkwardly try and use other
-                // information to detect a transform.
-                let rect = dom.getBoundingClientRect();
-                makeAbsolute = Math.abs(rect.top + 10000) > 1 || Math.abs(rect.left) > 1;
-            }
-        }
-        if (makeAbsolute || this.position == "absolute") {
-            if (this.parent) {
-                let rect = this.parent.getBoundingClientRect();
-                if (rect.width && rect.height) {
-                    scaleX = rect.width / this.parent.offsetWidth;
-                    scaleY = rect.height / this.parent.offsetHeight;
-                }
-            }
-            else {
-                ({ scaleX, scaleY } = this.view.viewState);
-            }
-        }
-        return {
-            editor,
-            parent: this.parent ? this.container.getBoundingClientRect() : editor,
-            pos: this.manager.tooltips.map((t, i) => {
-                let tv = this.manager.tooltipViews[i];
-                return tv.getCoords ? tv.getCoords(t.pos) : this.view.coordsAtPos(t.pos);
-            }),
-            size: this.manager.tooltipViews.map(({ dom }) => dom.getBoundingClientRect()),
-            space: this.view.state.facet(tooltipConfig).tooltipSpace(this.view),
-            scaleX, scaleY, makeAbsolute
-        };
-    }
-    writeMeasure(measured) {
-        var _a;
-        if (measured.makeAbsolute) {
-            this.madeAbsolute = true;
-            this.position = "absolute";
-            for (let t of this.manager.tooltipViews)
-                t.dom.style.position = "absolute";
-        }
-        let { editor, space, scaleX, scaleY } = measured;
-        let others = [];
-        for (let i = 0; i < this.manager.tooltips.length; i++) {
-            let tooltip = this.manager.tooltips[i], tView = this.manager.tooltipViews[i], { dom } = tView;
-            let pos = measured.pos[i], size = measured.size[i];
-            // Hide tooltips that are outside of the editor.
-            if (!pos || pos.bottom <= Math.max(editor.top, space.top) ||
-                pos.top >= Math.min(editor.bottom, space.bottom) ||
-                pos.right < Math.max(editor.left, space.left) - .1 ||
-                pos.left > Math.min(editor.right, space.right) + .1) {
-                dom.style.top = Outside;
-                continue;
-            }
-            let arrow = tooltip.arrow ? tView.dom.querySelector(".cm-tooltip-arrow") : null;
-            let arrowHeight = arrow ? 7 /* Arrow.Size */ : 0;
-            let width = size.right - size.left, height = (_a = knownHeight.get(tView)) !== null && _a !== void 0 ? _a : size.bottom - size.top;
-            let offset = tView.offset || noOffset, ltr = this.view.textDirection == Direction.LTR;
-            let left = size.width > space.right - space.left ? (ltr ? space.left : space.right - size.width)
-                : ltr ? Math.min(pos.left - (arrow ? 14 /* Arrow.Offset */ : 0) + offset.x, space.right - width)
-                    : Math.max(space.left, pos.left - width + (arrow ? 14 /* Arrow.Offset */ : 0) - offset.x);
-            let above = this.above[i];
-            if (!tooltip.strictSide && (above
-                ? pos.top - (size.bottom - size.top) - offset.y < space.top
-                : pos.bottom + (size.bottom - size.top) + offset.y > space.bottom) &&
-                above == (space.bottom - pos.bottom > pos.top - space.top))
-                above = this.above[i] = !above;
-            let spaceVert = (above ? pos.top - space.top : space.bottom - pos.bottom) - arrowHeight;
-            if (spaceVert < height && tView.resize !== false) {
-                if (spaceVert < this.view.defaultLineHeight) {
-                    dom.style.top = Outside;
-                    continue;
-                }
-                knownHeight.set(tView, height);
-                dom.style.height = (height = spaceVert) / scaleY + "px";
-            }
-            else if (dom.style.height) {
-                dom.style.height = "";
-            }
-            let top = above ? pos.top - height - arrowHeight - offset.y : pos.bottom + arrowHeight + offset.y;
-            let right = left + width;
-            if (tView.overlap !== true)
-                for (let r of others)
-                    if (r.left < right && r.right > left && r.top < top + height && r.bottom > top)
-                        top = above ? r.top - height - 2 - arrowHeight : r.bottom + arrowHeight + 2;
-            if (this.position == "absolute") {
-                dom.style.top = (top - measured.parent.top) / scaleY + "px";
-                dom.style.left = (left - measured.parent.left) / scaleX + "px";
-            }
-            else {
-                dom.style.top = top / scaleY + "px";
-                dom.style.left = left / scaleX + "px";
-            }
-            if (arrow) {
-                let arrowLeft = pos.left + (ltr ? offset.x : -offset.x) - (left + 14 /* Arrow.Offset */ - 7 /* Arrow.Size */);
-                arrow.style.left = arrowLeft / scaleX + "px";
-            }
-            if (tView.overlap !== true)
-                others.push({ left, top, right, bottom: top + height });
-            dom.classList.toggle("cm-tooltip-above", above);
-            dom.classList.toggle("cm-tooltip-below", !above);
-            if (tView.positioned)
-                tView.positioned(measured.space);
-        }
-    }
-    maybeMeasure() {
-        if (this.manager.tooltips.length) {
-            if (this.view.inView)
-                this.view.requestMeasure(this.measureReq);
-            if (this.inView != this.view.inView) {
-                this.inView = this.view.inView;
-                if (!this.inView)
-                    for (let tv of this.manager.tooltipViews)
-                        tv.dom.style.top = Outside;
-            }
-        }
-    }
-}, {
-    eventObservers: {
-        scroll() { this.maybeMeasure(); }
-    }
-});
-const baseTheme$4 = /*@__PURE__*/EditorView.baseTheme({
-    ".cm-tooltip": {
-        zIndex: 100,
-        boxSizing: "border-box"
-    },
-    "&light .cm-tooltip": {
-        border: "1px solid #bbb",
-        backgroundColor: "#f5f5f5"
-    },
-    "&light .cm-tooltip-section:not(:first-child)": {
-        borderTop: "1px solid #bbb",
-    },
-    "&dark .cm-tooltip": {
-        backgroundColor: "#333338",
-        color: "white"
-    },
-    ".cm-tooltip-arrow": {
-        height: `${7 /* Arrow.Size */}px`,
-        width: `${7 /* Arrow.Size */ * 2}px`,
-        position: "absolute",
-        zIndex: -1,
-        overflow: "hidden",
-        "&:before, &:after": {
-            content: "''",
-            position: "absolute",
-            width: 0,
-            height: 0,
-            borderLeft: `${7 /* Arrow.Size */}px solid transparent`,
-            borderRight: `${7 /* Arrow.Size */}px solid transparent`,
-        },
-        ".cm-tooltip-above &": {
-            bottom: `-${7 /* Arrow.Size */}px`,
-            "&:before": {
-                borderTop: `${7 /* Arrow.Size */}px solid #bbb`,
-            },
-            "&:after": {
-                borderTop: `${7 /* Arrow.Size */}px solid #f5f5f5`,
-                bottom: "1px"
-            }
-        },
-        ".cm-tooltip-below &": {
-            top: `-${7 /* Arrow.Size */}px`,
-            "&:before": {
-                borderBottom: `${7 /* Arrow.Size */}px solid #bbb`,
-            },
-            "&:after": {
-                borderBottom: `${7 /* Arrow.Size */}px solid #f5f5f5`,
-                top: "1px"
-            }
-        },
-    },
-    "&dark .cm-tooltip .cm-tooltip-arrow": {
-        "&:before": {
-            borderTopColor: "#333338",
-            borderBottomColor: "#333338"
-        },
-        "&:after": {
-            borderTopColor: "transparent",
-            borderBottomColor: "transparent"
-        }
-    }
-});
-const noOffset = { x: 0, y: 0 };
-/**
-Facet to which an extension can add a value to show a tooltip.
-*/
-const showTooltip = /*@__PURE__*/Facet.define({
-    enables: [tooltipPlugin, baseTheme$4]
-});
-const showHoverTooltip = /*@__PURE__*/Facet.define({
-    combine: inputs => inputs.reduce((a, i) => a.concat(i), [])
-});
-class HoverTooltipHost {
-    // Needs to be static so that host tooltip instances always match
-    static create(view) {
-        return new HoverTooltipHost(view);
-    }
-    constructor(view) {
-        this.view = view;
-        this.mounted = false;
-        this.dom = document.createElement("div");
-        this.dom.classList.add("cm-tooltip-hover");
-        this.manager = new TooltipViewManager(view, showHoverTooltip, (t, p) => this.createHostedView(t, p), t => t.dom.remove());
-    }
-    createHostedView(tooltip, prev) {
-        let hostedView = tooltip.create(this.view);
-        hostedView.dom.classList.add("cm-tooltip-section");
-        this.dom.insertBefore(hostedView.dom, prev ? prev.dom.nextSibling : this.dom.firstChild);
-        if (this.mounted && hostedView.mount)
-            hostedView.mount(this.view);
-        return hostedView;
-    }
-    mount(view) {
-        for (let hostedView of this.manager.tooltipViews) {
-            if (hostedView.mount)
-                hostedView.mount(view);
-        }
-        this.mounted = true;
-    }
-    positioned(space) {
-        for (let hostedView of this.manager.tooltipViews) {
-            if (hostedView.positioned)
-                hostedView.positioned(space);
-        }
-    }
-    update(update) {
-        this.manager.update(update);
-    }
-    destroy() {
-        var _a;
-        for (let t of this.manager.tooltipViews)
-            (_a = t.destroy) === null || _a === void 0 ? void 0 : _a.call(t);
-    }
-    passProp(name) {
-        let value = undefined;
-        for (let view of this.manager.tooltipViews) {
-            let given = view[name];
-            if (given !== undefined) {
-                if (value === undefined)
-                    value = given;
-                else if (value !== given)
-                    return undefined;
-            }
-        }
-        return value;
-    }
-    get offset() { return this.passProp("offset"); }
-    get getCoords() { return this.passProp("getCoords"); }
-    get overlap() { return this.passProp("overlap"); }
-    get resize() { return this.passProp("resize"); }
-}
-const showHoverTooltipHost = /*@__PURE__*/showTooltip.compute([showHoverTooltip], state => {
-    let tooltips = state.facet(showHoverTooltip);
-    if (tooltips.length === 0)
-        return null;
-    return {
-        pos: Math.min(...tooltips.map(t => t.pos)),
-        end: Math.max(...tooltips.map(t => { var _a; return (_a = t.end) !== null && _a !== void 0 ? _a : t.pos; })),
-        create: HoverTooltipHost.create,
-        above: tooltips[0].above,
-        arrow: tooltips.some(t => t.arrow),
-    };
-});
-class HoverPlugin {
-    constructor(view, source, field, setHover, hoverTime) {
-        this.view = view;
-        this.source = source;
-        this.field = field;
-        this.setHover = setHover;
-        this.hoverTime = hoverTime;
-        this.hoverTimeout = -1;
-        this.restartTimeout = -1;
-        this.pending = null;
-        this.lastMove = { x: 0, y: 0, target: view.dom, time: 0 };
-        this.checkHover = this.checkHover.bind(this);
-        view.dom.addEventListener("mouseleave", this.mouseleave = this.mouseleave.bind(this));
-        view.dom.addEventListener("mousemove", this.mousemove = this.mousemove.bind(this));
-    }
-    update() {
-        if (this.pending) {
-            this.pending = null;
-            clearTimeout(this.restartTimeout);
-            this.restartTimeout = setTimeout(() => this.startHover(), 20);
-        }
-    }
-    get active() {
-        return this.view.state.field(this.field);
-    }
-    checkHover() {
-        this.hoverTimeout = -1;
-        if (this.active.length)
-            return;
-        let hovered = Date.now() - this.lastMove.time;
-        if (hovered < this.hoverTime)
-            this.hoverTimeout = setTimeout(this.checkHover, this.hoverTime - hovered);
-        else
-            this.startHover();
-    }
-    startHover() {
-        clearTimeout(this.restartTimeout);
-        let { view, lastMove } = this;
-        let desc = view.docView.nearest(lastMove.target);
-        if (!desc)
-            return;
-        let pos, side = 1;
-        if (desc instanceof WidgetView) {
-            pos = desc.posAtStart;
-        }
-        else {
-            pos = view.posAtCoords(lastMove);
-            if (pos == null)
-                return;
-            let posCoords = view.coordsAtPos(pos);
-            if (!posCoords ||
-                lastMove.y < posCoords.top || lastMove.y > posCoords.bottom ||
-                lastMove.x < posCoords.left - view.defaultCharacterWidth ||
-                lastMove.x > posCoords.right + view.defaultCharacterWidth)
-                return;
-            let bidi = view.bidiSpans(view.state.doc.lineAt(pos)).find(s => s.from <= pos && s.to >= pos);
-            let rtl = bidi && bidi.dir == Direction.RTL ? -1 : 1;
-            side = (lastMove.x < posCoords.left ? -rtl : rtl);
-        }
-        let open = this.source(view, pos, side);
-        if (open === null || open === void 0 ? void 0 : open.then) {
-            let pending = this.pending = { pos };
-            open.then(result => {
-                if (this.pending == pending) {
-                    this.pending = null;
-                    if (result && !(Array.isArray(result) && !result.length))
-                        view.dispatch({ effects: this.setHover.of(Array.isArray(result) ? result : [result]) });
-                }
-            }, e => logException(view.state, e, "hover tooltip"));
-        }
-        else if (open && !(Array.isArray(open) && !open.length)) {
-            view.dispatch({ effects: this.setHover.of(Array.isArray(open) ? open : [open]) });
-        }
-    }
-    get tooltip() {
-        let plugin = this.view.plugin(tooltipPlugin);
-        let index = plugin ? plugin.manager.tooltips.findIndex(t => t.create == HoverTooltipHost.create) : -1;
-        return index > -1 ? plugin.manager.tooltipViews[index] : null;
-    }
-    mousemove(event) {
-        var _a, _b;
-        this.lastMove = { x: event.clientX, y: event.clientY, target: event.target, time: Date.now() };
-        if (this.hoverTimeout < 0)
-            this.hoverTimeout = setTimeout(this.checkHover, this.hoverTime);
-        let { active, tooltip } = this;
-        if (active.length && tooltip && !isInTooltip(tooltip.dom, event) || this.pending) {
-            let { pos } = active[0] || this.pending, end = (_b = (_a = active[0]) === null || _a === void 0 ? void 0 : _a.end) !== null && _b !== void 0 ? _b : pos;
-            if ((pos == end ? this.view.posAtCoords(this.lastMove) != pos
-                : !isOverRange(this.view, pos, end, event.clientX, event.clientY))) {
-                this.view.dispatch({ effects: this.setHover.of([]) });
-                this.pending = null;
-            }
-        }
-    }
-    mouseleave(event) {
-        clearTimeout(this.hoverTimeout);
-        this.hoverTimeout = -1;
-        let { active } = this;
-        if (active.length) {
-            let { tooltip } = this;
-            let inTooltip = tooltip && tooltip.dom.contains(event.relatedTarget);
-            if (!inTooltip)
-                this.view.dispatch({ effects: this.setHover.of([]) });
-            else
-                this.watchTooltipLeave(tooltip.dom);
-        }
-    }
-    watchTooltipLeave(tooltip) {
-        let watch = (event) => {
-            tooltip.removeEventListener("mouseleave", watch);
-            if (this.active.length && !this.view.dom.contains(event.relatedTarget))
-                this.view.dispatch({ effects: this.setHover.of([]) });
-        };
-        tooltip.addEventListener("mouseleave", watch);
-    }
-    destroy() {
-        clearTimeout(this.hoverTimeout);
-        this.view.dom.removeEventListener("mouseleave", this.mouseleave);
-        this.view.dom.removeEventListener("mousemove", this.mousemove);
-    }
-}
-const tooltipMargin = 4;
-function isInTooltip(tooltip, event) {
-    let rect = tooltip.getBoundingClientRect();
-    return event.clientX >= rect.left - tooltipMargin && event.clientX <= rect.right + tooltipMargin &&
-        event.clientY >= rect.top - tooltipMargin && event.clientY <= rect.bottom + tooltipMargin;
-}
-function isOverRange(view, from, to, x, y, margin) {
-    let rect = view.scrollDOM.getBoundingClientRect();
-    let docBottom = view.documentTop + view.documentPadding.top + view.contentHeight;
-    if (rect.left > x || rect.right < x || rect.top > y || Math.min(rect.bottom, docBottom) < y)
-        return false;
-    let pos = view.posAtCoords({ x, y }, false);
-    return pos >= from && pos <= to;
-}
-/**
-Set up a hover tooltip, which shows up when the pointer hovers
-over ranges of text. The callback is called when the mouse hovers
-over the document text. It should, if there is a tooltip
-associated with position `pos`, return the tooltip description
-(either directly or in a promise). The `side` argument indicates
-on which side of the position the pointer is—it will be -1 if the
-pointer is before the position, 1 if after the position.
-
-Note that all hover tooltips are hosted within a single tooltip
-container element. This allows multiple tooltips over the same
-range to be "merged" together without overlapping.
-*/
-function hoverTooltip(source, options = {}) {
-    let setHover = StateEffect.define();
-    let hoverState = StateField.define({
-        create() { return []; },
-        update(value, tr) {
-            if (value.length) {
-                if (options.hideOnChange && (tr.docChanged || tr.selection))
-                    value = [];
-                else if (options.hideOn)
-                    value = value.filter(v => !options.hideOn(tr, v));
-                if (tr.docChanged) {
-                    let mapped = [];
-                    for (let tooltip of value) {
-                        let newPos = tr.changes.mapPos(tooltip.pos, -1, MapMode.TrackDel);
-                        if (newPos != null) {
-                            let copy = Object.assign(Object.create(null), tooltip);
-                            copy.pos = newPos;
-                            if (copy.end != null)
-                                copy.end = tr.changes.mapPos(copy.end);
-                            mapped.push(copy);
-                        }
-                    }
-                    value = mapped;
-                }
-            }
-            for (let effect of tr.effects) {
-                if (effect.is(setHover))
-                    value = effect.value;
-                if (effect.is(closeHoverTooltipEffect))
-                    value = [];
-            }
-            return value;
-        },
-        provide: f => showHoverTooltip.from(f)
-    });
-    return [
-        hoverState,
-        ViewPlugin.define(view => new HoverPlugin(view, source, hoverState, setHover, options.hoverTime || 300 /* Hover.Time */)),
-        showHoverTooltipHost
-    ];
-}
-/**
-Get the active tooltip view for a given tooltip, if available.
-*/
-function getTooltip(view, tooltip) {
-    let plugin = view.plugin(tooltipPlugin);
-    if (!plugin)
-        return null;
-    let found = plugin.manager.tooltips.indexOf(tooltip);
-    return found < 0 ? null : plugin.manager.tooltipViews[found];
-}
-const closeHoverTooltipEffect = /*@__PURE__*/StateEffect.define();
-
-const panelConfig = /*@__PURE__*/Facet.define({
-    combine(configs) {
-        let topContainer, bottomContainer;
-        for (let c of configs) {
-            topContainer = topContainer || c.topContainer;
-            bottomContainer = bottomContainer || c.bottomContainer;
-        }
-        return { topContainer, bottomContainer };
-    }
-});
-/**
-Get the active panel created by the given constructor, if any.
-This can be useful when you need access to your panels' DOM
-structure.
-*/
-function getPanel(view, panel) {
-    let plugin = view.plugin(panelPlugin);
-    let index = plugin ? plugin.specs.indexOf(panel) : -1;
-    return index > -1 ? plugin.panels[index] : null;
-}
-const panelPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
-    constructor(view) {
-        this.input = view.state.facet(showPanel);
-        this.specs = this.input.filter(s => s);
-        this.panels = this.specs.map(spec => spec(view));
-        let conf = view.state.facet(panelConfig);
-        this.top = new PanelGroup(view, true, conf.topContainer);
-        this.bottom = new PanelGroup(view, false, conf.bottomContainer);
-        this.top.sync(this.panels.filter(p => p.top));
-        this.bottom.sync(this.panels.filter(p => !p.top));
-        for (let p of this.panels) {
-            p.dom.classList.add("cm-panel");
-            if (p.mount)
-                p.mount();
-        }
-    }
-    update(update) {
-        let conf = update.state.facet(panelConfig);
-        if (this.top.container != conf.topContainer) {
-            this.top.sync([]);
-            this.top = new PanelGroup(update.view, true, conf.topContainer);
-        }
-        if (this.bottom.container != conf.bottomContainer) {
-            this.bottom.sync([]);
-            this.bottom = new PanelGroup(update.view, false, conf.bottomContainer);
-        }
-        this.top.syncClasses();
-        this.bottom.syncClasses();
-        let input = update.state.facet(showPanel);
-        if (input != this.input) {
-            let specs = input.filter(x => x);
-            let panels = [], top = [], bottom = [], mount = [];
-            for (let spec of specs) {
-                let known = this.specs.indexOf(spec), panel;
-                if (known < 0) {
-                    panel = spec(update.view);
-                    mount.push(panel);
-                }
-                else {
-                    panel = this.panels[known];
-                    if (panel.update)
-                        panel.update(update);
-                }
-                panels.push(panel);
-                (panel.top ? top : bottom).push(panel);
-            }
-            this.specs = specs;
-            this.panels = panels;
-            this.top.sync(top);
-            this.bottom.sync(bottom);
-            for (let p of mount) {
-                p.dom.classList.add("cm-panel");
-                if (p.mount)
-                    p.mount();
-            }
-        }
-        else {
-            for (let p of this.panels)
-                if (p.update)
-                    p.update(update);
-        }
-    }
-    destroy() {
-        this.top.sync([]);
-        this.bottom.sync([]);
-    }
-}, {
-    provide: plugin => EditorView.scrollMargins.of(view => {
-        let value = view.plugin(plugin);
-        return value && { top: value.top.scrollMargin(), bottom: value.bottom.scrollMargin() };
-    })
-});
-class PanelGroup {
-    constructor(view, top, container) {
-        this.view = view;
-        this.top = top;
-        this.container = container;
-        this.dom = undefined;
-        this.classes = "";
-        this.panels = [];
-        this.syncClasses();
-    }
-    sync(panels) {
-        for (let p of this.panels)
-            if (p.destroy && panels.indexOf(p) < 0)
-                p.destroy();
-        this.panels = panels;
-        this.syncDOM();
-    }
-    syncDOM() {
-        if (this.panels.length == 0) {
-            if (this.dom) {
-                this.dom.remove();
-                this.dom = undefined;
-            }
-            return;
-        }
-        if (!this.dom) {
-            this.dom = document.createElement("div");
-            this.dom.className = this.top ? "cm-panels cm-panels-top" : "cm-panels cm-panels-bottom";
-            this.dom.style[this.top ? "top" : "bottom"] = "0";
-            let parent = this.container || this.view.dom;
-            parent.insertBefore(this.dom, this.top ? parent.firstChild : null);
-        }
-        let curDOM = this.dom.firstChild;
-        for (let panel of this.panels) {
-            if (panel.dom.parentNode == this.dom) {
-                while (curDOM != panel.dom)
-                    curDOM = rm(curDOM);
-                curDOM = curDOM.nextSibling;
-            }
-            else {
-                this.dom.insertBefore(panel.dom, curDOM);
-            }
-        }
-        while (curDOM)
-            curDOM = rm(curDOM);
-    }
-    scrollMargin() {
-        return !this.dom || this.container ? 0
-            : Math.max(0, this.top ?
-                this.dom.getBoundingClientRect().bottom - Math.max(0, this.view.scrollDOM.getBoundingClientRect().top) :
-                Math.min(innerHeight, this.view.scrollDOM.getBoundingClientRect().bottom) - this.dom.getBoundingClientRect().top);
-    }
-    syncClasses() {
-        if (!this.container || this.classes == this.view.themeClasses)
-            return;
-        for (let cls of this.classes.split(" "))
-            if (cls)
-                this.container.classList.remove(cls);
-        for (let cls of (this.classes = this.view.themeClasses).split(" "))
-            if (cls)
-                this.container.classList.add(cls);
-    }
-}
-function rm(node) {
-    let next = node.nextSibling;
-    node.remove();
-    return next;
-}
-/**
-Opening a panel is done by providing a constructor function for
-the panel through this facet. (The panel is closed again when its
-constructor is no longer provided.) Values of `null` are ignored.
-*/
-const showPanel = /*@__PURE__*/Facet.define({
-    enables: panelPlugin
-});
-
-/**
 A gutter marker represents a bit of information attached to a line
 in a specific gutter. Your own custom markers have to extend this
 class.
@@ -14292,448 +13198,6 @@ GutterMarker.prototype.toDOM = undefined;
 GutterMarker.prototype.mapMode = MapMode.TrackBefore;
 GutterMarker.prototype.startSide = GutterMarker.prototype.endSide = -1;
 GutterMarker.prototype.point = true;
-/**
-Facet used to add a class to all gutter elements for a given line.
-Markers given to this facet should _only_ define an
-[`elementclass`](https://codemirror.net/6/docs/ref/#view.GutterMarker.elementClass), not a
-[`toDOM`](https://codemirror.net/6/docs/ref/#view.GutterMarker.toDOM) (or the marker will appear
-in all gutters for the line).
-*/
-const gutterLineClass = /*@__PURE__*/Facet.define();
-const defaults$1 = {
-    class: "",
-    renderEmptyElements: false,
-    elementStyle: "",
-    markers: () => RangeSet.empty,
-    lineMarker: () => null,
-    widgetMarker: () => null,
-    lineMarkerChange: null,
-    initialSpacer: null,
-    updateSpacer: null,
-    domEventHandlers: {}
-};
-const activeGutters = /*@__PURE__*/Facet.define();
-/**
-Define an editor gutter. The order in which the gutters appear is
-determined by their extension priority.
-*/
-function gutter(config) {
-    return [gutters(), activeGutters.of(Object.assign(Object.assign({}, defaults$1), config))];
-}
-const unfixGutters = /*@__PURE__*/Facet.define({
-    combine: values => values.some(x => x)
-});
-/**
-The gutter-drawing plugin is automatically enabled when you add a
-gutter, but you can use this function to explicitly configure it.
-
-Unless `fixed` is explicitly set to `false`, the gutters are
-fixed, meaning they don't scroll along with the content
-horizontally (except on Internet Explorer, which doesn't support
-CSS [`position:
-sticky`](https://developer.mozilla.org/en-US/docs/Web/CSS/position#sticky)).
-*/
-function gutters(config) {
-    let result = [
-        gutterView,
-    ];
-    if (config && config.fixed === false)
-        result.push(unfixGutters.of(true));
-    return result;
-}
-const gutterView = /*@__PURE__*/ViewPlugin.fromClass(class {
-    constructor(view) {
-        this.view = view;
-        this.prevViewport = view.viewport;
-        this.dom = document.createElement("div");
-        this.dom.className = "cm-gutters";
-        this.dom.setAttribute("aria-hidden", "true");
-        this.dom.style.minHeight = (this.view.contentHeight / this.view.scaleY) + "px";
-        this.gutters = view.state.facet(activeGutters).map(conf => new SingleGutterView(view, conf));
-        for (let gutter of this.gutters)
-            this.dom.appendChild(gutter.dom);
-        this.fixed = !view.state.facet(unfixGutters);
-        if (this.fixed) {
-            // FIXME IE11 fallback, which doesn't support position: sticky,
-            // by using position: relative + event handlers that realign the
-            // gutter (or just force fixed=false on IE11?)
-            this.dom.style.position = "sticky";
-        }
-        this.syncGutters(false);
-        view.scrollDOM.insertBefore(this.dom, view.contentDOM);
-    }
-    update(update) {
-        if (this.updateGutters(update)) {
-            // Detach during sync when the viewport changed significantly
-            // (such as during scrolling), since for large updates that is
-            // faster.
-            let vpA = this.prevViewport, vpB = update.view.viewport;
-            let vpOverlap = Math.min(vpA.to, vpB.to) - Math.max(vpA.from, vpB.from);
-            this.syncGutters(vpOverlap < (vpB.to - vpB.from) * 0.8);
-        }
-        if (update.geometryChanged) {
-            this.dom.style.minHeight = (this.view.contentHeight / this.view.scaleY) + "px";
-        }
-        if (this.view.state.facet(unfixGutters) != !this.fixed) {
-            this.fixed = !this.fixed;
-            this.dom.style.position = this.fixed ? "sticky" : "";
-        }
-        this.prevViewport = update.view.viewport;
-    }
-    syncGutters(detach) {
-        let after = this.dom.nextSibling;
-        if (detach)
-            this.dom.remove();
-        let lineClasses = RangeSet.iter(this.view.state.facet(gutterLineClass), this.view.viewport.from);
-        let classSet = [];
-        let contexts = this.gutters.map(gutter => new UpdateContext(gutter, this.view.viewport, -this.view.documentPadding.top));
-        for (let line of this.view.viewportLineBlocks) {
-            if (classSet.length)
-                classSet = [];
-            if (Array.isArray(line.type)) {
-                let first = true;
-                for (let b of line.type) {
-                    if (b.type == BlockType.Text && first) {
-                        advanceCursor(lineClasses, classSet, b.from);
-                        for (let cx of contexts)
-                            cx.line(this.view, b, classSet);
-                        first = false;
-                    }
-                    else if (b.widget) {
-                        for (let cx of contexts)
-                            cx.widget(this.view, b);
-                    }
-                }
-            }
-            else if (line.type == BlockType.Text) {
-                advanceCursor(lineClasses, classSet, line.from);
-                for (let cx of contexts)
-                    cx.line(this.view, line, classSet);
-            }
-            else if (line.widget) {
-                for (let cx of contexts)
-                    cx.widget(this.view, line);
-            }
-        }
-        for (let cx of contexts)
-            cx.finish();
-        if (detach)
-            this.view.scrollDOM.insertBefore(this.dom, after);
-    }
-    updateGutters(update) {
-        let prev = update.startState.facet(activeGutters), cur = update.state.facet(activeGutters);
-        let change = update.docChanged || update.heightChanged || update.viewportChanged ||
-            !RangeSet.eq(update.startState.facet(gutterLineClass), update.state.facet(gutterLineClass), update.view.viewport.from, update.view.viewport.to);
-        if (prev == cur) {
-            for (let gutter of this.gutters)
-                if (gutter.update(update))
-                    change = true;
-        }
-        else {
-            change = true;
-            let gutters = [];
-            for (let conf of cur) {
-                let known = prev.indexOf(conf);
-                if (known < 0) {
-                    gutters.push(new SingleGutterView(this.view, conf));
-                }
-                else {
-                    this.gutters[known].update(update);
-                    gutters.push(this.gutters[known]);
-                }
-            }
-            for (let g of this.gutters) {
-                g.dom.remove();
-                if (gutters.indexOf(g) < 0)
-                    g.destroy();
-            }
-            for (let g of gutters)
-                this.dom.appendChild(g.dom);
-            this.gutters = gutters;
-        }
-        return change;
-    }
-    destroy() {
-        for (let view of this.gutters)
-            view.destroy();
-        this.dom.remove();
-    }
-}, {
-    provide: plugin => EditorView.scrollMargins.of(view => {
-        let value = view.plugin(plugin);
-        if (!value || value.gutters.length == 0 || !value.fixed)
-            return null;
-        return view.textDirection == Direction.LTR
-            ? { left: value.dom.offsetWidth * view.scaleX }
-            : { right: value.dom.offsetWidth * view.scaleX };
-    })
-});
-function asArray(val) { return (Array.isArray(val) ? val : [val]); }
-function advanceCursor(cursor, collect, pos) {
-    while (cursor.value && cursor.from <= pos) {
-        if (cursor.from == pos)
-            collect.push(cursor.value);
-        cursor.next();
-    }
-}
-class UpdateContext {
-    constructor(gutter, viewport, height) {
-        this.gutter = gutter;
-        this.height = height;
-        this.i = 0;
-        this.cursor = RangeSet.iter(gutter.markers, viewport.from);
-    }
-    addElement(view, block, markers) {
-        let { gutter } = this, above = (block.top - this.height) / view.scaleY, height = block.height / view.scaleY;
-        if (this.i == gutter.elements.length) {
-            let newElt = new GutterElement(view, height, above, markers);
-            gutter.elements.push(newElt);
-            gutter.dom.appendChild(newElt.dom);
-        }
-        else {
-            gutter.elements[this.i].update(view, height, above, markers);
-        }
-        this.height = block.bottom;
-        this.i++;
-    }
-    line(view, line, extraMarkers) {
-        let localMarkers = [];
-        advanceCursor(this.cursor, localMarkers, line.from);
-        if (extraMarkers.length)
-            localMarkers = localMarkers.concat(extraMarkers);
-        let forLine = this.gutter.config.lineMarker(view, line, localMarkers);
-        if (forLine)
-            localMarkers.unshift(forLine);
-        let gutter = this.gutter;
-        if (localMarkers.length == 0 && !gutter.config.renderEmptyElements)
-            return;
-        this.addElement(view, line, localMarkers);
-    }
-    widget(view, block) {
-        let marker = this.gutter.config.widgetMarker(view, block.widget, block);
-        if (marker)
-            this.addElement(view, block, [marker]);
-    }
-    finish() {
-        let gutter = this.gutter;
-        while (gutter.elements.length > this.i) {
-            let last = gutter.elements.pop();
-            gutter.dom.removeChild(last.dom);
-            last.destroy();
-        }
-    }
-}
-class SingleGutterView {
-    constructor(view, config) {
-        this.view = view;
-        this.config = config;
-        this.elements = [];
-        this.spacer = null;
-        this.dom = document.createElement("div");
-        this.dom.className = "cm-gutter" + (this.config.class ? " " + this.config.class : "");
-        for (let prop in config.domEventHandlers) {
-            this.dom.addEventListener(prop, (event) => {
-                let target = event.target, y;
-                if (target != this.dom && this.dom.contains(target)) {
-                    while (target.parentNode != this.dom)
-                        target = target.parentNode;
-                    let rect = target.getBoundingClientRect();
-                    y = (rect.top + rect.bottom) / 2;
-                }
-                else {
-                    y = event.clientY;
-                }
-                let line = view.lineBlockAtHeight(y - view.documentTop);
-                if (config.domEventHandlers[prop](view, line, event))
-                    event.preventDefault();
-            });
-        }
-        this.markers = asArray(config.markers(view));
-        if (config.initialSpacer) {
-            this.spacer = new GutterElement(view, 0, 0, [config.initialSpacer(view)]);
-            this.dom.appendChild(this.spacer.dom);
-            this.spacer.dom.style.cssText += "visibility: hidden; pointer-events: none";
-        }
-    }
-    update(update) {
-        let prevMarkers = this.markers;
-        this.markers = asArray(this.config.markers(update.view));
-        if (this.spacer && this.config.updateSpacer) {
-            let updated = this.config.updateSpacer(this.spacer.markers[0], update);
-            if (updated != this.spacer.markers[0])
-                this.spacer.update(update.view, 0, 0, [updated]);
-        }
-        let vp = update.view.viewport;
-        return !RangeSet.eq(this.markers, prevMarkers, vp.from, vp.to) ||
-            (this.config.lineMarkerChange ? this.config.lineMarkerChange(update) : false);
-    }
-    destroy() {
-        for (let elt of this.elements)
-            elt.destroy();
-    }
-}
-class GutterElement {
-    constructor(view, height, above, markers) {
-        this.height = -1;
-        this.above = 0;
-        this.markers = [];
-        this.dom = document.createElement("div");
-        this.dom.className = "cm-gutterElement";
-        this.update(view, height, above, markers);
-    }
-    update(view, height, above, markers) {
-        if (this.height != height) {
-            this.height = height;
-            this.dom.style.height = height + "px";
-        }
-        if (this.above != above)
-            this.dom.style.marginTop = (this.above = above) ? above + "px" : "";
-        if (!sameMarkers(this.markers, markers))
-            this.setMarkers(view, markers);
-    }
-    setMarkers(view, markers) {
-        let cls = "cm-gutterElement", domPos = this.dom.firstChild;
-        for (let iNew = 0, iOld = 0;;) {
-            let skipTo = iOld, marker = iNew < markers.length ? markers[iNew++] : null, matched = false;
-            if (marker) {
-                let c = marker.elementClass;
-                if (c)
-                    cls += " " + c;
-                for (let i = iOld; i < this.markers.length; i++)
-                    if (this.markers[i].compare(marker)) {
-                        skipTo = i;
-                        matched = true;
-                        break;
-                    }
-            }
-            else {
-                skipTo = this.markers.length;
-            }
-            while (iOld < skipTo) {
-                let next = this.markers[iOld++];
-                if (next.toDOM) {
-                    next.destroy(domPos);
-                    let after = domPos.nextSibling;
-                    domPos.remove();
-                    domPos = after;
-                }
-            }
-            if (!marker)
-                break;
-            if (marker.toDOM) {
-                if (matched)
-                    domPos = domPos.nextSibling;
-                else
-                    this.dom.insertBefore(marker.toDOM(view), domPos);
-            }
-            if (matched)
-                iOld++;
-        }
-        this.dom.className = cls;
-        this.markers = markers;
-    }
-    destroy() {
-        this.setMarkers(null, []); // First argument not used unless creating markers
-    }
-}
-function sameMarkers(a, b) {
-    if (a.length != b.length)
-        return false;
-    for (let i = 0; i < a.length; i++)
-        if (!a[i].compare(b[i]))
-            return false;
-    return true;
-}
-/**
-Facet used to provide markers to the line number gutter.
-*/
-const lineNumberMarkers = /*@__PURE__*/Facet.define();
-const lineNumberConfig = /*@__PURE__*/Facet.define({
-    combine(values) {
-        return combineConfig(values, { formatNumber: String, domEventHandlers: {} }, {
-            domEventHandlers(a, b) {
-                let result = Object.assign({}, a);
-                for (let event in b) {
-                    let exists = result[event], add = b[event];
-                    result[event] = exists ? (view, line, event) => exists(view, line, event) || add(view, line, event) : add;
-                }
-                return result;
-            }
-        });
-    }
-});
-class NumberMarker extends GutterMarker {
-    constructor(number) {
-        super();
-        this.number = number;
-    }
-    eq(other) { return this.number == other.number; }
-    toDOM() { return document.createTextNode(this.number); }
-}
-function formatNumber(view, number) {
-    return view.state.facet(lineNumberConfig).formatNumber(number, view.state);
-}
-const lineNumberGutter = /*@__PURE__*/activeGutters.compute([lineNumberConfig], state => ({
-    class: "cm-lineNumbers",
-    renderEmptyElements: false,
-    markers(view) { return view.state.facet(lineNumberMarkers); },
-    lineMarker(view, line, others) {
-        if (others.some(m => m.toDOM))
-            return null;
-        return new NumberMarker(formatNumber(view, view.state.doc.lineAt(line.from).number));
-    },
-    widgetMarker: () => null,
-    lineMarkerChange: update => update.startState.facet(lineNumberConfig) != update.state.facet(lineNumberConfig),
-    initialSpacer(view) {
-        return new NumberMarker(formatNumber(view, maxLineNumber(view.state.doc.lines)));
-    },
-    updateSpacer(spacer, update) {
-        let max = formatNumber(update.view, maxLineNumber(update.view.state.doc.lines));
-        return max == spacer.number ? spacer : new NumberMarker(max);
-    },
-    domEventHandlers: state.facet(lineNumberConfig).domEventHandlers
-}));
-/**
-Create a line number gutter extension.
-*/
-function lineNumbers(config = {}) {
-    return [
-        lineNumberConfig.of(config),
-        gutters(),
-        lineNumberGutter
-    ];
-}
-function maxLineNumber(lines) {
-    let last = 9;
-    while (last < lines)
-        last = last * 10 + 9;
-    return last;
-}
-const activeLineGutterMarker = /*@__PURE__*/new class extends GutterMarker {
-    constructor() {
-        super(...arguments);
-        this.elementClass = "cm-activeLineGutter";
-    }
-};
-const activeLineGutterHighlighter = /*@__PURE__*/gutterLineClass.compute(["selection"], state => {
-    let marks = [], last = -1;
-    for (let range of state.selection.ranges) {
-        let linePos = state.doc.lineAt(range.head).from;
-        if (linePos > last) {
-            last = linePos;
-            marks.push(activeLineGutterMarker.range(linePos));
-        }
-    }
-    return RangeSet.of(marks);
-});
-/**
-Returns an extension that adds a `cm-activeLineGutter` class to
-all gutter elements on the [active
-line](https://codemirror.net/6/docs/ref/#view.highlightActiveLine).
-*/
-function highlightActiveLineGutter() {
-    return activeLineGutterHighlighter;
-}
 
 /**
 The default maximum length of a `TreeBuffer` node.
@@ -16288,58 +14752,6 @@ mkTree) {
     divide(children, positions, from, to, 0);
     return (mkTop || mkTree)(localChildren, localPositions, length);
 }
-/**
-Provides a way to associate values with pieces of trees. As long
-as that part of the tree is reused, the associated values can be
-retrieved from an updated tree.
-*/
-class NodeWeakMap {
-    constructor() {
-        this.map = new WeakMap();
-    }
-    setBuffer(buffer, index, value) {
-        let inner = this.map.get(buffer);
-        if (!inner)
-            this.map.set(buffer, inner = new Map);
-        inner.set(index, value);
-    }
-    getBuffer(buffer, index) {
-        let inner = this.map.get(buffer);
-        return inner && inner.get(index);
-    }
-    /**
-    Set the value for this syntax node.
-    */
-    set(node, value) {
-        if (node instanceof BufferNode)
-            this.setBuffer(node.context.buffer, node.index, value);
-        else if (node instanceof TreeNode)
-            this.map.set(node.tree, value);
-    }
-    /**
-    Retrieve value for this syntax node, if it exists in the map.
-    */
-    get(node) {
-        return node instanceof BufferNode ? this.getBuffer(node.context.buffer, node.index)
-            : node instanceof TreeNode ? this.map.get(node.tree) : undefined;
-    }
-    /**
-    Set the value for the node that a cursor currently points to.
-    */
-    cursorSet(cursor, value) {
-        if (cursor.buffer)
-            this.setBuffer(cursor.buffer.buffer, cursor.index, value);
-        else
-            this.map.set(cursor.tree, value);
-    }
-    /**
-    Retrieve the value for the node that a cursor currently points
-    to.
-    */
-    cursorGet(cursor) {
-        return cursor.buffer ? this.getBuffer(cursor.buffer.buffer, cursor.index) : this.map.get(cursor.tree);
-    }
-}
 
 /**
 Tree fragments are used during [incremental
@@ -17494,34 +15906,6 @@ function topNodeAt(state, pos, side) {
     return tree;
 }
 /**
-A subclass of [`Language`](https://codemirror.net/6/docs/ref/#language.Language) for use with Lezer
-[LR parsers](https://lezer.codemirror.net/docs/ref#lr.LRParser)
-parsers.
-*/
-class LRLanguage extends Language {
-    constructor(data, parser, name) {
-        super(data, parser, [], name);
-        this.parser = parser;
-    }
-    /**
-    Define a language from a parser.
-    */
-    static define(spec) {
-        let data = defineLanguageFacet(spec.languageData);
-        return new LRLanguage(data, spec.parser.configure({
-            props: [languageDataProp.add(type => type.isTop ? data : undefined)]
-        }), spec.name);
-    }
-    /**
-    Create a new instance of this language with a reconfigured
-    version of its parser and optionally a new name.
-    */
-    configure(options, name) {
-        return new LRLanguage(this.data, this.parser.configure(options), name || this.name);
-    }
-    get allowsNesting() { return this.parser.hasWrappers(); }
-}
-/**
 Get the syntax tree for a state, which is the current (possibly
 incomplete) parse tree of the active
 [language](https://codemirror.net/6/docs/ref/#language.Language), or the empty tree if there is no
@@ -17954,34 +16338,6 @@ const language = /*@__PURE__*/Facet.define({
         })
     ]
 });
-/**
-This class bundles a [language](https://codemirror.net/6/docs/ref/#language.Language) with an
-optional set of supporting extensions. Language packages are
-encouraged to export a function that optionally takes a
-configuration object and returns a `LanguageSupport` instance, as
-the main way for client code to use the package.
-*/
-class LanguageSupport {
-    /**
-    Create a language support object.
-    */
-    constructor(
-    /**
-    The language object.
-    */
-    language, 
-    /**
-    An optional set of supporting extensions. When nesting a
-    language in another language, the outer language is encouraged
-    to include the supporting extensions for its inner languages
-    in its own set of support extensions.
-    */
-    support = []) {
-        this.language = language;
-        this.support = support;
-        this.extension = [language, support];
-    }
-}
 
 /**
 Facet that defines a way to provide a function that computes the
@@ -18293,20 +16649,6 @@ function bracketedAligned(context) {
         pos = next.to;
     }
 }
-/**
-An indentation strategy for delimited (usually bracketed) nodes.
-Will, by default, indent one unit more than the parent's base
-indent unless the line starts with a closing token. When `align`
-is true and there are non-skipped nodes on the node's opening
-line, the content of the node will be aligned with the end of the
-opening node, like this:
-
-    foo(bar,
-        baz)
-*/
-function delimitedIndent({ closing, align = true, units = 1 }) {
-    return (context) => delimitedStrategy(context, align, units, closing);
-}
 function delimitedStrategy(context, align, units, closing, closedAt) {
     let after = context.textAfter, space = after.match(/^\s*/)[0].length;
     let closed = closing && after.slice(space, space + closing.length) == closing || closedAt == context.pos + space;
@@ -18315,460 +16657,6 @@ function delimitedStrategy(context, align, units, closing, closedAt) {
         return closed ? context.column(aligned.from) : context.column(aligned.to);
     return context.baseIndent + (closed ? 0 : context.unit * units);
 }
-/**
-An indentation strategy that aligns a node's content to its base
-indentation.
-*/
-const flatIndent = (context) => context.baseIndent;
-/**
-Creates an indentation strategy that, by default, indents
-continued lines one unit more than the node's base indentation.
-You can provide `except` to prevent indentation of lines that
-match a pattern (for example `/^else\b/` in `if`/`else`
-constructs), and you can change the amount of units used with the
-`units` option.
-*/
-function continuedIndent({ except, units = 1 } = {}) {
-    return (context) => {
-        let matchExcept = except && except.test(context.textAfter);
-        return context.baseIndent + (matchExcept ? 0 : units * context.unit);
-    };
-}
-const DontIndentBeyond = 200;
-/**
-Enables reindentation on input. When a language defines an
-`indentOnInput` field in its [language
-data](https://codemirror.net/6/docs/ref/#state.EditorState.languageDataAt), which must hold a regular
-expression, the line at the cursor will be reindented whenever new
-text is typed and the input from the start of the line up to the
-cursor matches that regexp.
-
-To avoid unneccesary reindents, it is recommended to start the
-regexp with `^` (usually followed by `\s*`), and end it with `$`.
-For example, `/^\s*\}$/` will reindent when a closing brace is
-added at the start of a line.
-*/
-function indentOnInput() {
-    return EditorState.transactionFilter.of(tr => {
-        if (!tr.docChanged || !tr.isUserEvent("input.type") && !tr.isUserEvent("input.complete"))
-            return tr;
-        let rules = tr.startState.languageDataAt("indentOnInput", tr.startState.selection.main.head);
-        if (!rules.length)
-            return tr;
-        let doc = tr.newDoc, { head } = tr.newSelection.main, line = doc.lineAt(head);
-        if (head > line.from + DontIndentBeyond)
-            return tr;
-        let lineStart = doc.sliceString(line.from, head);
-        if (!rules.some(r => r.test(lineStart)))
-            return tr;
-        let { state } = tr, last = -1, changes = [];
-        for (let { head } of state.selection.ranges) {
-            let line = state.doc.lineAt(head);
-            if (line.from == last)
-                continue;
-            last = line.from;
-            let indent = getIndentation(state, line.from);
-            if (indent == null)
-                continue;
-            let cur = /^\s*/.exec(line.text)[0];
-            let norm = indentString(state, indent);
-            if (cur != norm)
-                changes.push({ from: line.from, to: line.from + cur.length, insert: norm });
-        }
-        return changes.length ? [tr, { changes, sequential: true }] : tr;
-    });
-}
-
-/**
-A facet that registers a code folding service. When called with
-the extent of a line, such a function should return a foldable
-range that starts on that line (but continues beyond it), if one
-can be found.
-*/
-const foldService = /*@__PURE__*/Facet.define();
-/**
-This node prop is used to associate folding information with
-syntax node types. Given a syntax node, it should check whether
-that tree is foldable and return the range that can be collapsed
-when it is.
-*/
-const foldNodeProp = /*@__PURE__*/new NodeProp();
-/**
-[Fold](https://codemirror.net/6/docs/ref/#language.foldNodeProp) function that folds everything but
-the first and the last child of a syntax node. Useful for nodes
-that start and end with delimiters.
-*/
-function foldInside(node) {
-    let first = node.firstChild, last = node.lastChild;
-    return first && first.to < last.from ? { from: first.to, to: last.type.isError ? node.to : last.from } : null;
-}
-function syntaxFolding(state, start, end) {
-    let tree = syntaxTree(state);
-    if (tree.length < end)
-        return null;
-    let stack = tree.resolveStack(end, 1);
-    let found = null;
-    for (let iter = stack; iter; iter = iter.next) {
-        let cur = iter.node;
-        if (cur.to <= end || cur.from > end)
-            continue;
-        if (found && cur.from < start)
-            break;
-        let prop = cur.type.prop(foldNodeProp);
-        if (prop && (cur.to < tree.length - 50 || tree.length == state.doc.length || !isUnfinished(cur))) {
-            let value = prop(cur, state);
-            if (value && value.from <= end && value.from >= start && value.to > end)
-                found = value;
-        }
-    }
-    return found;
-}
-function isUnfinished(node) {
-    let ch = node.lastChild;
-    return ch && ch.to == node.to && ch.type.isError;
-}
-/**
-Check whether the given line is foldable. First asks any fold
-services registered through
-[`foldService`](https://codemirror.net/6/docs/ref/#language.foldService), and if none of them return
-a result, tries to query the [fold node
-prop](https://codemirror.net/6/docs/ref/#language.foldNodeProp) of syntax nodes that cover the end
-of the line.
-*/
-function foldable(state, lineStart, lineEnd) {
-    for (let service of state.facet(foldService)) {
-        let result = service(state, lineStart, lineEnd);
-        if (result)
-            return result;
-    }
-    return syntaxFolding(state, lineStart, lineEnd);
-}
-function mapRange(range, mapping) {
-    let from = mapping.mapPos(range.from, 1), to = mapping.mapPos(range.to, -1);
-    return from >= to ? undefined : { from, to };
-}
-/**
-State effect that can be attached to a transaction to fold the
-given range. (You probably only need this in exceptional
-circumstances—usually you'll just want to let
-[`foldCode`](https://codemirror.net/6/docs/ref/#language.foldCode) and the [fold
-gutter](https://codemirror.net/6/docs/ref/#language.foldGutter) create the transactions.)
-*/
-const foldEffect = /*@__PURE__*/StateEffect.define({ map: mapRange });
-/**
-State effect that unfolds the given range (if it was folded).
-*/
-const unfoldEffect = /*@__PURE__*/StateEffect.define({ map: mapRange });
-function selectedLines(view) {
-    let lines = [];
-    for (let { head } of view.state.selection.ranges) {
-        if (lines.some(l => l.from <= head && l.to >= head))
-            continue;
-        lines.push(view.lineBlockAt(head));
-    }
-    return lines;
-}
-/**
-The state field that stores the folded ranges (as a [decoration
-set](https://codemirror.net/6/docs/ref/#view.DecorationSet)). Can be passed to
-[`EditorState.toJSON`](https://codemirror.net/6/docs/ref/#state.EditorState.toJSON) and
-[`fromJSON`](https://codemirror.net/6/docs/ref/#state.EditorState^fromJSON) to serialize the fold
-state.
-*/
-const foldState = /*@__PURE__*/StateField.define({
-    create() {
-        return Decoration.none;
-    },
-    update(folded, tr) {
-        folded = folded.map(tr.changes);
-        for (let e of tr.effects) {
-            if (e.is(foldEffect) && !foldExists(folded, e.value.from, e.value.to)) {
-                let { preparePlaceholder } = tr.state.facet(foldConfig);
-                let widget = !preparePlaceholder ? foldWidget :
-                    Decoration.replace({ widget: new PreparedFoldWidget(preparePlaceholder(tr.state, e.value)) });
-                folded = folded.update({ add: [widget.range(e.value.from, e.value.to)] });
-            }
-            else if (e.is(unfoldEffect)) {
-                folded = folded.update({ filter: (from, to) => e.value.from != from || e.value.to != to,
-                    filterFrom: e.value.from, filterTo: e.value.to });
-            }
-        }
-        // Clear folded ranges that cover the selection head
-        if (tr.selection) {
-            let onSelection = false, { head } = tr.selection.main;
-            folded.between(head, head, (a, b) => { if (a < head && b > head)
-                onSelection = true; });
-            if (onSelection)
-                folded = folded.update({
-                    filterFrom: head,
-                    filterTo: head,
-                    filter: (a, b) => b <= head || a >= head
-                });
-        }
-        return folded;
-    },
-    provide: f => EditorView.decorations.from(f),
-    toJSON(folded, state) {
-        let ranges = [];
-        folded.between(0, state.doc.length, (from, to) => { ranges.push(from, to); });
-        return ranges;
-    },
-    fromJSON(value) {
-        if (!Array.isArray(value) || value.length % 2)
-            throw new RangeError("Invalid JSON for fold state");
-        let ranges = [];
-        for (let i = 0; i < value.length;) {
-            let from = value[i++], to = value[i++];
-            if (typeof from != "number" || typeof to != "number")
-                throw new RangeError("Invalid JSON for fold state");
-            ranges.push(foldWidget.range(from, to));
-        }
-        return Decoration.set(ranges, true);
-    }
-});
-function findFold(state, from, to) {
-    var _a;
-    let found = null;
-    (_a = state.field(foldState, false)) === null || _a === void 0 ? void 0 : _a.between(from, to, (from, to) => {
-        if (!found || found.from > from)
-            found = { from, to };
-    });
-    return found;
-}
-function foldExists(folded, from, to) {
-    let found = false;
-    folded.between(from, from, (a, b) => { if (a == from && b == to)
-        found = true; });
-    return found;
-}
-function maybeEnable(state, other) {
-    return state.field(foldState, false) ? other : other.concat(StateEffect.appendConfig.of(codeFolding()));
-}
-/**
-Fold the lines that are selected, if possible.
-*/
-const foldCode = view => {
-    for (let line of selectedLines(view)) {
-        let range = foldable(view.state, line.from, line.to);
-        if (range) {
-            view.dispatch({ effects: maybeEnable(view.state, [foldEffect.of(range), announceFold(view, range)]) });
-            return true;
-        }
-    }
-    return false;
-};
-/**
-Unfold folded ranges on selected lines.
-*/
-const unfoldCode = view => {
-    if (!view.state.field(foldState, false))
-        return false;
-    let effects = [];
-    for (let line of selectedLines(view)) {
-        let folded = findFold(view.state, line.from, line.to);
-        if (folded)
-            effects.push(unfoldEffect.of(folded), announceFold(view, folded, false));
-    }
-    if (effects.length)
-        view.dispatch({ effects });
-    return effects.length > 0;
-};
-function announceFold(view, range, fold = true) {
-    let lineFrom = view.state.doc.lineAt(range.from).number, lineTo = view.state.doc.lineAt(range.to).number;
-    return EditorView.announce.of(`${view.state.phrase(fold ? "Folded lines" : "Unfolded lines")} ${lineFrom} ${view.state.phrase("to")} ${lineTo}.`);
-}
-/**
-Fold all top-level foldable ranges. Note that, in most cases,
-folding information will depend on the [syntax
-tree](https://codemirror.net/6/docs/ref/#language.syntaxTree), and folding everything may not work
-reliably when the document hasn't been fully parsed (either
-because the editor state was only just initialized, or because the
-document is so big that the parser decided not to parse it
-entirely).
-*/
-const foldAll = view => {
-    let { state } = view, effects = [];
-    for (let pos = 0; pos < state.doc.length;) {
-        let line = view.lineBlockAt(pos), range = foldable(state, line.from, line.to);
-        if (range)
-            effects.push(foldEffect.of(range));
-        pos = (range ? view.lineBlockAt(range.to) : line).to + 1;
-    }
-    if (effects.length)
-        view.dispatch({ effects: maybeEnable(view.state, effects) });
-    return !!effects.length;
-};
-/**
-Unfold all folded code.
-*/
-const unfoldAll = view => {
-    let field = view.state.field(foldState, false);
-    if (!field || !field.size)
-        return false;
-    let effects = [];
-    field.between(0, view.state.doc.length, (from, to) => { effects.push(unfoldEffect.of({ from, to })); });
-    view.dispatch({ effects });
-    return true;
-};
-/**
-Default fold-related key bindings.
-
- - Ctrl-Shift-[ (Cmd-Alt-[ on macOS): [`foldCode`](https://codemirror.net/6/docs/ref/#language.foldCode).
- - Ctrl-Shift-] (Cmd-Alt-] on macOS): [`unfoldCode`](https://codemirror.net/6/docs/ref/#language.unfoldCode).
- - Ctrl-Alt-[: [`foldAll`](https://codemirror.net/6/docs/ref/#language.foldAll).
- - Ctrl-Alt-]: [`unfoldAll`](https://codemirror.net/6/docs/ref/#language.unfoldAll).
-*/
-const foldKeymap = [
-    { key: "Ctrl-Shift-[", mac: "Cmd-Alt-[", run: foldCode },
-    { key: "Ctrl-Shift-]", mac: "Cmd-Alt-]", run: unfoldCode },
-    { key: "Ctrl-Alt-[", run: foldAll },
-    { key: "Ctrl-Alt-]", run: unfoldAll }
-];
-const defaultConfig = {
-    placeholderDOM: null,
-    preparePlaceholder: null,
-    placeholderText: "…"
-};
-const foldConfig = /*@__PURE__*/Facet.define({
-    combine(values) { return combineConfig(values, defaultConfig); }
-});
-/**
-Create an extension that configures code folding.
-*/
-function codeFolding(config) {
-    let result = [foldState, baseTheme$1$2];
-    if (config)
-        result.push(foldConfig.of(config));
-    return result;
-}
-function widgetToDOM(view, prepared) {
-    let { state } = view, conf = state.facet(foldConfig);
-    let onclick = (event) => {
-        let line = view.lineBlockAt(view.posAtDOM(event.target));
-        let folded = findFold(view.state, line.from, line.to);
-        if (folded)
-            view.dispatch({ effects: unfoldEffect.of(folded) });
-        event.preventDefault();
-    };
-    if (conf.placeholderDOM)
-        return conf.placeholderDOM(view, onclick, prepared);
-    let element = document.createElement("span");
-    element.textContent = conf.placeholderText;
-    element.setAttribute("aria-label", state.phrase("folded code"));
-    element.title = state.phrase("unfold");
-    element.className = "cm-foldPlaceholder";
-    element.onclick = onclick;
-    return element;
-}
-const foldWidget = /*@__PURE__*/Decoration.replace({ widget: /*@__PURE__*/new class extends WidgetType {
-        toDOM(view) { return widgetToDOM(view, null); }
-    } });
-class PreparedFoldWidget extends WidgetType {
-    constructor(value) {
-        super();
-        this.value = value;
-    }
-    eq(other) { return this.value == other.value; }
-    toDOM(view) { return widgetToDOM(view, this.value); }
-}
-const foldGutterDefaults = {
-    openText: "⌄",
-    closedText: "›",
-    markerDOM: null,
-    domEventHandlers: {},
-    foldingChanged: () => false
-};
-class FoldMarker extends GutterMarker {
-    constructor(config, open) {
-        super();
-        this.config = config;
-        this.open = open;
-    }
-    eq(other) { return this.config == other.config && this.open == other.open; }
-    toDOM(view) {
-        if (this.config.markerDOM)
-            return this.config.markerDOM(this.open);
-        let span = document.createElement("span");
-        span.textContent = this.open ? this.config.openText : this.config.closedText;
-        span.title = view.state.phrase(this.open ? "Fold line" : "Unfold line");
-        return span;
-    }
-}
-/**
-Create an extension that registers a fold gutter, which shows a
-fold status indicator before foldable lines (which can be clicked
-to fold or unfold the line).
-*/
-function foldGutter(config = {}) {
-    let fullConfig = Object.assign(Object.assign({}, foldGutterDefaults), config);
-    let canFold = new FoldMarker(fullConfig, true), canUnfold = new FoldMarker(fullConfig, false);
-    let markers = ViewPlugin.fromClass(class {
-        constructor(view) {
-            this.from = view.viewport.from;
-            this.markers = this.buildMarkers(view);
-        }
-        update(update) {
-            if (update.docChanged || update.viewportChanged ||
-                update.startState.facet(language) != update.state.facet(language) ||
-                update.startState.field(foldState, false) != update.state.field(foldState, false) ||
-                syntaxTree(update.startState) != syntaxTree(update.state) ||
-                fullConfig.foldingChanged(update))
-                this.markers = this.buildMarkers(update.view);
-        }
-        buildMarkers(view) {
-            let builder = new RangeSetBuilder();
-            for (let line of view.viewportLineBlocks) {
-                let mark = findFold(view.state, line.from, line.to) ? canUnfold
-                    : foldable(view.state, line.from, line.to) ? canFold : null;
-                if (mark)
-                    builder.add(line.from, line.from, mark);
-            }
-            return builder.finish();
-        }
-    });
-    let { domEventHandlers } = fullConfig;
-    return [
-        markers,
-        gutter({
-            class: "cm-foldGutter",
-            markers(view) { var _a; return ((_a = view.plugin(markers)) === null || _a === void 0 ? void 0 : _a.markers) || RangeSet.empty; },
-            initialSpacer() {
-                return new FoldMarker(fullConfig, false);
-            },
-            domEventHandlers: Object.assign(Object.assign({}, domEventHandlers), { click: (view, line, event) => {
-                    if (domEventHandlers.click && domEventHandlers.click(view, line, event))
-                        return true;
-                    let folded = findFold(view.state, line.from, line.to);
-                    if (folded) {
-                        view.dispatch({ effects: unfoldEffect.of(folded) });
-                        return true;
-                    }
-                    let range = foldable(view.state, line.from, line.to);
-                    if (range) {
-                        view.dispatch({ effects: foldEffect.of(range) });
-                        return true;
-                    }
-                    return false;
-                } })
-        }),
-        codeFolding()
-    ];
-}
-const baseTheme$1$2 = /*@__PURE__*/EditorView.baseTheme({
-    ".cm-foldPlaceholder": {
-        backgroundColor: "#eee",
-        border: "1px solid #ddd",
-        color: "#888",
-        borderRadius: ".2em",
-        margin: "0 1px",
-        padding: "0 1px",
-        cursor: "pointer"
-    },
-    ".cm-foldGutter span": {
-        padding: "0 1px",
-        cursor: "pointer"
-    }
-});
 
 /**
 A highlight style associates CSS styles with higlighting
@@ -18931,66 +16819,7 @@ const defaultHighlightStyle = /*@__PURE__*/HighlightStyle.define([
     { tag: tags.invalid,
         color: "#f00" }
 ]);
-
-const baseTheme$3 = /*@__PURE__*/EditorView.baseTheme({
-    "&.cm-focused .cm-matchingBracket": { backgroundColor: "#328c8252" },
-    "&.cm-focused .cm-nonmatchingBracket": { backgroundColor: "#bb555544" }
-});
 const DefaultScanDist = 10000, DefaultBrackets = "()[]{}";
-const bracketMatchingConfig = /*@__PURE__*/Facet.define({
-    combine(configs) {
-        return combineConfig(configs, {
-            afterCursor: true,
-            brackets: DefaultBrackets,
-            maxScanDistance: DefaultScanDist,
-            renderMatch: defaultRenderMatch
-        });
-    }
-});
-const matchingMark = /*@__PURE__*/Decoration.mark({ class: "cm-matchingBracket" }), nonmatchingMark = /*@__PURE__*/Decoration.mark({ class: "cm-nonmatchingBracket" });
-function defaultRenderMatch(match) {
-    let decorations = [];
-    let mark = match.matched ? matchingMark : nonmatchingMark;
-    decorations.push(mark.range(match.start.from, match.start.to));
-    if (match.end)
-        decorations.push(mark.range(match.end.from, match.end.to));
-    return decorations;
-}
-const bracketMatchingState = /*@__PURE__*/StateField.define({
-    create() { return Decoration.none; },
-    update(deco, tr) {
-        if (!tr.docChanged && !tr.selection)
-            return deco;
-        let decorations = [];
-        let config = tr.state.facet(bracketMatchingConfig);
-        for (let range of tr.state.selection.ranges) {
-            if (!range.empty)
-                continue;
-            let match = matchBrackets(tr.state, range.head, -1, config)
-                || (range.head > 0 && matchBrackets(tr.state, range.head - 1, 1, config))
-                || (config.afterCursor &&
-                    (matchBrackets(tr.state, range.head, 1, config) ||
-                        (range.head < tr.state.doc.length && matchBrackets(tr.state, range.head + 1, -1, config))));
-            if (match)
-                decorations = decorations.concat(config.renderMatch(match, tr.state));
-        }
-        return Decoration.set(decorations, true);
-    },
-    provide: f => EditorView.decorations.from(f)
-});
-const bracketMatchingUnique = [
-    bracketMatchingState,
-    baseTheme$3
-];
-/**
-Create an extension that enables bracket matching. Whenever the
-cursor is next to a bracket, that bracket and the one it matches
-are highlighted. Or, when no matching bracket is found, another
-highlighting style is used to indicate this.
-*/
-function bracketMatching(config = {}) {
-    return [bracketMatchingConfig.of(config), bracketMatchingUnique];
-}
 /**
 When larger syntax nodes, such as HTML tags, are marked as
 opening/closing, it can be a bit messy to treat the whole node as
@@ -19093,8 +16922,473 @@ function matchPlainBrackets(state, pos, dir, tree, tokenType, maxScanDistance, b
     }
     return iter.done ? { start: startToken, matched: false } : null;
 }
+
+// Counts the column offset in a string, taking tabs into account.
+// Used mostly to find indentation.
+function countCol(string, end, tabSize, startIndex = 0, startValue = 0) {
+    if (end == null) {
+        end = string.search(/[^\s\u00a0]/);
+        if (end == -1)
+            end = string.length;
+    }
+    let n = startValue;
+    for (let i = startIndex; i < end; i++) {
+        if (string.charCodeAt(i) == 9)
+            n += tabSize - (n % tabSize);
+        else
+            n++;
+    }
+    return n;
+}
+/**
+Encapsulates a single line of input. Given to stream syntax code,
+which uses it to tokenize the content.
+*/
+class StringStream {
+    /**
+    Create a stream.
+    */
+    constructor(
+    /**
+    The line.
+    */
+    string, tabSize, 
+    /**
+    The current indent unit size.
+    */
+    indentUnit, overrideIndent) {
+        this.string = string;
+        this.tabSize = tabSize;
+        this.indentUnit = indentUnit;
+        this.overrideIndent = overrideIndent;
+        /**
+        The current position on the line.
+        */
+        this.pos = 0;
+        /**
+        The start position of the current token.
+        */
+        this.start = 0;
+        this.lastColumnPos = 0;
+        this.lastColumnValue = 0;
+    }
+    /**
+    True if we are at the end of the line.
+    */
+    eol() { return this.pos >= this.string.length; }
+    /**
+    True if we are at the start of the line.
+    */
+    sol() { return this.pos == 0; }
+    /**
+    Get the next code unit after the current position, or undefined
+    if we're at the end of the line.
+    */
+    peek() { return this.string.charAt(this.pos) || undefined; }
+    /**
+    Read the next code unit and advance `this.pos`.
+    */
+    next() {
+        if (this.pos < this.string.length)
+            return this.string.charAt(this.pos++);
+    }
+    /**
+    Match the next character against the given string, regular
+    expression, or predicate. Consume and return it if it matches.
+    */
+    eat(match) {
+        let ch = this.string.charAt(this.pos);
+        let ok;
+        if (typeof match == "string")
+            ok = ch == match;
+        else
+            ok = ch && (match instanceof RegExp ? match.test(ch) : match(ch));
+        if (ok) {
+            ++this.pos;
+            return ch;
+        }
+    }
+    /**
+    Continue matching characters that match the given string,
+    regular expression, or predicate function. Return true if any
+    characters were consumed.
+    */
+    eatWhile(match) {
+        let start = this.pos;
+        while (this.eat(match)) { }
+        return this.pos > start;
+    }
+    /**
+    Consume whitespace ahead of `this.pos`. Return true if any was
+    found.
+    */
+    eatSpace() {
+        let start = this.pos;
+        while (/[\s\u00a0]/.test(this.string.charAt(this.pos)))
+            ++this.pos;
+        return this.pos > start;
+    }
+    /**
+    Move to the end of the line.
+    */
+    skipToEnd() { this.pos = this.string.length; }
+    /**
+    Move to directly before the given character, if found on the
+    current line.
+    */
+    skipTo(ch) {
+        let found = this.string.indexOf(ch, this.pos);
+        if (found > -1) {
+            this.pos = found;
+            return true;
+        }
+    }
+    /**
+    Move back `n` characters.
+    */
+    backUp(n) { this.pos -= n; }
+    /**
+    Get the column position at `this.pos`.
+    */
+    column() {
+        if (this.lastColumnPos < this.start) {
+            this.lastColumnValue = countCol(this.string, this.start, this.tabSize, this.lastColumnPos, this.lastColumnValue);
+            this.lastColumnPos = this.start;
+        }
+        return this.lastColumnValue;
+    }
+    /**
+    Get the indentation column of the current line.
+    */
+    indentation() {
+        var _a;
+        return (_a = this.overrideIndent) !== null && _a !== void 0 ? _a : countCol(this.string, null, this.tabSize);
+    }
+    /**
+    Match the input against the given string or regular expression
+    (which should start with a `^`). Return true or the regexp match
+    if it matches.
+    
+    Unless `consume` is set to `false`, this will move `this.pos`
+    past the matched text.
+    
+    When matching a string `caseInsensitive` can be set to true to
+    make the match case-insensitive.
+    */
+    match(pattern, consume, caseInsensitive) {
+        if (typeof pattern == "string") {
+            let cased = (str) => caseInsensitive ? str.toLowerCase() : str;
+            let substr = this.string.substr(this.pos, pattern.length);
+            if (cased(substr) == cased(pattern)) {
+                if (consume !== false)
+                    this.pos += pattern.length;
+                return true;
+            }
+            else
+                return null;
+        }
+        else {
+            let match = this.string.slice(this.pos).match(pattern);
+            if (match && match.index > 0)
+                return null;
+            if (match && consume !== false)
+                this.pos += match[0].length;
+            return match;
+        }
+    }
+    /**
+    Get the current token.
+    */
+    current() { return this.string.slice(this.start, this.pos); }
+}
+
+function fullParser(spec) {
+    return {
+        name: spec.name || "",
+        token: spec.token,
+        blankLine: spec.blankLine || (() => { }),
+        startState: spec.startState || (() => true),
+        copyState: spec.copyState || defaultCopyState,
+        indent: spec.indent || (() => null),
+        languageData: spec.languageData || {},
+        tokenTable: spec.tokenTable || noTokens
+    };
+}
+function defaultCopyState(state) {
+    if (typeof state != "object")
+        return state;
+    let newState = {};
+    for (let prop in state) {
+        let val = state[prop];
+        newState[prop] = (val instanceof Array ? val.slice() : val);
+    }
+    return newState;
+}
+const IndentedFrom = /*@__PURE__*/new WeakMap();
+/**
+A [language](https://codemirror.net/6/docs/ref/#language.Language) class based on a CodeMirror
+5-style [streaming parser](https://codemirror.net/6/docs/ref/#language.StreamParser).
+*/
+class StreamLanguage extends Language {
+    constructor(parser) {
+        let data = defineLanguageFacet(parser.languageData);
+        let p = fullParser(parser), self;
+        let impl = new class extends Parser {
+            createParse(input, fragments, ranges) {
+                return new Parse(self, input, fragments, ranges);
+            }
+        };
+        super(data, impl, [indentService.of((cx, pos) => this.getIndent(cx, pos))], parser.name);
+        this.topNode = docID(data);
+        self = this;
+        this.streamParser = p;
+        this.stateAfter = new NodeProp({ perNode: true });
+        this.tokenTable = parser.tokenTable ? new TokenTable(p.tokenTable) : defaultTokenTable;
+    }
+    /**
+    Define a stream language.
+    */
+    static define(spec) { return new StreamLanguage(spec); }
+    getIndent(cx, pos) {
+        let tree = syntaxTree(cx.state), at = tree.resolve(pos);
+        while (at && at.type != this.topNode)
+            at = at.parent;
+        if (!at)
+            return null;
+        let from = undefined;
+        let { overrideIndentation } = cx.options;
+        if (overrideIndentation) {
+            from = IndentedFrom.get(cx.state);
+            if (from != null && from < pos - 1e4)
+                from = undefined;
+        }
+        let start = findState(this, tree, 0, at.from, from !== null && from !== void 0 ? from : pos), statePos, state;
+        if (start) {
+            state = start.state;
+            statePos = start.pos + 1;
+        }
+        else {
+            state = this.streamParser.startState(cx.unit);
+            statePos = 0;
+        }
+        if (pos - statePos > 10000 /* C.MaxIndentScanDist */)
+            return null;
+        while (statePos < pos) {
+            let line = cx.state.doc.lineAt(statePos), end = Math.min(pos, line.to);
+            if (line.length) {
+                let indentation = overrideIndentation ? overrideIndentation(line.from) : -1;
+                let stream = new StringStream(line.text, cx.state.tabSize, cx.unit, indentation < 0 ? undefined : indentation);
+                while (stream.pos < end - line.from)
+                    readToken(this.streamParser.token, stream, state);
+            }
+            else {
+                this.streamParser.blankLine(state, cx.unit);
+            }
+            if (end == pos)
+                break;
+            statePos = line.to + 1;
+        }
+        let line = cx.lineAt(pos);
+        if (overrideIndentation && from == null)
+            IndentedFrom.set(cx.state, line.from);
+        return this.streamParser.indent(state, /^\s*(.*)/.exec(line.text)[1], cx);
+    }
+    get allowsNesting() { return false; }
+}
+function findState(lang, tree, off, startPos, before) {
+    let state = off >= startPos && off + tree.length <= before && tree.prop(lang.stateAfter);
+    if (state)
+        return { state: lang.streamParser.copyState(state), pos: off + tree.length };
+    for (let i = tree.children.length - 1; i >= 0; i--) {
+        let child = tree.children[i], pos = off + tree.positions[i];
+        let found = child instanceof Tree && pos < before && findState(lang, child, pos, startPos, before);
+        if (found)
+            return found;
+    }
+    return null;
+}
+function cutTree(lang, tree, from, to, inside) {
+    if (inside && from <= 0 && to >= tree.length)
+        return tree;
+    if (!inside && tree.type == lang.topNode)
+        inside = true;
+    for (let i = tree.children.length - 1; i >= 0; i--) {
+        let pos = tree.positions[i], child = tree.children[i], inner;
+        if (pos < to && child instanceof Tree) {
+            if (!(inner = cutTree(lang, child, from - pos, to - pos, inside)))
+                break;
+            return !inside ? inner
+                : new Tree(tree.type, tree.children.slice(0, i).concat(inner), tree.positions.slice(0, i + 1), pos + inner.length);
+        }
+    }
+    return null;
+}
+function findStartInFragments(lang, fragments, startPos, editorState) {
+    for (let f of fragments) {
+        let from = f.from + (f.openStart ? 25 : 0), to = f.to - (f.openEnd ? 25 : 0);
+        let found = from <= startPos && to > startPos && findState(lang, f.tree, 0 - f.offset, startPos, to), tree;
+        if (found && (tree = cutTree(lang, f.tree, startPos + f.offset, found.pos + f.offset, false)))
+            return { state: found.state, tree };
+    }
+    return { state: lang.streamParser.startState(editorState ? getIndentUnit(editorState) : 4), tree: Tree.empty };
+}
+class Parse {
+    constructor(lang, input, fragments, ranges) {
+        this.lang = lang;
+        this.input = input;
+        this.fragments = fragments;
+        this.ranges = ranges;
+        this.stoppedAt = null;
+        this.chunks = [];
+        this.chunkPos = [];
+        this.chunk = [];
+        this.chunkReused = undefined;
+        this.rangeIndex = 0;
+        this.to = ranges[ranges.length - 1].to;
+        let context = ParseContext.get(), from = ranges[0].from;
+        let { state, tree } = findStartInFragments(lang, fragments, from, context === null || context === void 0 ? void 0 : context.state);
+        this.state = state;
+        this.parsedPos = this.chunkStart = from + tree.length;
+        for (let i = 0; i < tree.children.length; i++) {
+            this.chunks.push(tree.children[i]);
+            this.chunkPos.push(tree.positions[i]);
+        }
+        if (context && this.parsedPos < context.viewport.from - 100000 /* C.MaxDistanceBeforeViewport */) {
+            this.state = this.lang.streamParser.startState(getIndentUnit(context.state));
+            context.skipUntilInView(this.parsedPos, context.viewport.from);
+            this.parsedPos = context.viewport.from;
+        }
+        this.moveRangeIndex();
+    }
+    advance() {
+        let context = ParseContext.get();
+        let parseEnd = this.stoppedAt == null ? this.to : Math.min(this.to, this.stoppedAt);
+        let end = Math.min(parseEnd, this.chunkStart + 2048 /* C.ChunkSize */);
+        if (context)
+            end = Math.min(end, context.viewport.to);
+        while (this.parsedPos < end)
+            this.parseLine(context);
+        if (this.chunkStart < this.parsedPos)
+            this.finishChunk();
+        if (this.parsedPos >= parseEnd)
+            return this.finish();
+        if (context && this.parsedPos >= context.viewport.to) {
+            context.skipUntilInView(this.parsedPos, parseEnd);
+            return this.finish();
+        }
+        return null;
+    }
+    stopAt(pos) {
+        this.stoppedAt = pos;
+    }
+    lineAfter(pos) {
+        let chunk = this.input.chunk(pos);
+        if (!this.input.lineChunks) {
+            let eol = chunk.indexOf("\n");
+            if (eol > -1)
+                chunk = chunk.slice(0, eol);
+        }
+        else if (chunk == "\n") {
+            chunk = "";
+        }
+        return pos + chunk.length <= this.to ? chunk : chunk.slice(0, this.to - pos);
+    }
+    nextLine() {
+        let from = this.parsedPos, line = this.lineAfter(from), end = from + line.length;
+        for (let index = this.rangeIndex;;) {
+            let rangeEnd = this.ranges[index].to;
+            if (rangeEnd >= end)
+                break;
+            line = line.slice(0, rangeEnd - (end - line.length));
+            index++;
+            if (index == this.ranges.length)
+                break;
+            let rangeStart = this.ranges[index].from;
+            let after = this.lineAfter(rangeStart);
+            line += after;
+            end = rangeStart + after.length;
+        }
+        return { line, end };
+    }
+    skipGapsTo(pos, offset, side) {
+        for (;;) {
+            let end = this.ranges[this.rangeIndex].to, offPos = pos + offset;
+            if (side > 0 ? end > offPos : end >= offPos)
+                break;
+            let start = this.ranges[++this.rangeIndex].from;
+            offset += start - end;
+        }
+        return offset;
+    }
+    moveRangeIndex() {
+        while (this.ranges[this.rangeIndex].to < this.parsedPos)
+            this.rangeIndex++;
+    }
+    emitToken(id, from, to, size, offset) {
+        if (this.ranges.length > 1) {
+            offset = this.skipGapsTo(from, offset, 1);
+            from += offset;
+            let len0 = this.chunk.length;
+            offset = this.skipGapsTo(to, offset, -1);
+            to += offset;
+            size += this.chunk.length - len0;
+        }
+        this.chunk.push(id, from, to, size);
+        return offset;
+    }
+    parseLine(context) {
+        let { line, end } = this.nextLine(), offset = 0, { streamParser } = this.lang;
+        let stream = new StringStream(line, context ? context.state.tabSize : 4, context ? getIndentUnit(context.state) : 2);
+        if (stream.eol()) {
+            streamParser.blankLine(this.state, stream.indentUnit);
+        }
+        else {
+            while (!stream.eol()) {
+                let token = readToken(streamParser.token, stream, this.state);
+                if (token)
+                    offset = this.emitToken(this.lang.tokenTable.resolve(token), this.parsedPos + stream.start, this.parsedPos + stream.pos, 4, offset);
+                if (stream.start > 10000 /* C.MaxLineLength */)
+                    break;
+            }
+        }
+        this.parsedPos = end;
+        this.moveRangeIndex();
+        if (this.parsedPos < this.to)
+            this.parsedPos++;
+    }
+    finishChunk() {
+        let tree = Tree.build({
+            buffer: this.chunk,
+            start: this.chunkStart,
+            length: this.parsedPos - this.chunkStart,
+            nodeSet,
+            topID: 0,
+            maxBufferLength: 2048 /* C.ChunkSize */,
+            reused: this.chunkReused
+        });
+        tree = new Tree(tree.type, tree.children, tree.positions, tree.length, [[this.lang.stateAfter, this.lang.streamParser.copyState(this.state)]]);
+        this.chunks.push(tree);
+        this.chunkPos.push(this.chunkStart - this.ranges[0].from);
+        this.chunk = [];
+        this.chunkReused = undefined;
+        this.chunkStart = this.parsedPos;
+    }
+    finish() {
+        return new Tree(this.lang.topNode, this.chunks, this.chunkPos, this.parsedPos - this.ranges[0].from).balance();
+    }
+}
+function readToken(token, stream, state) {
+    stream.start = stream.pos;
+    for (let i = 0; i < 10; i++) {
+        let result = token(stream, state);
+        if (stream.pos > stream.start)
+            return result;
+    }
+    throw new Error("Stream parser failed to advance stream.");
+}
 const noTokens = /*@__PURE__*/Object.create(null);
 const typeArray = [NodeType.none];
+const nodeSet = /*@__PURE__*/new NodeSet(typeArray);
 const warned = [];
 // Cache of node types by name and tags
 const byTag = /*@__PURE__*/Object.create(null);
@@ -19114,6 +17408,16 @@ for (let [legacyName, name] of [
     ["property", "propertyName"]
 ])
     defaultTable[legacyName] = /*@__PURE__*/createTokenType(noTokens, name);
+class TokenTable {
+    constructor(extra) {
+        this.extra = extra;
+        this.table = Object.assign(Object.create(null), defaultTable);
+    }
+    resolve(tag) {
+        return !tag ? 0 : this.table[tag] || (this.table[tag] = createTokenType(this.extra, tag));
+    }
+}
+const defaultTokenTable = /*@__PURE__*/new TokenTable(noTokens);
 function warnForPart(part, msg) {
     if (warned.indexOf(part) > -1)
         return;
@@ -19158,6 +17462,11 @@ function createTokenType(extra, tagStr) {
     });
     typeArray.push(type);
     return type.id;
+}
+function docID(data) {
+    let type = NodeType.define({ id: typeArray.length, name: "Document", props: [languageDataProp.add(() => data)], top: true });
+    typeArray.push(type);
+    return type;
 }
 ({
     rtl: /*@__PURE__*/Decoration.mark({ class: "cm-iso", inclusive: true, attributes: { dir: "rtl" }, bidiIsolate: Direction.RTL }),
@@ -19493,7 +17802,7 @@ class HistEvent {
     // transaction needs to be converted to an item. Returns null when
     // there are no changes or effects in the transaction.
     static fromTransaction(tr, selection) {
-        let effects = none$1;
+        let effects = none;
         for (let invert of tr.startState.facet(invertedEffects)) {
             let result = invert(tr);
             if (result.length)
@@ -19501,10 +17810,10 @@ class HistEvent {
         }
         if (!effects.length && tr.changes.empty)
             return null;
-        return new HistEvent(tr.changes.invert(tr.startState.doc), effects, undefined, selection || tr.startState.selection, none$1);
+        return new HistEvent(tr.changes.invert(tr.startState.doc), effects, undefined, selection || tr.startState.selection, none);
     }
     static selection(selections) {
-        return new HistEvent(undefined, none$1, undefined, undefined, selections);
+        return new HistEvent(undefined, none, undefined, undefined, selections);
     }
 }
 function updateBranch(branch, to, maxLen, newEvent) {
@@ -19532,7 +17841,7 @@ function eqSelectionShape(a, b) {
 function conc(a, b) {
     return !a.length ? b : !b.length ? a : a.concat(b);
 }
-const none$1 = [];
+const none = [];
 const MaxSelectionsPerEvent = 200;
 function addSelection(branch, selection) {
     if (!branch.length) {
@@ -19560,7 +17869,7 @@ function popSelection(branch) {
 function addMappingToBranch(branch, mapping) {
     if (!branch.length)
         return branch;
-    let length = branch.length, selections = none$1;
+    let length = branch.length, selections = none;
     while (length) {
         let event = mapEvent(branch[length - 1], mapping, selections);
         if (event.changes && !event.changes.empty || event.effects.length) { // Event survived mapping
@@ -19574,10 +17883,10 @@ function addMappingToBranch(branch, mapping) {
             selections = event.selectionsAfter;
         }
     }
-    return selections.length ? [HistEvent.selection(selections)] : none$1;
+    return selections.length ? [HistEvent.selection(selections)] : none;
 }
 function mapEvent(event, mapping, extraSelections) {
-    let selections = conc(event.selectionsAfter.length ? event.selectionsAfter.map(s => s.map(mapping)) : none$1, extraSelections);
+    let selections = conc(event.selectionsAfter.length ? event.selectionsAfter.map(s => s.map(mapping)) : none, extraSelections);
     // Change-less events don't store mappings (they are always the last event in a branch)
     if (!event.changes)
         return HistEvent.selection(selections);
@@ -19605,15 +17914,15 @@ class HistoryState {
                 config.joinToEvent(tr, isAdjacent(lastEvent.changes, event.changes))) ||
                 // For compose (but not compose.start) events, always join with previous event
                 userEvent == "input.type.compose")) {
-            done = updateBranch(done, done.length - 1, config.minDepth, new HistEvent(event.changes.compose(lastEvent.changes), conc(event.effects, lastEvent.effects), lastEvent.mapped, lastEvent.startSelection, none$1));
+            done = updateBranch(done, done.length - 1, config.minDepth, new HistEvent(event.changes.compose(lastEvent.changes), conc(event.effects, lastEvent.effects), lastEvent.mapped, lastEvent.startSelection, none));
         }
         else {
             done = updateBranch(done, done.length, config.minDepth, event);
         }
-        return new HistoryState(done, none$1, time, userEvent);
+        return new HistoryState(done, none, time, userEvent);
     }
     addSelection(selection, time, userEvent, newGroupDelay) {
-        let last = this.done.length ? this.done[this.done.length - 1].selectionsAfter : none$1;
+        let last = this.done.length ? this.done[this.done.length - 1].selectionsAfter : none;
         if (last.length > 0 &&
             time - this.prevTime < newGroupDelay &&
             userEvent == this.prevUserEvent && userEvent && /^select($|\.)/.test(userEvent) &&
@@ -19641,7 +17950,7 @@ class HistoryState {
             return null;
         }
         else {
-            let rest = branch.length == 1 ? none$1 : branch.slice(0, branch.length - 1);
+            let rest = branch.length == 1 ? none : branch.slice(0, branch.length - 1);
             if (event.mapped)
                 rest = addMappingToBranch(rest, event.mapped);
             return state.update({
@@ -19656,7 +17965,7 @@ class HistoryState {
         }
     }
 }
-HistoryState.empty = /*@__PURE__*/new HistoryState(none$1, none$1);
+HistoryState.empty = /*@__PURE__*/new HistoryState(none, none);
 /**
 Default key bindings for the undo history.
 
@@ -20574,2815 +18883,6 @@ const defaultKeymap = /*@__PURE__*/[
     { key: "Alt-A", run: toggleBlockComment }
 ].concat(standardKeymap);
 
-function crelt() {
-  var elt = arguments[0];
-  if (typeof elt == "string") elt = document.createElement(elt);
-  var i = 1, next = arguments[1];
-  if (next && typeof next == "object" && next.nodeType == null && !Array.isArray(next)) {
-    for (var name in next) if (Object.prototype.hasOwnProperty.call(next, name)) {
-      var value = next[name];
-      if (typeof value == "string") elt.setAttribute(name, value);
-      else if (value != null) elt[name] = value;
-    }
-    i++;
-  }
-  for (; i < arguments.length; i++) add(elt, arguments[i]);
-  return elt
-}
-
-function add(elt, child) {
-  if (typeof child == "string") {
-    elt.appendChild(document.createTextNode(child));
-  } else if (child == null) ; else if (child.nodeType != null) {
-    elt.appendChild(child);
-  } else if (Array.isArray(child)) {
-    for (var i = 0; i < child.length; i++) add(elt, child[i]);
-  } else {
-    throw new RangeError("Unsupported child node: " + child)
-  }
-}
-
-const basicNormalize = typeof String.prototype.normalize == "function"
-    ? x => x.normalize("NFKD") : x => x;
-/**
-A search cursor provides an iterator over text matches in a
-document.
-*/
-class SearchCursor {
-    /**
-    Create a text cursor. The query is the search string, `from` to
-    `to` provides the region to search.
-    
-    When `normalize` is given, it will be called, on both the query
-    string and the content it is matched against, before comparing.
-    You can, for example, create a case-insensitive search by
-    passing `s => s.toLowerCase()`.
-    
-    Text is always normalized with
-    [`.normalize("NFKD")`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize)
-    (when supported).
-    */
-    constructor(text, query, from = 0, to = text.length, normalize, test) {
-        this.test = test;
-        /**
-        The current match (only holds a meaningful value after
-        [`next`](https://codemirror.net/6/docs/ref/#search.SearchCursor.next) has been called and when
-        `done` is false).
-        */
-        this.value = { from: 0, to: 0 };
-        /**
-        Whether the end of the iterated region has been reached.
-        */
-        this.done = false;
-        this.matches = [];
-        this.buffer = "";
-        this.bufferPos = 0;
-        this.iter = text.iterRange(from, to);
-        this.bufferStart = from;
-        this.normalize = normalize ? x => normalize(basicNormalize(x)) : basicNormalize;
-        this.query = this.normalize(query);
-    }
-    peek() {
-        if (this.bufferPos == this.buffer.length) {
-            this.bufferStart += this.buffer.length;
-            this.iter.next();
-            if (this.iter.done)
-                return -1;
-            this.bufferPos = 0;
-            this.buffer = this.iter.value;
-        }
-        return codePointAt(this.buffer, this.bufferPos);
-    }
-    /**
-    Look for the next match. Updates the iterator's
-    [`value`](https://codemirror.net/6/docs/ref/#search.SearchCursor.value) and
-    [`done`](https://codemirror.net/6/docs/ref/#search.SearchCursor.done) properties. Should be called
-    at least once before using the cursor.
-    */
-    next() {
-        while (this.matches.length)
-            this.matches.pop();
-        return this.nextOverlapping();
-    }
-    /**
-    The `next` method will ignore matches that partially overlap a
-    previous match. This method behaves like `next`, but includes
-    such matches.
-    */
-    nextOverlapping() {
-        for (;;) {
-            let next = this.peek();
-            if (next < 0) {
-                this.done = true;
-                return this;
-            }
-            let str = fromCodePoint(next), start = this.bufferStart + this.bufferPos;
-            this.bufferPos += codePointSize(next);
-            let norm = this.normalize(str);
-            for (let i = 0, pos = start;; i++) {
-                let code = norm.charCodeAt(i);
-                let match = this.match(code, pos, this.bufferPos + this.bufferStart);
-                if (i == norm.length - 1) {
-                    if (match) {
-                        this.value = match;
-                        return this;
-                    }
-                    break;
-                }
-                if (pos == start && i < str.length && str.charCodeAt(i) == code)
-                    pos++;
-            }
-        }
-    }
-    match(code, pos, end) {
-        let match = null;
-        for (let i = 0; i < this.matches.length; i += 2) {
-            let index = this.matches[i], keep = false;
-            if (this.query.charCodeAt(index) == code) {
-                if (index == this.query.length - 1) {
-                    match = { from: this.matches[i + 1], to: end };
-                }
-                else {
-                    this.matches[i]++;
-                    keep = true;
-                }
-            }
-            if (!keep) {
-                this.matches.splice(i, 2);
-                i -= 2;
-            }
-        }
-        if (this.query.charCodeAt(0) == code) {
-            if (this.query.length == 1)
-                match = { from: pos, to: end };
-            else
-                this.matches.push(1, pos);
-        }
-        if (match && this.test && !this.test(match.from, match.to, this.buffer, this.bufferStart))
-            match = null;
-        return match;
-    }
-}
-if (typeof Symbol != "undefined")
-    SearchCursor.prototype[Symbol.iterator] = function () { return this; };
-
-const empty = { from: -1, to: -1, match: /*@__PURE__*//.*/.exec("") };
-const baseFlags = "gm" + (/x/.unicode == null ? "" : "u");
-/**
-This class is similar to [`SearchCursor`](https://codemirror.net/6/docs/ref/#search.SearchCursor)
-but searches for a regular expression pattern instead of a plain
-string.
-*/
-class RegExpCursor {
-    /**
-    Create a cursor that will search the given range in the given
-    document. `query` should be the raw pattern (as you'd pass it to
-    `new RegExp`).
-    */
-    constructor(text, query, options, from = 0, to = text.length) {
-        this.text = text;
-        this.to = to;
-        this.curLine = "";
-        /**
-        Set to `true` when the cursor has reached the end of the search
-        range.
-        */
-        this.done = false;
-        /**
-        Will contain an object with the extent of the match and the
-        match object when [`next`](https://codemirror.net/6/docs/ref/#search.RegExpCursor.next)
-        sucessfully finds a match.
-        */
-        this.value = empty;
-        if (/\\[sWDnr]|\n|\r|\[\^/.test(query))
-            return new MultilineRegExpCursor(text, query, options, from, to);
-        this.re = new RegExp(query, baseFlags + ((options === null || options === void 0 ? void 0 : options.ignoreCase) ? "i" : ""));
-        this.test = options === null || options === void 0 ? void 0 : options.test;
-        this.iter = text.iter();
-        let startLine = text.lineAt(from);
-        this.curLineStart = startLine.from;
-        this.matchPos = toCharEnd(text, from);
-        this.getLine(this.curLineStart);
-    }
-    getLine(skip) {
-        this.iter.next(skip);
-        if (this.iter.lineBreak) {
-            this.curLine = "";
-        }
-        else {
-            this.curLine = this.iter.value;
-            if (this.curLineStart + this.curLine.length > this.to)
-                this.curLine = this.curLine.slice(0, this.to - this.curLineStart);
-            this.iter.next();
-        }
-    }
-    nextLine() {
-        this.curLineStart = this.curLineStart + this.curLine.length + 1;
-        if (this.curLineStart > this.to)
-            this.curLine = "";
-        else
-            this.getLine(0);
-    }
-    /**
-    Move to the next match, if there is one.
-    */
-    next() {
-        for (let off = this.matchPos - this.curLineStart;;) {
-            this.re.lastIndex = off;
-            let match = this.matchPos <= this.to && this.re.exec(this.curLine);
-            if (match) {
-                let from = this.curLineStart + match.index, to = from + match[0].length;
-                this.matchPos = toCharEnd(this.text, to + (from == to ? 1 : 0));
-                if (from == this.curLineStart + this.curLine.length)
-                    this.nextLine();
-                if ((from < to || from > this.value.to) && (!this.test || this.test(from, to, match))) {
-                    this.value = { from, to, match };
-                    return this;
-                }
-                off = this.matchPos - this.curLineStart;
-            }
-            else if (this.curLineStart + this.curLine.length < this.to) {
-                this.nextLine();
-                off = 0;
-            }
-            else {
-                this.done = true;
-                return this;
-            }
-        }
-    }
-}
-const flattened = /*@__PURE__*/new WeakMap();
-// Reusable (partially) flattened document strings
-class FlattenedDoc {
-    constructor(from, text) {
-        this.from = from;
-        this.text = text;
-    }
-    get to() { return this.from + this.text.length; }
-    static get(doc, from, to) {
-        let cached = flattened.get(doc);
-        if (!cached || cached.from >= to || cached.to <= from) {
-            let flat = new FlattenedDoc(from, doc.sliceString(from, to));
-            flattened.set(doc, flat);
-            return flat;
-        }
-        if (cached.from == from && cached.to == to)
-            return cached;
-        let { text, from: cachedFrom } = cached;
-        if (cachedFrom > from) {
-            text = doc.sliceString(from, cachedFrom) + text;
-            cachedFrom = from;
-        }
-        if (cached.to < to)
-            text += doc.sliceString(cached.to, to);
-        flattened.set(doc, new FlattenedDoc(cachedFrom, text));
-        return new FlattenedDoc(from, text.slice(from - cachedFrom, to - cachedFrom));
-    }
-}
-class MultilineRegExpCursor {
-    constructor(text, query, options, from, to) {
-        this.text = text;
-        this.to = to;
-        this.done = false;
-        this.value = empty;
-        this.matchPos = toCharEnd(text, from);
-        this.re = new RegExp(query, baseFlags + ((options === null || options === void 0 ? void 0 : options.ignoreCase) ? "i" : ""));
-        this.test = options === null || options === void 0 ? void 0 : options.test;
-        this.flat = FlattenedDoc.get(text, from, this.chunkEnd(from + 5000 /* Chunk.Base */));
-    }
-    chunkEnd(pos) {
-        return pos >= this.to ? this.to : this.text.lineAt(pos).to;
-    }
-    next() {
-        for (;;) {
-            let off = this.re.lastIndex = this.matchPos - this.flat.from;
-            let match = this.re.exec(this.flat.text);
-            // Skip empty matches directly after the last match
-            if (match && !match[0] && match.index == off) {
-                this.re.lastIndex = off + 1;
-                match = this.re.exec(this.flat.text);
-            }
-            if (match) {
-                let from = this.flat.from + match.index, to = from + match[0].length;
-                // If a match goes almost to the end of a noncomplete chunk, try
-                // again, since it'll likely be able to match more
-                if ((this.flat.to >= this.to || match.index + match[0].length <= this.flat.text.length - 10) &&
-                    (!this.test || this.test(from, to, match))) {
-                    this.value = { from, to, match };
-                    this.matchPos = toCharEnd(this.text, to + (from == to ? 1 : 0));
-                    return this;
-                }
-            }
-            if (this.flat.to == this.to) {
-                this.done = true;
-                return this;
-            }
-            // Grow the flattened doc
-            this.flat = FlattenedDoc.get(this.text, this.flat.from, this.chunkEnd(this.flat.from + this.flat.text.length * 2));
-        }
-    }
-}
-if (typeof Symbol != "undefined") {
-    RegExpCursor.prototype[Symbol.iterator] = MultilineRegExpCursor.prototype[Symbol.iterator] =
-        function () { return this; };
-}
-function validRegExp(source) {
-    try {
-        new RegExp(source, baseFlags);
-        return true;
-    }
-    catch (_a) {
-        return false;
-    }
-}
-function toCharEnd(text, pos) {
-    if (pos >= text.length)
-        return pos;
-    let line = text.lineAt(pos), next;
-    while (pos < line.to && (next = line.text.charCodeAt(pos - line.from)) >= 0xDC00 && next < 0xE000)
-        pos++;
-    return pos;
-}
-
-function createLineDialog(view) {
-    let line = String(view.state.doc.lineAt(view.state.selection.main.head).number);
-    let input = crelt("input", { class: "cm-textfield", name: "line", value: line });
-    let dom = crelt("form", {
-        class: "cm-gotoLine",
-        onkeydown: (event) => {
-            if (event.keyCode == 27) { // Escape
-                event.preventDefault();
-                view.dispatch({ effects: dialogEffect.of(false) });
-                view.focus();
-            }
-            else if (event.keyCode == 13) { // Enter
-                event.preventDefault();
-                go();
-            }
-        },
-        onsubmit: (event) => {
-            event.preventDefault();
-            go();
-        }
-    }, crelt("label", view.state.phrase("Go to line"), ": ", input), " ", crelt("button", { class: "cm-button", type: "submit" }, view.state.phrase("go")));
-    function go() {
-        let match = /^([+-])?(\d+)?(:\d+)?(%)?$/.exec(input.value);
-        if (!match)
-            return;
-        let { state } = view, startLine = state.doc.lineAt(state.selection.main.head);
-        let [, sign, ln, cl, percent] = match;
-        let col = cl ? +cl.slice(1) : 0;
-        let line = ln ? +ln : startLine.number;
-        if (ln && percent) {
-            let pc = line / 100;
-            if (sign)
-                pc = pc * (sign == "-" ? -1 : 1) + (startLine.number / state.doc.lines);
-            line = Math.round(state.doc.lines * pc);
-        }
-        else if (ln && sign) {
-            line = line * (sign == "-" ? -1 : 1) + startLine.number;
-        }
-        let docLine = state.doc.line(Math.max(1, Math.min(state.doc.lines, line)));
-        let selection = EditorSelection.cursor(docLine.from + Math.max(0, Math.min(col, docLine.length)));
-        view.dispatch({
-            effects: [dialogEffect.of(false), EditorView.scrollIntoView(selection.from, { y: 'center' })],
-            selection,
-        });
-        view.focus();
-    }
-    return { dom };
-}
-const dialogEffect = /*@__PURE__*/StateEffect.define();
-const dialogField = /*@__PURE__*/StateField.define({
-    create() { return true; },
-    update(value, tr) {
-        for (let e of tr.effects)
-            if (e.is(dialogEffect))
-                value = e.value;
-        return value;
-    },
-    provide: f => showPanel.from(f, val => val ? createLineDialog : null)
-});
-/**
-Command that shows a dialog asking the user for a line number, and
-when a valid position is provided, moves the cursor to that line.
-
-Supports line numbers, relative line offsets prefixed with `+` or
-`-`, document percentages suffixed with `%`, and an optional
-column position by adding `:` and a second number after the line
-number.
-*/
-const gotoLine = view => {
-    let panel = getPanel(view, createLineDialog);
-    if (!panel) {
-        let effects = [dialogEffect.of(true)];
-        if (view.state.field(dialogField, false) == null)
-            effects.push(StateEffect.appendConfig.of([dialogField, baseTheme$1$1]));
-        view.dispatch({ effects });
-        panel = getPanel(view, createLineDialog);
-    }
-    if (panel)
-        panel.dom.querySelector("input").select();
-    return true;
-};
-const baseTheme$1$1 = /*@__PURE__*/EditorView.baseTheme({
-    ".cm-panel.cm-gotoLine": {
-        padding: "2px 6px 4px",
-        "& label": { fontSize: "80%" }
-    }
-});
-
-const defaultHighlightOptions = {
-    highlightWordAroundCursor: false,
-    minSelectionLength: 1,
-    maxMatches: 100,
-    wholeWords: false
-};
-const highlightConfig = /*@__PURE__*/Facet.define({
-    combine(options) {
-        return combineConfig(options, defaultHighlightOptions, {
-            highlightWordAroundCursor: (a, b) => a || b,
-            minSelectionLength: Math.min,
-            maxMatches: Math.min
-        });
-    }
-});
-/**
-This extension highlights text that matches the selection. It uses
-the `"cm-selectionMatch"` class for the highlighting. When
-`highlightWordAroundCursor` is enabled, the word at the cursor
-itself will be highlighted with `"cm-selectionMatch-main"`.
-*/
-function highlightSelectionMatches(options) {
-    let ext = [defaultTheme, matchHighlighter];
-    if (options)
-        ext.push(highlightConfig.of(options));
-    return ext;
-}
-const matchDeco = /*@__PURE__*/Decoration.mark({ class: "cm-selectionMatch" });
-const mainMatchDeco = /*@__PURE__*/Decoration.mark({ class: "cm-selectionMatch cm-selectionMatch-main" });
-// Whether the characters directly outside the given positions are non-word characters
-function insideWordBoundaries(check, state, from, to) {
-    return (from == 0 || check(state.sliceDoc(from - 1, from)) != CharCategory.Word) &&
-        (to == state.doc.length || check(state.sliceDoc(to, to + 1)) != CharCategory.Word);
-}
-// Whether the characters directly at the given positions are word characters
-function insideWord(check, state, from, to) {
-    return check(state.sliceDoc(from, from + 1)) == CharCategory.Word
-        && check(state.sliceDoc(to - 1, to)) == CharCategory.Word;
-}
-const matchHighlighter = /*@__PURE__*/ViewPlugin.fromClass(class {
-    constructor(view) {
-        this.decorations = this.getDeco(view);
-    }
-    update(update) {
-        if (update.selectionSet || update.docChanged || update.viewportChanged)
-            this.decorations = this.getDeco(update.view);
-    }
-    getDeco(view) {
-        let conf = view.state.facet(highlightConfig);
-        let { state } = view, sel = state.selection;
-        if (sel.ranges.length > 1)
-            return Decoration.none;
-        let range = sel.main, query, check = null;
-        if (range.empty) {
-            if (!conf.highlightWordAroundCursor)
-                return Decoration.none;
-            let word = state.wordAt(range.head);
-            if (!word)
-                return Decoration.none;
-            check = state.charCategorizer(range.head);
-            query = state.sliceDoc(word.from, word.to);
-        }
-        else {
-            let len = range.to - range.from;
-            if (len < conf.minSelectionLength || len > 200)
-                return Decoration.none;
-            if (conf.wholeWords) {
-                query = state.sliceDoc(range.from, range.to); // TODO: allow and include leading/trailing space?
-                check = state.charCategorizer(range.head);
-                if (!(insideWordBoundaries(check, state, range.from, range.to) &&
-                    insideWord(check, state, range.from, range.to)))
-                    return Decoration.none;
-            }
-            else {
-                query = state.sliceDoc(range.from, range.to);
-                if (!query)
-                    return Decoration.none;
-            }
-        }
-        let deco = [];
-        for (let part of view.visibleRanges) {
-            let cursor = new SearchCursor(state.doc, query, part.from, part.to);
-            while (!cursor.next().done) {
-                let { from, to } = cursor.value;
-                if (!check || insideWordBoundaries(check, state, from, to)) {
-                    if (range.empty && from <= range.from && to >= range.to)
-                        deco.push(mainMatchDeco.range(from, to));
-                    else if (from >= range.to || to <= range.from)
-                        deco.push(matchDeco.range(from, to));
-                    if (deco.length > conf.maxMatches)
-                        return Decoration.none;
-                }
-            }
-        }
-        return Decoration.set(deco);
-    }
-}, {
-    decorations: v => v.decorations
-});
-const defaultTheme = /*@__PURE__*/EditorView.baseTheme({
-    ".cm-selectionMatch": { backgroundColor: "#99ff7780" },
-    ".cm-searchMatch .cm-selectionMatch": { backgroundColor: "transparent" }
-});
-// Select the words around the cursors.
-const selectWord = ({ state, dispatch }) => {
-    let { selection } = state;
-    let newSel = EditorSelection.create(selection.ranges.map(range => state.wordAt(range.head) || EditorSelection.cursor(range.head)), selection.mainIndex);
-    if (newSel.eq(selection))
-        return false;
-    dispatch(state.update({ selection: newSel }));
-    return true;
-};
-// Find next occurrence of query relative to last cursor. Wrap around
-// the document if there are no more matches.
-function findNextOccurrence(state, query) {
-    let { main, ranges } = state.selection;
-    let word = state.wordAt(main.head), fullWord = word && word.from == main.from && word.to == main.to;
-    for (let cycled = false, cursor = new SearchCursor(state.doc, query, ranges[ranges.length - 1].to);;) {
-        cursor.next();
-        if (cursor.done) {
-            if (cycled)
-                return null;
-            cursor = new SearchCursor(state.doc, query, 0, Math.max(0, ranges[ranges.length - 1].from - 1));
-            cycled = true;
-        }
-        else {
-            if (cycled && ranges.some(r => r.from == cursor.value.from))
-                continue;
-            if (fullWord) {
-                let word = state.wordAt(cursor.value.from);
-                if (!word || word.from != cursor.value.from || word.to != cursor.value.to)
-                    continue;
-            }
-            return cursor.value;
-        }
-    }
-}
-/**
-Select next occurrence of the current selection. Expand selection
-to the surrounding word when the selection is empty.
-*/
-const selectNextOccurrence = ({ state, dispatch }) => {
-    let { ranges } = state.selection;
-    if (ranges.some(sel => sel.from === sel.to))
-        return selectWord({ state, dispatch });
-    let searchedText = state.sliceDoc(ranges[0].from, ranges[0].to);
-    if (state.selection.ranges.some(r => state.sliceDoc(r.from, r.to) != searchedText))
-        return false;
-    let range = findNextOccurrence(state, searchedText);
-    if (!range)
-        return false;
-    dispatch(state.update({
-        selection: state.selection.addRange(EditorSelection.range(range.from, range.to), false),
-        effects: EditorView.scrollIntoView(range.to)
-    }));
-    return true;
-};
-
-const searchConfigFacet = /*@__PURE__*/Facet.define({
-    combine(configs) {
-        return combineConfig(configs, {
-            top: false,
-            caseSensitive: false,
-            literal: false,
-            regexp: false,
-            wholeWord: false,
-            createPanel: view => new SearchPanel(view),
-            scrollToMatch: range => EditorView.scrollIntoView(range)
-        });
-    }
-});
-/**
-A search query. Part of the editor's search state.
-*/
-class SearchQuery {
-    /**
-    Create a query object.
-    */
-    constructor(config) {
-        this.search = config.search;
-        this.caseSensitive = !!config.caseSensitive;
-        this.literal = !!config.literal;
-        this.regexp = !!config.regexp;
-        this.replace = config.replace || "";
-        this.valid = !!this.search && (!this.regexp || validRegExp(this.search));
-        this.unquoted = this.unquote(this.search);
-        this.wholeWord = !!config.wholeWord;
-    }
-    /**
-    @internal
-    */
-    unquote(text) {
-        return this.literal ? text :
-            text.replace(/\\([nrt\\])/g, (_, ch) => ch == "n" ? "\n" : ch == "r" ? "\r" : ch == "t" ? "\t" : "\\");
-    }
-    /**
-    Compare this query to another query.
-    */
-    eq(other) {
-        return this.search == other.search && this.replace == other.replace &&
-            this.caseSensitive == other.caseSensitive && this.regexp == other.regexp &&
-            this.wholeWord == other.wholeWord;
-    }
-    /**
-    @internal
-    */
-    create() {
-        return this.regexp ? new RegExpQuery(this) : new StringQuery(this);
-    }
-    /**
-    Get a search cursor for this query, searching through the given
-    range in the given state.
-    */
-    getCursor(state, from = 0, to) {
-        let st = state.doc ? state : EditorState.create({ doc: state });
-        if (to == null)
-            to = st.doc.length;
-        return this.regexp ? regexpCursor(this, st, from, to) : stringCursor(this, st, from, to);
-    }
-}
-class QueryType {
-    constructor(spec) {
-        this.spec = spec;
-    }
-}
-function stringCursor(spec, state, from, to) {
-    return new SearchCursor(state.doc, spec.unquoted, from, to, spec.caseSensitive ? undefined : x => x.toLowerCase(), spec.wholeWord ? stringWordTest(state.doc, state.charCategorizer(state.selection.main.head)) : undefined);
-}
-function stringWordTest(doc, categorizer) {
-    return (from, to, buf, bufPos) => {
-        if (bufPos > from || bufPos + buf.length < to) {
-            bufPos = Math.max(0, from - 2);
-            buf = doc.sliceString(bufPos, Math.min(doc.length, to + 2));
-        }
-        return (categorizer(charBefore(buf, from - bufPos)) != CharCategory.Word ||
-            categorizer(charAfter(buf, from - bufPos)) != CharCategory.Word) &&
-            (categorizer(charAfter(buf, to - bufPos)) != CharCategory.Word ||
-                categorizer(charBefore(buf, to - bufPos)) != CharCategory.Word);
-    };
-}
-class StringQuery extends QueryType {
-    constructor(spec) {
-        super(spec);
-    }
-    nextMatch(state, curFrom, curTo) {
-        let cursor = stringCursor(this.spec, state, curTo, state.doc.length).nextOverlapping();
-        if (cursor.done)
-            cursor = stringCursor(this.spec, state, 0, curFrom).nextOverlapping();
-        return cursor.done ? null : cursor.value;
-    }
-    // Searching in reverse is, rather than implementing an inverted search
-    // cursor, done by scanning chunk after chunk forward.
-    prevMatchInRange(state, from, to) {
-        for (let pos = to;;) {
-            let start = Math.max(from, pos - 10000 /* FindPrev.ChunkSize */ - this.spec.unquoted.length);
-            let cursor = stringCursor(this.spec, state, start, pos), range = null;
-            while (!cursor.nextOverlapping().done)
-                range = cursor.value;
-            if (range)
-                return range;
-            if (start == from)
-                return null;
-            pos -= 10000 /* FindPrev.ChunkSize */;
-        }
-    }
-    prevMatch(state, curFrom, curTo) {
-        return this.prevMatchInRange(state, 0, curFrom) ||
-            this.prevMatchInRange(state, curTo, state.doc.length);
-    }
-    getReplacement(_result) { return this.spec.unquote(this.spec.replace); }
-    matchAll(state, limit) {
-        let cursor = stringCursor(this.spec, state, 0, state.doc.length), ranges = [];
-        while (!cursor.next().done) {
-            if (ranges.length >= limit)
-                return null;
-            ranges.push(cursor.value);
-        }
-        return ranges;
-    }
-    highlight(state, from, to, add) {
-        let cursor = stringCursor(this.spec, state, Math.max(0, from - this.spec.unquoted.length), Math.min(to + this.spec.unquoted.length, state.doc.length));
-        while (!cursor.next().done)
-            add(cursor.value.from, cursor.value.to);
-    }
-}
-function regexpCursor(spec, state, from, to) {
-    return new RegExpCursor(state.doc, spec.search, {
-        ignoreCase: !spec.caseSensitive,
-        test: spec.wholeWord ? regexpWordTest(state.charCategorizer(state.selection.main.head)) : undefined
-    }, from, to);
-}
-function charBefore(str, index) {
-    return str.slice(findClusterBreak(str, index, false), index);
-}
-function charAfter(str, index) {
-    return str.slice(index, findClusterBreak(str, index));
-}
-function regexpWordTest(categorizer) {
-    return (_from, _to, match) => !match[0].length ||
-        (categorizer(charBefore(match.input, match.index)) != CharCategory.Word ||
-            categorizer(charAfter(match.input, match.index)) != CharCategory.Word) &&
-            (categorizer(charAfter(match.input, match.index + match[0].length)) != CharCategory.Word ||
-                categorizer(charBefore(match.input, match.index + match[0].length)) != CharCategory.Word);
-}
-class RegExpQuery extends QueryType {
-    nextMatch(state, curFrom, curTo) {
-        let cursor = regexpCursor(this.spec, state, curTo, state.doc.length).next();
-        if (cursor.done)
-            cursor = regexpCursor(this.spec, state, 0, curFrom).next();
-        return cursor.done ? null : cursor.value;
-    }
-    prevMatchInRange(state, from, to) {
-        for (let size = 1;; size++) {
-            let start = Math.max(from, to - size * 10000 /* FindPrev.ChunkSize */);
-            let cursor = regexpCursor(this.spec, state, start, to), range = null;
-            while (!cursor.next().done)
-                range = cursor.value;
-            if (range && (start == from || range.from > start + 10))
-                return range;
-            if (start == from)
-                return null;
-        }
-    }
-    prevMatch(state, curFrom, curTo) {
-        return this.prevMatchInRange(state, 0, curFrom) ||
-            this.prevMatchInRange(state, curTo, state.doc.length);
-    }
-    getReplacement(result) {
-        return this.spec.unquote(this.spec.replace).replace(/\$([$&\d+])/g, (m, i) => i == "$" ? "$"
-            : i == "&" ? result.match[0]
-                : i != "0" && +i < result.match.length ? result.match[i]
-                    : m);
-    }
-    matchAll(state, limit) {
-        let cursor = regexpCursor(this.spec, state, 0, state.doc.length), ranges = [];
-        while (!cursor.next().done) {
-            if (ranges.length >= limit)
-                return null;
-            ranges.push(cursor.value);
-        }
-        return ranges;
-    }
-    highlight(state, from, to, add) {
-        let cursor = regexpCursor(this.spec, state, Math.max(0, from - 250 /* RegExp.HighlightMargin */), Math.min(to + 250 /* RegExp.HighlightMargin */, state.doc.length));
-        while (!cursor.next().done)
-            add(cursor.value.from, cursor.value.to);
-    }
-}
-/**
-A state effect that updates the current search query. Note that
-this only has an effect if the search state has been initialized
-(by including [`search`](https://codemirror.net/6/docs/ref/#search.search) in your configuration or
-by running [`openSearchPanel`](https://codemirror.net/6/docs/ref/#search.openSearchPanel) at least
-once).
-*/
-const setSearchQuery = /*@__PURE__*/StateEffect.define();
-const togglePanel$1 = /*@__PURE__*/StateEffect.define();
-const searchState = /*@__PURE__*/StateField.define({
-    create(state) {
-        return new SearchState(defaultQuery(state).create(), null);
-    },
-    update(value, tr) {
-        for (let effect of tr.effects) {
-            if (effect.is(setSearchQuery))
-                value = new SearchState(effect.value.create(), value.panel);
-            else if (effect.is(togglePanel$1))
-                value = new SearchState(value.query, effect.value ? createSearchPanel : null);
-        }
-        return value;
-    },
-    provide: f => showPanel.from(f, val => val.panel)
-});
-class SearchState {
-    constructor(query, panel) {
-        this.query = query;
-        this.panel = panel;
-    }
-}
-const matchMark = /*@__PURE__*/Decoration.mark({ class: "cm-searchMatch" }), selectedMatchMark = /*@__PURE__*/Decoration.mark({ class: "cm-searchMatch cm-searchMatch-selected" });
-const searchHighlighter = /*@__PURE__*/ViewPlugin.fromClass(class {
-    constructor(view) {
-        this.view = view;
-        this.decorations = this.highlight(view.state.field(searchState));
-    }
-    update(update) {
-        let state = update.state.field(searchState);
-        if (state != update.startState.field(searchState) || update.docChanged || update.selectionSet || update.viewportChanged)
-            this.decorations = this.highlight(state);
-    }
-    highlight({ query, panel }) {
-        if (!panel || !query.spec.valid)
-            return Decoration.none;
-        let { view } = this;
-        let builder = new RangeSetBuilder();
-        for (let i = 0, ranges = view.visibleRanges, l = ranges.length; i < l; i++) {
-            let { from, to } = ranges[i];
-            while (i < l - 1 && to > ranges[i + 1].from - 2 * 250 /* RegExp.HighlightMargin */)
-                to = ranges[++i].to;
-            query.highlight(view.state, from, to, (from, to) => {
-                let selected = view.state.selection.ranges.some(r => r.from == from && r.to == to);
-                builder.add(from, to, selected ? selectedMatchMark : matchMark);
-            });
-        }
-        return builder.finish();
-    }
-}, {
-    decorations: v => v.decorations
-});
-function searchCommand(f) {
-    return view => {
-        let state = view.state.field(searchState, false);
-        return state && state.query.spec.valid ? f(view, state) : openSearchPanel(view);
-    };
-}
-/**
-Open the search panel if it isn't already open, and move the
-selection to the first match after the current main selection.
-Will wrap around to the start of the document when it reaches the
-end.
-*/
-const findNext = /*@__PURE__*/searchCommand((view, { query }) => {
-    let { to } = view.state.selection.main;
-    let next = query.nextMatch(view.state, to, to);
-    if (!next)
-        return false;
-    let selection = EditorSelection.single(next.from, next.to);
-    let config = view.state.facet(searchConfigFacet);
-    view.dispatch({
-        selection,
-        effects: [announceMatch(view, next), config.scrollToMatch(selection.main, view)],
-        userEvent: "select.search"
-    });
-    selectSearchInput(view);
-    return true;
-});
-/**
-Move the selection to the previous instance of the search query,
-before the current main selection. Will wrap past the start
-of the document to start searching at the end again.
-*/
-const findPrevious = /*@__PURE__*/searchCommand((view, { query }) => {
-    let { state } = view, { from } = state.selection.main;
-    let prev = query.prevMatch(state, from, from);
-    if (!prev)
-        return false;
-    let selection = EditorSelection.single(prev.from, prev.to);
-    let config = view.state.facet(searchConfigFacet);
-    view.dispatch({
-        selection,
-        effects: [announceMatch(view, prev), config.scrollToMatch(selection.main, view)],
-        userEvent: "select.search"
-    });
-    selectSearchInput(view);
-    return true;
-});
-/**
-Select all instances of the search query.
-*/
-const selectMatches = /*@__PURE__*/searchCommand((view, { query }) => {
-    let ranges = query.matchAll(view.state, 1000);
-    if (!ranges || !ranges.length)
-        return false;
-    view.dispatch({
-        selection: EditorSelection.create(ranges.map(r => EditorSelection.range(r.from, r.to))),
-        userEvent: "select.search.matches"
-    });
-    return true;
-});
-/**
-Select all instances of the currently selected text.
-*/
-const selectSelectionMatches = ({ state, dispatch }) => {
-    let sel = state.selection;
-    if (sel.ranges.length > 1 || sel.main.empty)
-        return false;
-    let { from, to } = sel.main;
-    let ranges = [], main = 0;
-    for (let cur = new SearchCursor(state.doc, state.sliceDoc(from, to)); !cur.next().done;) {
-        if (ranges.length > 1000)
-            return false;
-        if (cur.value.from == from)
-            main = ranges.length;
-        ranges.push(EditorSelection.range(cur.value.from, cur.value.to));
-    }
-    dispatch(state.update({
-        selection: EditorSelection.create(ranges, main),
-        userEvent: "select.search.matches"
-    }));
-    return true;
-};
-/**
-Replace the current match of the search query.
-*/
-const replaceNext = /*@__PURE__*/searchCommand((view, { query }) => {
-    let { state } = view, { from, to } = state.selection.main;
-    if (state.readOnly)
-        return false;
-    let next = query.nextMatch(state, from, from);
-    if (!next)
-        return false;
-    let changes = [], selection, replacement;
-    let effects = [];
-    if (next.from == from && next.to == to) {
-        replacement = state.toText(query.getReplacement(next));
-        changes.push({ from: next.from, to: next.to, insert: replacement });
-        next = query.nextMatch(state, next.from, next.to);
-        effects.push(EditorView.announce.of(state.phrase("replaced match on line $", state.doc.lineAt(from).number) + "."));
-    }
-    if (next) {
-        let off = changes.length == 0 || changes[0].from >= next.to ? 0 : next.to - next.from - replacement.length;
-        selection = EditorSelection.single(next.from - off, next.to - off);
-        effects.push(announceMatch(view, next));
-        effects.push(state.facet(searchConfigFacet).scrollToMatch(selection.main, view));
-    }
-    view.dispatch({
-        changes, selection, effects,
-        userEvent: "input.replace"
-    });
-    return true;
-});
-/**
-Replace all instances of the search query with the given
-replacement.
-*/
-const replaceAll = /*@__PURE__*/searchCommand((view, { query }) => {
-    if (view.state.readOnly)
-        return false;
-    let changes = query.matchAll(view.state, 1e9).map(match => {
-        let { from, to } = match;
-        return { from, to, insert: query.getReplacement(match) };
-    });
-    if (!changes.length)
-        return false;
-    let announceText = view.state.phrase("replaced $ matches", changes.length) + ".";
-    view.dispatch({
-        changes,
-        effects: EditorView.announce.of(announceText),
-        userEvent: "input.replace.all"
-    });
-    return true;
-});
-function createSearchPanel(view) {
-    return view.state.facet(searchConfigFacet).createPanel(view);
-}
-function defaultQuery(state, fallback) {
-    var _a, _b, _c, _d, _e;
-    let sel = state.selection.main;
-    let selText = sel.empty || sel.to > sel.from + 100 ? "" : state.sliceDoc(sel.from, sel.to);
-    if (fallback && !selText)
-        return fallback;
-    let config = state.facet(searchConfigFacet);
-    return new SearchQuery({
-        search: ((_a = fallback === null || fallback === void 0 ? void 0 : fallback.literal) !== null && _a !== void 0 ? _a : config.literal) ? selText : selText.replace(/\n/g, "\\n"),
-        caseSensitive: (_b = fallback === null || fallback === void 0 ? void 0 : fallback.caseSensitive) !== null && _b !== void 0 ? _b : config.caseSensitive,
-        literal: (_c = fallback === null || fallback === void 0 ? void 0 : fallback.literal) !== null && _c !== void 0 ? _c : config.literal,
-        regexp: (_d = fallback === null || fallback === void 0 ? void 0 : fallback.regexp) !== null && _d !== void 0 ? _d : config.regexp,
-        wholeWord: (_e = fallback === null || fallback === void 0 ? void 0 : fallback.wholeWord) !== null && _e !== void 0 ? _e : config.wholeWord
-    });
-}
-function getSearchInput(view) {
-    let panel = getPanel(view, createSearchPanel);
-    return panel && panel.dom.querySelector("[main-field]");
-}
-function selectSearchInput(view) {
-    let input = getSearchInput(view);
-    if (input && input == view.root.activeElement)
-        input.select();
-}
-/**
-Make sure the search panel is open and focused.
-*/
-const openSearchPanel = view => {
-    let state = view.state.field(searchState, false);
-    if (state && state.panel) {
-        let searchInput = getSearchInput(view);
-        if (searchInput && searchInput != view.root.activeElement) {
-            let query = defaultQuery(view.state, state.query.spec);
-            if (query.valid)
-                view.dispatch({ effects: setSearchQuery.of(query) });
-            searchInput.focus();
-            searchInput.select();
-        }
-    }
-    else {
-        view.dispatch({ effects: [
-                togglePanel$1.of(true),
-                state ? setSearchQuery.of(defaultQuery(view.state, state.query.spec)) : StateEffect.appendConfig.of(searchExtensions)
-            ] });
-    }
-    return true;
-};
-/**
-Close the search panel.
-*/
-const closeSearchPanel = view => {
-    let state = view.state.field(searchState, false);
-    if (!state || !state.panel)
-        return false;
-    let panel = getPanel(view, createSearchPanel);
-    if (panel && panel.dom.contains(view.root.activeElement))
-        view.focus();
-    view.dispatch({ effects: togglePanel$1.of(false) });
-    return true;
-};
-/**
-Default search-related key bindings.
-
- - Mod-f: [`openSearchPanel`](https://codemirror.net/6/docs/ref/#search.openSearchPanel)
- - F3, Mod-g: [`findNext`](https://codemirror.net/6/docs/ref/#search.findNext)
- - Shift-F3, Shift-Mod-g: [`findPrevious`](https://codemirror.net/6/docs/ref/#search.findPrevious)
- - Mod-Alt-g: [`gotoLine`](https://codemirror.net/6/docs/ref/#search.gotoLine)
- - Mod-d: [`selectNextOccurrence`](https://codemirror.net/6/docs/ref/#search.selectNextOccurrence)
-*/
-const searchKeymap = [
-    { key: "Mod-f", run: openSearchPanel, scope: "editor search-panel" },
-    { key: "F3", run: findNext, shift: findPrevious, scope: "editor search-panel", preventDefault: true },
-    { key: "Mod-g", run: findNext, shift: findPrevious, scope: "editor search-panel", preventDefault: true },
-    { key: "Escape", run: closeSearchPanel, scope: "editor search-panel" },
-    { key: "Mod-Shift-l", run: selectSelectionMatches },
-    { key: "Mod-Alt-g", run: gotoLine },
-    { key: "Mod-d", run: selectNextOccurrence, preventDefault: true },
-];
-class SearchPanel {
-    constructor(view) {
-        this.view = view;
-        let query = this.query = view.state.field(searchState).query.spec;
-        this.commit = this.commit.bind(this);
-        this.searchField = crelt("input", {
-            value: query.search,
-            placeholder: phrase(view, "Find"),
-            "aria-label": phrase(view, "Find"),
-            class: "cm-textfield",
-            name: "search",
-            form: "",
-            "main-field": "true",
-            onchange: this.commit,
-            onkeyup: this.commit
-        });
-        this.replaceField = crelt("input", {
-            value: query.replace,
-            placeholder: phrase(view, "Replace"),
-            "aria-label": phrase(view, "Replace"),
-            class: "cm-textfield",
-            name: "replace",
-            form: "",
-            onchange: this.commit,
-            onkeyup: this.commit
-        });
-        this.caseField = crelt("input", {
-            type: "checkbox",
-            name: "case",
-            form: "",
-            checked: query.caseSensitive,
-            onchange: this.commit
-        });
-        this.reField = crelt("input", {
-            type: "checkbox",
-            name: "re",
-            form: "",
-            checked: query.regexp,
-            onchange: this.commit
-        });
-        this.wordField = crelt("input", {
-            type: "checkbox",
-            name: "word",
-            form: "",
-            checked: query.wholeWord,
-            onchange: this.commit
-        });
-        function button(name, onclick, content) {
-            return crelt("button", { class: "cm-button", name, onclick, type: "button" }, content);
-        }
-        this.dom = crelt("div", { onkeydown: (e) => this.keydown(e), class: "cm-search" }, [
-            this.searchField,
-            button("next", () => findNext(view), [phrase(view, "next")]),
-            button("prev", () => findPrevious(view), [phrase(view, "previous")]),
-            button("select", () => selectMatches(view), [phrase(view, "all")]),
-            crelt("label", null, [this.caseField, phrase(view, "match case")]),
-            crelt("label", null, [this.reField, phrase(view, "regexp")]),
-            crelt("label", null, [this.wordField, phrase(view, "by word")]),
-            ...view.state.readOnly ? [] : [
-                crelt("br"),
-                this.replaceField,
-                button("replace", () => replaceNext(view), [phrase(view, "replace")]),
-                button("replaceAll", () => replaceAll(view), [phrase(view, "replace all")])
-            ],
-            crelt("button", {
-                name: "close",
-                onclick: () => closeSearchPanel(view),
-                "aria-label": phrase(view, "close"),
-                type: "button"
-            }, ["×"])
-        ]);
-    }
-    commit() {
-        let query = new SearchQuery({
-            search: this.searchField.value,
-            caseSensitive: this.caseField.checked,
-            regexp: this.reField.checked,
-            wholeWord: this.wordField.checked,
-            replace: this.replaceField.value,
-        });
-        if (!query.eq(this.query)) {
-            this.query = query;
-            this.view.dispatch({ effects: setSearchQuery.of(query) });
-        }
-    }
-    keydown(e) {
-        if (runScopeHandlers(this.view, e, "search-panel")) {
-            e.preventDefault();
-        }
-        else if (e.keyCode == 13 && e.target == this.searchField) {
-            e.preventDefault();
-            (e.shiftKey ? findPrevious : findNext)(this.view);
-        }
-        else if (e.keyCode == 13 && e.target == this.replaceField) {
-            e.preventDefault();
-            replaceNext(this.view);
-        }
-    }
-    update(update) {
-        for (let tr of update.transactions)
-            for (let effect of tr.effects) {
-                if (effect.is(setSearchQuery) && !effect.value.eq(this.query))
-                    this.setQuery(effect.value);
-            }
-    }
-    setQuery(query) {
-        this.query = query;
-        this.searchField.value = query.search;
-        this.replaceField.value = query.replace;
-        this.caseField.checked = query.caseSensitive;
-        this.reField.checked = query.regexp;
-        this.wordField.checked = query.wholeWord;
-    }
-    mount() {
-        this.searchField.select();
-    }
-    get pos() { return 80; }
-    get top() { return this.view.state.facet(searchConfigFacet).top; }
-}
-function phrase(view, phrase) { return view.state.phrase(phrase); }
-const AnnounceMargin = 30;
-const Break = /[\s\.,:;?!]/;
-function announceMatch(view, { from, to }) {
-    let line = view.state.doc.lineAt(from), lineEnd = view.state.doc.lineAt(to).to;
-    let start = Math.max(line.from, from - AnnounceMargin), end = Math.min(lineEnd, to + AnnounceMargin);
-    let text = view.state.sliceDoc(start, end);
-    if (start != line.from) {
-        for (let i = 0; i < AnnounceMargin; i++)
-            if (!Break.test(text[i + 1]) && Break.test(text[i])) {
-                text = text.slice(i);
-                break;
-            }
-    }
-    if (end != lineEnd) {
-        for (let i = text.length - 1; i > text.length - AnnounceMargin; i--)
-            if (!Break.test(text[i - 1]) && Break.test(text[i])) {
-                text = text.slice(0, i);
-                break;
-            }
-    }
-    return EditorView.announce.of(`${view.state.phrase("current match")}. ${text} ${view.state.phrase("on line")} ${line.number}.`);
-}
-const baseTheme$2 = /*@__PURE__*/EditorView.baseTheme({
-    ".cm-panel.cm-search": {
-        padding: "2px 6px 4px",
-        position: "relative",
-        "& [name=close]": {
-            position: "absolute",
-            top: "0",
-            right: "4px",
-            backgroundColor: "inherit",
-            border: "none",
-            font: "inherit",
-            padding: 0,
-            margin: 0
-        },
-        "& input, & button, & label": {
-            margin: ".2em .6em .2em 0"
-        },
-        "& input[type=checkbox]": {
-            marginRight: ".2em"
-        },
-        "& label": {
-            fontSize: "80%",
-            whiteSpace: "pre"
-        }
-    },
-    "&light .cm-searchMatch": { backgroundColor: "#ffff0054" },
-    "&dark .cm-searchMatch": { backgroundColor: "#00ffff8a" },
-    "&light .cm-searchMatch-selected": { backgroundColor: "#ff6a0054" },
-    "&dark .cm-searchMatch-selected": { backgroundColor: "#ff00ff8a" }
-});
-const searchExtensions = [
-    searchState,
-    /*@__PURE__*/Prec.low(searchHighlighter),
-    baseTheme$2
-];
-
-/**
-An instance of this is passed to completion source functions.
-*/
-class CompletionContext {
-    /**
-    Create a new completion context. (Mostly useful for testing
-    completion sources—in the editor, the extension will create
-    these for you.)
-    */
-    constructor(
-    /**
-    The editor state that the completion happens in.
-    */
-    state, 
-    /**
-    The position at which the completion is happening.
-    */
-    pos, 
-    /**
-    Indicates whether completion was activated explicitly, or
-    implicitly by typing. The usual way to respond to this is to
-    only return completions when either there is part of a
-    completable entity before the cursor, or `explicit` is true.
-    */
-    explicit) {
-        this.state = state;
-        this.pos = pos;
-        this.explicit = explicit;
-        /**
-        @internal
-        */
-        this.abortListeners = [];
-    }
-    /**
-    Get the extent, content, and (if there is a token) type of the
-    token before `this.pos`.
-    */
-    tokenBefore(types) {
-        let token = syntaxTree(this.state).resolveInner(this.pos, -1);
-        while (token && types.indexOf(token.name) < 0)
-            token = token.parent;
-        return token ? { from: token.from, to: this.pos,
-            text: this.state.sliceDoc(token.from, this.pos),
-            type: token.type } : null;
-    }
-    /**
-    Get the match of the given expression directly before the
-    cursor.
-    */
-    matchBefore(expr) {
-        let line = this.state.doc.lineAt(this.pos);
-        let start = Math.max(line.from, this.pos - 250);
-        let str = line.text.slice(start - line.from, this.pos - line.from);
-        let found = str.search(ensureAnchor(expr, false));
-        return found < 0 ? null : { from: start + found, to: this.pos, text: str.slice(found) };
-    }
-    /**
-    Yields true when the query has been aborted. Can be useful in
-    asynchronous queries to avoid doing work that will be ignored.
-    */
-    get aborted() { return this.abortListeners == null; }
-    /**
-    Allows you to register abort handlers, which will be called when
-    the query is
-    [aborted](https://codemirror.net/6/docs/ref/#autocomplete.CompletionContext.aborted).
-    */
-    addEventListener(type, listener) {
-        if (type == "abort" && this.abortListeners)
-            this.abortListeners.push(listener);
-    }
-}
-function toSet(chars) {
-    let flat = Object.keys(chars).join("");
-    let words = /\w/.test(flat);
-    if (words)
-        flat = flat.replace(/\w/g, "");
-    return `[${words ? "\\w" : ""}${flat.replace(/[^\w\s]/g, "\\$&")}]`;
-}
-function prefixMatch(options) {
-    let first = Object.create(null), rest = Object.create(null);
-    for (let { label } of options) {
-        first[label[0]] = true;
-        for (let i = 1; i < label.length; i++)
-            rest[label[i]] = true;
-    }
-    let source = toSet(first) + toSet(rest) + "*$";
-    return [new RegExp("^" + source), new RegExp(source)];
-}
-/**
-Given a a fixed array of options, return an autocompleter that
-completes them.
-*/
-function completeFromList(list) {
-    let options = list.map(o => typeof o == "string" ? { label: o } : o);
-    let [validFor, match] = options.every(o => /^\w+$/.test(o.label)) ? [/\w*$/, /\w+$/] : prefixMatch(options);
-    return (context) => {
-        let token = context.matchBefore(match);
-        return token || context.explicit ? { from: token ? token.from : context.pos, options, validFor } : null;
-    };
-}
-/**
-Wrap the given completion source so that it will not fire when the
-cursor is in a syntax node with one of the given names.
-*/
-function ifNotIn(nodes, source) {
-    return (context) => {
-        for (let pos = syntaxTree(context.state).resolveInner(context.pos, -1); pos; pos = pos.parent) {
-            if (nodes.indexOf(pos.name) > -1)
-                return null;
-            if (pos.type.isTop)
-                break;
-        }
-        return source(context);
-    };
-}
-class Option {
-    constructor(completion, source, match, score) {
-        this.completion = completion;
-        this.source = source;
-        this.match = match;
-        this.score = score;
-    }
-}
-function cur(state) { return state.selection.main.from; }
-// Make sure the given regexp has a $ at its end and, if `start` is
-// true, a ^ at its start.
-function ensureAnchor(expr, start) {
-    var _a;
-    let { source } = expr;
-    let addStart = start && source[0] != "^", addEnd = source[source.length - 1] != "$";
-    if (!addStart && !addEnd)
-        return expr;
-    return new RegExp(`${addStart ? "^" : ""}(?:${source})${addEnd ? "$" : ""}`, (_a = expr.flags) !== null && _a !== void 0 ? _a : (expr.ignoreCase ? "i" : ""));
-}
-/**
-This annotation is added to transactions that are produced by
-picking a completion.
-*/
-const pickedCompletion = /*@__PURE__*/Annotation.define();
-/**
-Helper function that returns a transaction spec which inserts a
-completion's text in the main selection range, and any other
-selection range that has the same text in front of it.
-*/
-function insertCompletionText(state, text, from, to) {
-    let { main } = state.selection, fromOff = from - main.from, toOff = to - main.from;
-    return Object.assign(Object.assign({}, state.changeByRange(range => {
-        if (range != main && from != to &&
-            state.sliceDoc(range.from + fromOff, range.from + toOff) != state.sliceDoc(from, to))
-            return { range };
-        return {
-            changes: { from: range.from + fromOff, to: to == main.from ? range.to : range.from + toOff, insert: text },
-            range: EditorSelection.cursor(range.from + fromOff + text.length)
-        };
-    })), { scrollIntoView: true, userEvent: "input.complete" });
-}
-const SourceCache = /*@__PURE__*/new WeakMap();
-function asSource(source) {
-    if (!Array.isArray(source))
-        return source;
-    let known = SourceCache.get(source);
-    if (!known)
-        SourceCache.set(source, known = completeFromList(source));
-    return known;
-}
-const startCompletionEffect = /*@__PURE__*/StateEffect.define();
-const closeCompletionEffect = /*@__PURE__*/StateEffect.define();
-
-// A pattern matcher for fuzzy completion matching. Create an instance
-// once for a pattern, and then use that to match any number of
-// completions.
-class FuzzyMatcher {
-    constructor(pattern) {
-        this.pattern = pattern;
-        this.chars = [];
-        this.folded = [];
-        // Buffers reused by calls to `match` to track matched character
-        // positions.
-        this.any = [];
-        this.precise = [];
-        this.byWord = [];
-        this.score = 0;
-        this.matched = [];
-        for (let p = 0; p < pattern.length;) {
-            let char = codePointAt(pattern, p), size = codePointSize(char);
-            this.chars.push(char);
-            let part = pattern.slice(p, p + size), upper = part.toUpperCase();
-            this.folded.push(codePointAt(upper == part ? part.toLowerCase() : upper, 0));
-            p += size;
-        }
-        this.astral = pattern.length != this.chars.length;
-    }
-    ret(score, matched) {
-        this.score = score;
-        this.matched = matched;
-        return this;
-    }
-    // Matches a given word (completion) against the pattern (input).
-    // Will return a boolean indicating whether there was a match and,
-    // on success, set `this.score` to the score, `this.matched` to an
-    // array of `from, to` pairs indicating the matched parts of `word`.
-    //
-    // The score is a number that is more negative the worse the match
-    // is. See `Penalty` above.
-    match(word) {
-        if (this.pattern.length == 0)
-            return this.ret(-100 /* Penalty.NotFull */, []);
-        if (word.length < this.pattern.length)
-            return null;
-        let { chars, folded, any, precise, byWord } = this;
-        // For single-character queries, only match when they occur right
-        // at the start
-        if (chars.length == 1) {
-            let first = codePointAt(word, 0), firstSize = codePointSize(first);
-            let score = firstSize == word.length ? 0 : -100 /* Penalty.NotFull */;
-            if (first == chars[0]) ;
-            else if (first == folded[0])
-                score += -200 /* Penalty.CaseFold */;
-            else
-                return null;
-            return this.ret(score, [0, firstSize]);
-        }
-        let direct = word.indexOf(this.pattern);
-        if (direct == 0)
-            return this.ret(word.length == this.pattern.length ? 0 : -100 /* Penalty.NotFull */, [0, this.pattern.length]);
-        let len = chars.length, anyTo = 0;
-        if (direct < 0) {
-            for (let i = 0, e = Math.min(word.length, 200); i < e && anyTo < len;) {
-                let next = codePointAt(word, i);
-                if (next == chars[anyTo] || next == folded[anyTo])
-                    any[anyTo++] = i;
-                i += codePointSize(next);
-            }
-            // No match, exit immediately
-            if (anyTo < len)
-                return null;
-        }
-        // This tracks the extent of the precise (non-folded, not
-        // necessarily adjacent) match
-        let preciseTo = 0;
-        // Tracks whether there is a match that hits only characters that
-        // appear to be starting words. `byWordFolded` is set to true when
-        // a case folded character is encountered in such a match
-        let byWordTo = 0, byWordFolded = false;
-        // If we've found a partial adjacent match, these track its state
-        let adjacentTo = 0, adjacentStart = -1, adjacentEnd = -1;
-        let hasLower = /[a-z]/.test(word), wordAdjacent = true;
-        // Go over the option's text, scanning for the various kinds of matches
-        for (let i = 0, e = Math.min(word.length, 200), prevType = 0 /* Tp.NonWord */; i < e && byWordTo < len;) {
-            let next = codePointAt(word, i);
-            if (direct < 0) {
-                if (preciseTo < len && next == chars[preciseTo])
-                    precise[preciseTo++] = i;
-                if (adjacentTo < len) {
-                    if (next == chars[adjacentTo] || next == folded[adjacentTo]) {
-                        if (adjacentTo == 0)
-                            adjacentStart = i;
-                        adjacentEnd = i + 1;
-                        adjacentTo++;
-                    }
-                    else {
-                        adjacentTo = 0;
-                    }
-                }
-            }
-            let ch, type = next < 0xff
-                ? (next >= 48 && next <= 57 || next >= 97 && next <= 122 ? 2 /* Tp.Lower */ : next >= 65 && next <= 90 ? 1 /* Tp.Upper */ : 0 /* Tp.NonWord */)
-                : ((ch = fromCodePoint(next)) != ch.toLowerCase() ? 1 /* Tp.Upper */ : ch != ch.toUpperCase() ? 2 /* Tp.Lower */ : 0 /* Tp.NonWord */);
-            if (!i || type == 1 /* Tp.Upper */ && hasLower || prevType == 0 /* Tp.NonWord */ && type != 0 /* Tp.NonWord */) {
-                if (chars[byWordTo] == next || (folded[byWordTo] == next && (byWordFolded = true)))
-                    byWord[byWordTo++] = i;
-                else if (byWord.length)
-                    wordAdjacent = false;
-            }
-            prevType = type;
-            i += codePointSize(next);
-        }
-        if (byWordTo == len && byWord[0] == 0 && wordAdjacent)
-            return this.result(-100 /* Penalty.ByWord */ + (byWordFolded ? -200 /* Penalty.CaseFold */ : 0), byWord, word);
-        if (adjacentTo == len && adjacentStart == 0)
-            return this.ret(-200 /* Penalty.CaseFold */ - word.length + (adjacentEnd == word.length ? 0 : -100 /* Penalty.NotFull */), [0, adjacentEnd]);
-        if (direct > -1)
-            return this.ret(-700 /* Penalty.NotStart */ - word.length, [direct, direct + this.pattern.length]);
-        if (adjacentTo == len)
-            return this.ret(-200 /* Penalty.CaseFold */ + -700 /* Penalty.NotStart */ - word.length, [adjacentStart, adjacentEnd]);
-        if (byWordTo == len)
-            return this.result(-100 /* Penalty.ByWord */ + (byWordFolded ? -200 /* Penalty.CaseFold */ : 0) + -700 /* Penalty.NotStart */ +
-                (wordAdjacent ? 0 : -1100 /* Penalty.Gap */), byWord, word);
-        return chars.length == 2 ? null
-            : this.result((any[0] ? -700 /* Penalty.NotStart */ : 0) + -200 /* Penalty.CaseFold */ + -1100 /* Penalty.Gap */, any, word);
-    }
-    result(score, positions, word) {
-        let result = [], i = 0;
-        for (let pos of positions) {
-            let to = pos + (this.astral ? codePointSize(codePointAt(word, pos)) : 1);
-            if (i && result[i - 1] == pos)
-                result[i - 1] = to;
-            else {
-                result[i++] = pos;
-                result[i++] = to;
-            }
-        }
-        return this.ret(score - word.length, result);
-    }
-}
-class StrictMatcher {
-    constructor(pattern) {
-        this.pattern = pattern;
-        this.matched = [];
-        this.score = 0;
-        this.folded = pattern.toLowerCase();
-    }
-    match(word) {
-        if (word.length < this.pattern.length)
-            return null;
-        let start = word.slice(0, this.pattern.length);
-        let match = start == this.pattern ? 0 : start.toLowerCase() == this.folded ? -200 /* Penalty.CaseFold */ : null;
-        if (match == null)
-            return null;
-        this.matched = [0, start.length];
-        this.score = match + (word.length == this.pattern.length ? 0 : -100 /* Penalty.NotFull */);
-        return this;
-    }
-}
-
-const completionConfig = /*@__PURE__*/Facet.define({
-    combine(configs) {
-        return combineConfig(configs, {
-            activateOnTyping: true,
-            activateOnCompletion: () => false,
-            activateOnTypingDelay: 100,
-            selectOnOpen: true,
-            override: null,
-            closeOnBlur: true,
-            maxRenderedOptions: 100,
-            defaultKeymap: true,
-            tooltipClass: () => "",
-            optionClass: () => "",
-            aboveCursor: false,
-            icons: true,
-            addToOptions: [],
-            positionInfo: defaultPositionInfo,
-            filterStrict: false,
-            compareCompletions: (a, b) => a.label.localeCompare(b.label),
-            interactionDelay: 75,
-            updateSyncTime: 100
-        }, {
-            defaultKeymap: (a, b) => a && b,
-            closeOnBlur: (a, b) => a && b,
-            icons: (a, b) => a && b,
-            tooltipClass: (a, b) => c => joinClass(a(c), b(c)),
-            optionClass: (a, b) => c => joinClass(a(c), b(c)),
-            addToOptions: (a, b) => a.concat(b),
-            filterStrict: (a, b) => a || b,
-        });
-    }
-});
-function joinClass(a, b) {
-    return a ? b ? a + " " + b : a : b;
-}
-function defaultPositionInfo(view, list, option, info, space, tooltip) {
-    let rtl = view.textDirection == Direction.RTL, left = rtl, narrow = false;
-    let side = "top", offset, maxWidth;
-    let spaceLeft = list.left - space.left, spaceRight = space.right - list.right;
-    let infoWidth = info.right - info.left, infoHeight = info.bottom - info.top;
-    if (left && spaceLeft < Math.min(infoWidth, spaceRight))
-        left = false;
-    else if (!left && spaceRight < Math.min(infoWidth, spaceLeft))
-        left = true;
-    if (infoWidth <= (left ? spaceLeft : spaceRight)) {
-        offset = Math.max(space.top, Math.min(option.top, space.bottom - infoHeight)) - list.top;
-        maxWidth = Math.min(400 /* Info.Width */, left ? spaceLeft : spaceRight);
-    }
-    else {
-        narrow = true;
-        maxWidth = Math.min(400 /* Info.Width */, (rtl ? list.right : space.right - list.left) - 30 /* Info.Margin */);
-        let spaceBelow = space.bottom - list.bottom;
-        if (spaceBelow >= infoHeight || spaceBelow > list.top) { // Below the completion
-            offset = option.bottom - list.top;
-        }
-        else { // Above it
-            side = "bottom";
-            offset = list.bottom - option.top;
-        }
-    }
-    let scaleY = (list.bottom - list.top) / tooltip.offsetHeight;
-    let scaleX = (list.right - list.left) / tooltip.offsetWidth;
-    return {
-        style: `${side}: ${offset / scaleY}px; max-width: ${maxWidth / scaleX}px`,
-        class: "cm-completionInfo-" + (narrow ? (rtl ? "left-narrow" : "right-narrow") : left ? "left" : "right")
-    };
-}
-
-function optionContent(config) {
-    let content = config.addToOptions.slice();
-    if (config.icons)
-        content.push({
-            render(completion) {
-                let icon = document.createElement("div");
-                icon.classList.add("cm-completionIcon");
-                if (completion.type)
-                    icon.classList.add(...completion.type.split(/\s+/g).map(cls => "cm-completionIcon-" + cls));
-                icon.setAttribute("aria-hidden", "true");
-                return icon;
-            },
-            position: 20
-        });
-    content.push({
-        render(completion, _s, _v, match) {
-            let labelElt = document.createElement("span");
-            labelElt.className = "cm-completionLabel";
-            let label = completion.displayLabel || completion.label, off = 0;
-            for (let j = 0; j < match.length;) {
-                let from = match[j++], to = match[j++];
-                if (from > off)
-                    labelElt.appendChild(document.createTextNode(label.slice(off, from)));
-                let span = labelElt.appendChild(document.createElement("span"));
-                span.appendChild(document.createTextNode(label.slice(from, to)));
-                span.className = "cm-completionMatchedText";
-                off = to;
-            }
-            if (off < label.length)
-                labelElt.appendChild(document.createTextNode(label.slice(off)));
-            return labelElt;
-        },
-        position: 50
-    }, {
-        render(completion) {
-            if (!completion.detail)
-                return null;
-            let detailElt = document.createElement("span");
-            detailElt.className = "cm-completionDetail";
-            detailElt.textContent = completion.detail;
-            return detailElt;
-        },
-        position: 80
-    });
-    return content.sort((a, b) => a.position - b.position).map(a => a.render);
-}
-function rangeAroundSelected(total, selected, max) {
-    if (total <= max)
-        return { from: 0, to: total };
-    if (selected < 0)
-        selected = 0;
-    if (selected <= (total >> 1)) {
-        let off = Math.floor(selected / max);
-        return { from: off * max, to: (off + 1) * max };
-    }
-    let off = Math.floor((total - selected) / max);
-    return { from: total - (off + 1) * max, to: total - off * max };
-}
-class CompletionTooltip {
-    constructor(view, stateField, applyCompletion) {
-        this.view = view;
-        this.stateField = stateField;
-        this.applyCompletion = applyCompletion;
-        this.info = null;
-        this.infoDestroy = null;
-        this.placeInfoReq = {
-            read: () => this.measureInfo(),
-            write: (pos) => this.placeInfo(pos),
-            key: this
-        };
-        this.space = null;
-        this.currentClass = "";
-        let cState = view.state.field(stateField);
-        let { options, selected } = cState.open;
-        let config = view.state.facet(completionConfig);
-        this.optionContent = optionContent(config);
-        this.optionClass = config.optionClass;
-        this.tooltipClass = config.tooltipClass;
-        this.range = rangeAroundSelected(options.length, selected, config.maxRenderedOptions);
-        this.dom = document.createElement("div");
-        this.dom.className = "cm-tooltip-autocomplete";
-        this.updateTooltipClass(view.state);
-        this.dom.addEventListener("mousedown", (e) => {
-            let { options } = view.state.field(stateField).open;
-            for (let dom = e.target, match; dom && dom != this.dom; dom = dom.parentNode) {
-                if (dom.nodeName == "LI" && (match = /-(\d+)$/.exec(dom.id)) && +match[1] < options.length) {
-                    this.applyCompletion(view, options[+match[1]]);
-                    e.preventDefault();
-                    return;
-                }
-            }
-        });
-        this.dom.addEventListener("focusout", (e) => {
-            let state = view.state.field(this.stateField, false);
-            if (state && state.tooltip && view.state.facet(completionConfig).closeOnBlur &&
-                e.relatedTarget != view.contentDOM)
-                view.dispatch({ effects: closeCompletionEffect.of(null) });
-        });
-        this.showOptions(options, cState.id);
-    }
-    mount() { this.updateSel(); }
-    showOptions(options, id) {
-        if (this.list)
-            this.list.remove();
-        this.list = this.dom.appendChild(this.createListBox(options, id, this.range));
-        this.list.addEventListener("scroll", () => {
-            if (this.info)
-                this.view.requestMeasure(this.placeInfoReq);
-        });
-    }
-    update(update) {
-        var _a;
-        let cState = update.state.field(this.stateField);
-        let prevState = update.startState.field(this.stateField);
-        this.updateTooltipClass(update.state);
-        if (cState != prevState) {
-            let { options, selected, disabled } = cState.open;
-            if (!prevState.open || prevState.open.options != options) {
-                this.range = rangeAroundSelected(options.length, selected, update.state.facet(completionConfig).maxRenderedOptions);
-                this.showOptions(options, cState.id);
-            }
-            this.updateSel();
-            if (disabled != ((_a = prevState.open) === null || _a === void 0 ? void 0 : _a.disabled))
-                this.dom.classList.toggle("cm-tooltip-autocomplete-disabled", !!disabled);
-        }
-    }
-    updateTooltipClass(state) {
-        let cls = this.tooltipClass(state);
-        if (cls != this.currentClass) {
-            for (let c of this.currentClass.split(" "))
-                if (c)
-                    this.dom.classList.remove(c);
-            for (let c of cls.split(" "))
-                if (c)
-                    this.dom.classList.add(c);
-            this.currentClass = cls;
-        }
-    }
-    positioned(space) {
-        this.space = space;
-        if (this.info)
-            this.view.requestMeasure(this.placeInfoReq);
-    }
-    updateSel() {
-        let cState = this.view.state.field(this.stateField), open = cState.open;
-        if (open.selected > -1 && open.selected < this.range.from || open.selected >= this.range.to) {
-            this.range = rangeAroundSelected(open.options.length, open.selected, this.view.state.facet(completionConfig).maxRenderedOptions);
-            this.showOptions(open.options, cState.id);
-        }
-        if (this.updateSelectedOption(open.selected)) {
-            this.destroyInfo();
-            let { completion } = open.options[open.selected];
-            let { info } = completion;
-            if (!info)
-                return;
-            let infoResult = typeof info === "string" ? document.createTextNode(info) : info(completion);
-            if (!infoResult)
-                return;
-            if ("then" in infoResult) {
-                infoResult.then(obj => {
-                    if (obj && this.view.state.field(this.stateField, false) == cState)
-                        this.addInfoPane(obj, completion);
-                }).catch(e => logException(this.view.state, e, "completion info"));
-            }
-            else {
-                this.addInfoPane(infoResult, completion);
-            }
-        }
-    }
-    addInfoPane(content, completion) {
-        this.destroyInfo();
-        let wrap = this.info = document.createElement("div");
-        wrap.className = "cm-tooltip cm-completionInfo";
-        if (content.nodeType != null) {
-            wrap.appendChild(content);
-            this.infoDestroy = null;
-        }
-        else {
-            let { dom, destroy } = content;
-            wrap.appendChild(dom);
-            this.infoDestroy = destroy || null;
-        }
-        this.dom.appendChild(wrap);
-        this.view.requestMeasure(this.placeInfoReq);
-    }
-    updateSelectedOption(selected) {
-        let set = null;
-        for (let opt = this.list.firstChild, i = this.range.from; opt; opt = opt.nextSibling, i++) {
-            if (opt.nodeName != "LI" || !opt.id) {
-                i--; // A section header
-            }
-            else if (i == selected) {
-                if (!opt.hasAttribute("aria-selected")) {
-                    opt.setAttribute("aria-selected", "true");
-                    set = opt;
-                }
-            }
-            else {
-                if (opt.hasAttribute("aria-selected"))
-                    opt.removeAttribute("aria-selected");
-            }
-        }
-        if (set)
-            scrollIntoView(this.list, set);
-        return set;
-    }
-    measureInfo() {
-        let sel = this.dom.querySelector("[aria-selected]");
-        if (!sel || !this.info)
-            return null;
-        let listRect = this.dom.getBoundingClientRect();
-        let infoRect = this.info.getBoundingClientRect();
-        let selRect = sel.getBoundingClientRect();
-        let space = this.space;
-        if (!space) {
-            let win = this.dom.ownerDocument.defaultView || window;
-            space = { left: 0, top: 0, right: win.innerWidth, bottom: win.innerHeight };
-        }
-        if (selRect.top > Math.min(space.bottom, listRect.bottom) - 10 ||
-            selRect.bottom < Math.max(space.top, listRect.top) + 10)
-            return null;
-        return this.view.state.facet(completionConfig).positionInfo(this.view, listRect, selRect, infoRect, space, this.dom);
-    }
-    placeInfo(pos) {
-        if (this.info) {
-            if (pos) {
-                if (pos.style)
-                    this.info.style.cssText = pos.style;
-                this.info.className = "cm-tooltip cm-completionInfo " + (pos.class || "");
-            }
-            else {
-                this.info.style.cssText = "top: -1e6px";
-            }
-        }
-    }
-    createListBox(options, id, range) {
-        const ul = document.createElement("ul");
-        ul.id = id;
-        ul.setAttribute("role", "listbox");
-        ul.setAttribute("aria-expanded", "true");
-        ul.setAttribute("aria-label", this.view.state.phrase("Completions"));
-        let curSection = null;
-        for (let i = range.from; i < range.to; i++) {
-            let { completion, match } = options[i], { section } = completion;
-            if (section) {
-                let name = typeof section == "string" ? section : section.name;
-                if (name != curSection && (i > range.from || range.from == 0)) {
-                    curSection = name;
-                    if (typeof section != "string" && section.header) {
-                        ul.appendChild(section.header(section));
-                    }
-                    else {
-                        let header = ul.appendChild(document.createElement("completion-section"));
-                        header.textContent = name;
-                    }
-                }
-            }
-            const li = ul.appendChild(document.createElement("li"));
-            li.id = id + "-" + i;
-            li.setAttribute("role", "option");
-            let cls = this.optionClass(completion);
-            if (cls)
-                li.className = cls;
-            for (let source of this.optionContent) {
-                let node = source(completion, this.view.state, this.view, match);
-                if (node)
-                    li.appendChild(node);
-            }
-        }
-        if (range.from)
-            ul.classList.add("cm-completionListIncompleteTop");
-        if (range.to < options.length)
-            ul.classList.add("cm-completionListIncompleteBottom");
-        return ul;
-    }
-    destroyInfo() {
-        if (this.info) {
-            if (this.infoDestroy)
-                this.infoDestroy();
-            this.info.remove();
-            this.info = null;
-        }
-    }
-    destroy() {
-        this.destroyInfo();
-    }
-}
-function completionTooltip(stateField, applyCompletion) {
-    return (view) => new CompletionTooltip(view, stateField, applyCompletion);
-}
-function scrollIntoView(container, element) {
-    let parent = container.getBoundingClientRect();
-    let self = element.getBoundingClientRect();
-    let scaleY = parent.height / container.offsetHeight;
-    if (self.top < parent.top)
-        container.scrollTop -= (parent.top - self.top) / scaleY;
-    else if (self.bottom > parent.bottom)
-        container.scrollTop += (self.bottom - parent.bottom) / scaleY;
-}
-
-// Used to pick a preferred option when two options with the same
-// label occur in the result.
-function score(option) {
-    return (option.boost || 0) * 100 + (option.apply ? 10 : 0) + (option.info ? 5 : 0) +
-        (option.type ? 1 : 0);
-}
-function sortOptions(active, state) {
-    let options = [];
-    let sections = null;
-    let addOption = (option) => {
-        options.push(option);
-        let { section } = option.completion;
-        if (section) {
-            if (!sections)
-                sections = [];
-            let name = typeof section == "string" ? section : section.name;
-            if (!sections.some(s => s.name == name))
-                sections.push(typeof section == "string" ? { name } : section);
-        }
-    };
-    let conf = state.facet(completionConfig);
-    for (let a of active)
-        if (a.hasResult()) {
-            let getMatch = a.result.getMatch;
-            if (a.result.filter === false) {
-                for (let option of a.result.options) {
-                    addOption(new Option(option, a.source, getMatch ? getMatch(option) : [], 1e9 - options.length));
-                }
-            }
-            else {
-                let pattern = state.sliceDoc(a.from, a.to), match;
-                let matcher = conf.filterStrict ? new StrictMatcher(pattern) : new FuzzyMatcher(pattern);
-                for (let option of a.result.options)
-                    if (match = matcher.match(option.label)) {
-                        let matched = !option.displayLabel ? match.matched : getMatch ? getMatch(option, match.matched) : [];
-                        addOption(new Option(option, a.source, matched, match.score + (option.boost || 0)));
-                    }
-            }
-        }
-    if (sections) {
-        let sectionOrder = Object.create(null), pos = 0;
-        let cmp = (a, b) => { var _a, _b; return ((_a = a.rank) !== null && _a !== void 0 ? _a : 1e9) - ((_b = b.rank) !== null && _b !== void 0 ? _b : 1e9) || (a.name < b.name ? -1 : 1); };
-        for (let s of sections.sort(cmp)) {
-            pos -= 1e5;
-            sectionOrder[s.name] = pos;
-        }
-        for (let option of options) {
-            let { section } = option.completion;
-            if (section)
-                option.score += sectionOrder[typeof section == "string" ? section : section.name];
-        }
-    }
-    let result = [], prev = null;
-    let compare = conf.compareCompletions;
-    for (let opt of options.sort((a, b) => (b.score - a.score) || compare(a.completion, b.completion))) {
-        let cur = opt.completion;
-        if (!prev || prev.label != cur.label || prev.detail != cur.detail ||
-            (prev.type != null && cur.type != null && prev.type != cur.type) ||
-            prev.apply != cur.apply || prev.boost != cur.boost)
-            result.push(opt);
-        else if (score(opt.completion) > score(prev))
-            result[result.length - 1] = opt;
-        prev = opt.completion;
-    }
-    return result;
-}
-class CompletionDialog {
-    constructor(options, attrs, tooltip, timestamp, selected, disabled) {
-        this.options = options;
-        this.attrs = attrs;
-        this.tooltip = tooltip;
-        this.timestamp = timestamp;
-        this.selected = selected;
-        this.disabled = disabled;
-    }
-    setSelected(selected, id) {
-        return selected == this.selected || selected >= this.options.length ? this
-            : new CompletionDialog(this.options, makeAttrs(id, selected), this.tooltip, this.timestamp, selected, this.disabled);
-    }
-    static build(active, state, id, prev, conf) {
-        let options = sortOptions(active, state);
-        if (!options.length) {
-            return prev && active.some(a => a.state == 1 /* State.Pending */) ?
-                new CompletionDialog(prev.options, prev.attrs, prev.tooltip, prev.timestamp, prev.selected, true) : null;
-        }
-        let selected = state.facet(completionConfig).selectOnOpen ? 0 : -1;
-        if (prev && prev.selected != selected && prev.selected != -1) {
-            let selectedValue = prev.options[prev.selected].completion;
-            for (let i = 0; i < options.length; i++)
-                if (options[i].completion == selectedValue) {
-                    selected = i;
-                    break;
-                }
-        }
-        return new CompletionDialog(options, makeAttrs(id, selected), {
-            pos: active.reduce((a, b) => b.hasResult() ? Math.min(a, b.from) : a, 1e8),
-            create: createTooltip,
-            above: conf.aboveCursor,
-        }, prev ? prev.timestamp : Date.now(), selected, false);
-    }
-    map(changes) {
-        return new CompletionDialog(this.options, this.attrs, Object.assign(Object.assign({}, this.tooltip), { pos: changes.mapPos(this.tooltip.pos) }), this.timestamp, this.selected, this.disabled);
-    }
-}
-class CompletionState {
-    constructor(active, id, open) {
-        this.active = active;
-        this.id = id;
-        this.open = open;
-    }
-    static start() {
-        return new CompletionState(none, "cm-ac-" + Math.floor(Math.random() * 2e6).toString(36), null);
-    }
-    update(tr) {
-        let { state } = tr, conf = state.facet(completionConfig);
-        let sources = conf.override ||
-            state.languageDataAt("autocomplete", cur(state)).map(asSource);
-        let active = sources.map(source => {
-            let value = this.active.find(s => s.source == source) ||
-                new ActiveSource(source, this.active.some(a => a.state != 0 /* State.Inactive */) ? 1 /* State.Pending */ : 0 /* State.Inactive */);
-            return value.update(tr, conf);
-        });
-        if (active.length == this.active.length && active.every((a, i) => a == this.active[i]))
-            active = this.active;
-        let open = this.open;
-        if (open && tr.docChanged)
-            open = open.map(tr.changes);
-        if (tr.selection || active.some(a => a.hasResult() && tr.changes.touchesRange(a.from, a.to)) ||
-            !sameResults(active, this.active))
-            open = CompletionDialog.build(active, state, this.id, open, conf);
-        else if (open && open.disabled && !active.some(a => a.state == 1 /* State.Pending */))
-            open = null;
-        if (!open && active.every(a => a.state != 1 /* State.Pending */) && active.some(a => a.hasResult()))
-            active = active.map(a => a.hasResult() ? new ActiveSource(a.source, 0 /* State.Inactive */) : a);
-        for (let effect of tr.effects)
-            if (effect.is(setSelectedEffect))
-                open = open && open.setSelected(effect.value, this.id);
-        return active == this.active && open == this.open ? this : new CompletionState(active, this.id, open);
-    }
-    get tooltip() { return this.open ? this.open.tooltip : null; }
-    get attrs() { return this.open ? this.open.attrs : baseAttrs; }
-}
-function sameResults(a, b) {
-    if (a == b)
-        return true;
-    for (let iA = 0, iB = 0;;) {
-        while (iA < a.length && !a[iA].hasResult)
-            iA++;
-        while (iB < b.length && !b[iB].hasResult)
-            iB++;
-        let endA = iA == a.length, endB = iB == b.length;
-        if (endA || endB)
-            return endA == endB;
-        if (a[iA++].result != b[iB++].result)
-            return false;
-    }
-}
-const baseAttrs = {
-    "aria-autocomplete": "list"
-};
-function makeAttrs(id, selected) {
-    let result = {
-        "aria-autocomplete": "list",
-        "aria-haspopup": "listbox",
-        "aria-controls": id
-    };
-    if (selected > -1)
-        result["aria-activedescendant"] = id + "-" + selected;
-    return result;
-}
-const none = [];
-function getUserEvent(tr, conf) {
-    if (tr.isUserEvent("input.complete")) {
-        let completion = tr.annotation(pickedCompletion);
-        if (completion && conf.activateOnCompletion(completion))
-            return "input";
-    }
-    return tr.isUserEvent("input.type") ? "input" : tr.isUserEvent("delete.backward") ? "delete" : null;
-}
-class ActiveSource {
-    constructor(source, state, explicitPos = -1) {
-        this.source = source;
-        this.state = state;
-        this.explicitPos = explicitPos;
-    }
-    hasResult() { return false; }
-    update(tr, conf) {
-        let event = getUserEvent(tr, conf), value = this;
-        if (event)
-            value = value.handleUserEvent(tr, event, conf);
-        else if (tr.docChanged)
-            value = value.handleChange(tr);
-        else if (tr.selection && value.state != 0 /* State.Inactive */)
-            value = new ActiveSource(value.source, 0 /* State.Inactive */);
-        for (let effect of tr.effects) {
-            if (effect.is(startCompletionEffect))
-                value = new ActiveSource(value.source, 1 /* State.Pending */, effect.value ? cur(tr.state) : -1);
-            else if (effect.is(closeCompletionEffect))
-                value = new ActiveSource(value.source, 0 /* State.Inactive */);
-            else if (effect.is(setActiveEffect))
-                for (let active of effect.value)
-                    if (active.source == value.source)
-                        value = active;
-        }
-        return value;
-    }
-    handleUserEvent(tr, type, conf) {
-        return type == "delete" || !conf.activateOnTyping ? this.map(tr.changes) : new ActiveSource(this.source, 1 /* State.Pending */);
-    }
-    handleChange(tr) {
-        return tr.changes.touchesRange(cur(tr.startState)) ? new ActiveSource(this.source, 0 /* State.Inactive */) : this.map(tr.changes);
-    }
-    map(changes) {
-        return changes.empty || this.explicitPos < 0 ? this : new ActiveSource(this.source, this.state, changes.mapPos(this.explicitPos));
-    }
-}
-class ActiveResult extends ActiveSource {
-    constructor(source, explicitPos, result, from, to) {
-        super(source, 2 /* State.Result */, explicitPos);
-        this.result = result;
-        this.from = from;
-        this.to = to;
-    }
-    hasResult() { return true; }
-    handleUserEvent(tr, type, conf) {
-        var _a;
-        let result = this.result;
-        if (result.map && !tr.changes.empty)
-            result = result.map(result, tr.changes);
-        let from = tr.changes.mapPos(this.from), to = tr.changes.mapPos(this.to, 1);
-        let pos = cur(tr.state);
-        if ((this.explicitPos < 0 ? pos <= from : pos < this.from) ||
-            pos > to || !result ||
-            type == "delete" && cur(tr.startState) == this.from)
-            return new ActiveSource(this.source, type == "input" && conf.activateOnTyping ? 1 /* State.Pending */ : 0 /* State.Inactive */);
-        let explicitPos = this.explicitPos < 0 ? -1 : tr.changes.mapPos(this.explicitPos);
-        if (checkValid(result.validFor, tr.state, from, to))
-            return new ActiveResult(this.source, explicitPos, result, from, to);
-        if (result.update &&
-            (result = result.update(result, from, to, new CompletionContext(tr.state, pos, explicitPos >= 0))))
-            return new ActiveResult(this.source, explicitPos, result, result.from, (_a = result.to) !== null && _a !== void 0 ? _a : cur(tr.state));
-        return new ActiveSource(this.source, 1 /* State.Pending */, explicitPos);
-    }
-    handleChange(tr) {
-        return tr.changes.touchesRange(this.from, this.to) ? new ActiveSource(this.source, 0 /* State.Inactive */) : this.map(tr.changes);
-    }
-    map(mapping) {
-        if (mapping.empty)
-            return this;
-        let result = this.result.map ? this.result.map(this.result, mapping) : this.result;
-        if (!result)
-            return new ActiveSource(this.source, 0 /* State.Inactive */);
-        return new ActiveResult(this.source, this.explicitPos < 0 ? -1 : mapping.mapPos(this.explicitPos), this.result, mapping.mapPos(this.from), mapping.mapPos(this.to, 1));
-    }
-}
-function checkValid(validFor, state, from, to) {
-    if (!validFor)
-        return false;
-    let text = state.sliceDoc(from, to);
-    return typeof validFor == "function" ? validFor(text, from, to, state) : ensureAnchor(validFor, true).test(text);
-}
-const setActiveEffect = /*@__PURE__*/StateEffect.define({
-    map(sources, mapping) { return sources.map(s => s.map(mapping)); }
-});
-const setSelectedEffect = /*@__PURE__*/StateEffect.define();
-const completionState = /*@__PURE__*/StateField.define({
-    create() { return CompletionState.start(); },
-    update(value, tr) { return value.update(tr); },
-    provide: f => [
-        showTooltip.from(f, val => val.tooltip),
-        EditorView.contentAttributes.from(f, state => state.attrs)
-    ]
-});
-function applyCompletion(view, option) {
-    const apply = option.completion.apply || option.completion.label;
-    let result = view.state.field(completionState).active.find(a => a.source == option.source);
-    if (!(result instanceof ActiveResult))
-        return false;
-    if (typeof apply == "string")
-        view.dispatch(Object.assign(Object.assign({}, insertCompletionText(view.state, apply, result.from, result.to)), { annotations: pickedCompletion.of(option.completion) }));
-    else
-        apply(view, option.completion, result.from, result.to);
-    return true;
-}
-const createTooltip = /*@__PURE__*/completionTooltip(completionState, applyCompletion);
-
-/**
-Returns a command that moves the completion selection forward or
-backward by the given amount.
-*/
-function moveCompletionSelection(forward, by = "option") {
-    return (view) => {
-        let cState = view.state.field(completionState, false);
-        if (!cState || !cState.open || cState.open.disabled ||
-            Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
-            return false;
-        let step = 1, tooltip;
-        if (by == "page" && (tooltip = getTooltip(view, cState.open.tooltip)))
-            step = Math.max(2, Math.floor(tooltip.dom.offsetHeight /
-                tooltip.dom.querySelector("li").offsetHeight) - 1);
-        let { length } = cState.open.options;
-        let selected = cState.open.selected > -1 ? cState.open.selected + step * (forward ? 1 : -1) : forward ? 0 : length - 1;
-        if (selected < 0)
-            selected = by == "page" ? 0 : length - 1;
-        else if (selected >= length)
-            selected = by == "page" ? length - 1 : 0;
-        view.dispatch({ effects: setSelectedEffect.of(selected) });
-        return true;
-    };
-}
-/**
-Accept the current completion.
-*/
-const acceptCompletion = (view) => {
-    let cState = view.state.field(completionState, false);
-    if (view.state.readOnly || !cState || !cState.open || cState.open.selected < 0 || cState.open.disabled ||
-        Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
-        return false;
-    return applyCompletion(view, cState.open.options[cState.open.selected]);
-};
-/**
-Explicitly start autocompletion.
-*/
-const startCompletion = (view) => {
-    let cState = view.state.field(completionState, false);
-    if (!cState)
-        return false;
-    view.dispatch({ effects: startCompletionEffect.of(true) });
-    return true;
-};
-/**
-Close the currently active completion.
-*/
-const closeCompletion = (view) => {
-    let cState = view.state.field(completionState, false);
-    if (!cState || !cState.active.some(a => a.state != 0 /* State.Inactive */))
-        return false;
-    view.dispatch({ effects: closeCompletionEffect.of(null) });
-    return true;
-};
-class RunningQuery {
-    constructor(active, context) {
-        this.active = active;
-        this.context = context;
-        this.time = Date.now();
-        this.updates = [];
-        // Note that 'undefined' means 'not done yet', whereas 'null' means
-        // 'query returned null'.
-        this.done = undefined;
-    }
-}
-const MaxUpdateCount = 50, MinAbortTime = 1000;
-const completionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
-    constructor(view) {
-        this.view = view;
-        this.debounceUpdate = -1;
-        this.running = [];
-        this.debounceAccept = -1;
-        this.pendingStart = false;
-        this.composing = 0 /* CompositionState.None */;
-        for (let active of view.state.field(completionState).active)
-            if (active.state == 1 /* State.Pending */)
-                this.startQuery(active);
-    }
-    update(update) {
-        let cState = update.state.field(completionState);
-        let conf = update.state.facet(completionConfig);
-        if (!update.selectionSet && !update.docChanged && update.startState.field(completionState) == cState)
-            return;
-        let doesReset = update.transactions.some(tr => {
-            return (tr.selection || tr.docChanged) && !getUserEvent(tr, conf);
-        });
-        for (let i = 0; i < this.running.length; i++) {
-            let query = this.running[i];
-            if (doesReset ||
-                query.updates.length + update.transactions.length > MaxUpdateCount && Date.now() - query.time > MinAbortTime) {
-                for (let handler of query.context.abortListeners) {
-                    try {
-                        handler();
-                    }
-                    catch (e) {
-                        logException(this.view.state, e);
-                    }
-                }
-                query.context.abortListeners = null;
-                this.running.splice(i--, 1);
-            }
-            else {
-                query.updates.push(...update.transactions);
-            }
-        }
-        if (this.debounceUpdate > -1)
-            clearTimeout(this.debounceUpdate);
-        if (update.transactions.some(tr => tr.effects.some(e => e.is(startCompletionEffect))))
-            this.pendingStart = true;
-        let delay = this.pendingStart ? 50 : conf.activateOnTypingDelay;
-        this.debounceUpdate = cState.active.some(a => a.state == 1 /* State.Pending */ && !this.running.some(q => q.active.source == a.source))
-            ? setTimeout(() => this.startUpdate(), delay) : -1;
-        if (this.composing != 0 /* CompositionState.None */)
-            for (let tr of update.transactions) {
-                if (getUserEvent(tr, conf) == "input")
-                    this.composing = 2 /* CompositionState.Changed */;
-                else if (this.composing == 2 /* CompositionState.Changed */ && tr.selection)
-                    this.composing = 3 /* CompositionState.ChangedAndMoved */;
-            }
-    }
-    startUpdate() {
-        this.debounceUpdate = -1;
-        this.pendingStart = false;
-        let { state } = this.view, cState = state.field(completionState);
-        for (let active of cState.active) {
-            if (active.state == 1 /* State.Pending */ && !this.running.some(r => r.active.source == active.source))
-                this.startQuery(active);
-        }
-    }
-    startQuery(active) {
-        let { state } = this.view, pos = cur(state);
-        let context = new CompletionContext(state, pos, active.explicitPos == pos);
-        let pending = new RunningQuery(active, context);
-        this.running.push(pending);
-        Promise.resolve(active.source(context)).then(result => {
-            if (!pending.context.aborted) {
-                pending.done = result || null;
-                this.scheduleAccept();
-            }
-        }, err => {
-            this.view.dispatch({ effects: closeCompletionEffect.of(null) });
-            logException(this.view.state, err);
-        });
-    }
-    scheduleAccept() {
-        if (this.running.every(q => q.done !== undefined))
-            this.accept();
-        else if (this.debounceAccept < 0)
-            this.debounceAccept = setTimeout(() => this.accept(), this.view.state.facet(completionConfig).updateSyncTime);
-    }
-    // For each finished query in this.running, try to create a result
-    // or, if appropriate, restart the query.
-    accept() {
-        var _a;
-        if (this.debounceAccept > -1)
-            clearTimeout(this.debounceAccept);
-        this.debounceAccept = -1;
-        let updated = [];
-        let conf = this.view.state.facet(completionConfig);
-        for (let i = 0; i < this.running.length; i++) {
-            let query = this.running[i];
-            if (query.done === undefined)
-                continue;
-            this.running.splice(i--, 1);
-            if (query.done) {
-                let active = new ActiveResult(query.active.source, query.active.explicitPos, query.done, query.done.from, (_a = query.done.to) !== null && _a !== void 0 ? _a : cur(query.updates.length ? query.updates[0].startState : this.view.state));
-                // Replay the transactions that happened since the start of
-                // the request and see if that preserves the result
-                for (let tr of query.updates)
-                    active = active.update(tr, conf);
-                if (active.hasResult()) {
-                    updated.push(active);
-                    continue;
-                }
-            }
-            let current = this.view.state.field(completionState).active.find(a => a.source == query.active.source);
-            if (current && current.state == 1 /* State.Pending */) {
-                if (query.done == null) {
-                    // Explicitly failed. Should clear the pending status if it
-                    // hasn't been re-set in the meantime.
-                    let active = new ActiveSource(query.active.source, 0 /* State.Inactive */);
-                    for (let tr of query.updates)
-                        active = active.update(tr, conf);
-                    if (active.state != 1 /* State.Pending */)
-                        updated.push(active);
-                }
-                else {
-                    // Cleared by subsequent transactions. Restart.
-                    this.startQuery(current);
-                }
-            }
-        }
-        if (updated.length)
-            this.view.dispatch({ effects: setActiveEffect.of(updated) });
-    }
-}, {
-    eventHandlers: {
-        blur(event) {
-            let state = this.view.state.field(completionState, false);
-            if (state && state.tooltip && this.view.state.facet(completionConfig).closeOnBlur) {
-                let dialog = state.open && getTooltip(this.view, state.open.tooltip);
-                if (!dialog || !dialog.dom.contains(event.relatedTarget))
-                    setTimeout(() => this.view.dispatch({ effects: closeCompletionEffect.of(null) }), 10);
-            }
-        },
-        compositionstart() {
-            this.composing = 1 /* CompositionState.Started */;
-        },
-        compositionend() {
-            if (this.composing == 3 /* CompositionState.ChangedAndMoved */) {
-                // Safari fires compositionend events synchronously, possibly
-                // from inside an update, so dispatch asynchronously to avoid reentrancy
-                setTimeout(() => this.view.dispatch({ effects: startCompletionEffect.of(false) }), 20);
-            }
-            this.composing = 0 /* CompositionState.None */;
-        }
-    }
-});
-const windows = typeof navigator == "object" && /*@__PURE__*//Win/.test(navigator.platform);
-const commitCharacters = /*@__PURE__*/Prec.highest(/*@__PURE__*/EditorView.domEventHandlers({
-    keydown(event, view) {
-        let field = view.state.field(completionState, false);
-        if (!field || !field.open || field.open.disabled || field.open.selected < 0 ||
-            event.key.length > 1 || event.ctrlKey && !(windows && event.altKey) || event.metaKey)
-            return false;
-        let option = field.open.options[field.open.selected];
-        let result = field.active.find(a => a.source == option.source);
-        let commitChars = option.completion.commitCharacters || result.result.commitCharacters;
-        if (commitChars && commitChars.indexOf(event.key) > -1)
-            applyCompletion(view, option);
-        return false;
-    }
-}));
-
-const baseTheme$1 = /*@__PURE__*/EditorView.baseTheme({
-    ".cm-tooltip.cm-tooltip-autocomplete": {
-        "& > ul": {
-            fontFamily: "monospace",
-            whiteSpace: "nowrap",
-            overflow: "hidden auto",
-            maxWidth_fallback: "700px",
-            maxWidth: "min(700px, 95vw)",
-            minWidth: "250px",
-            maxHeight: "10em",
-            height: "100%",
-            listStyle: "none",
-            margin: 0,
-            padding: 0,
-            "& > li, & > completion-section": {
-                padding: "1px 3px",
-                lineHeight: 1.2
-            },
-            "& > li": {
-                overflowX: "hidden",
-                textOverflow: "ellipsis",
-                cursor: "pointer"
-            },
-            "& > completion-section": {
-                display: "list-item",
-                borderBottom: "1px solid silver",
-                paddingLeft: "0.5em",
-                opacity: 0.7
-            }
-        }
-    },
-    "&light .cm-tooltip-autocomplete ul li[aria-selected]": {
-        background: "#17c",
-        color: "white",
-    },
-    "&light .cm-tooltip-autocomplete-disabled ul li[aria-selected]": {
-        background: "#777",
-    },
-    "&dark .cm-tooltip-autocomplete ul li[aria-selected]": {
-        background: "#347",
-        color: "white",
-    },
-    "&dark .cm-tooltip-autocomplete-disabled ul li[aria-selected]": {
-        background: "#444",
-    },
-    ".cm-completionListIncompleteTop:before, .cm-completionListIncompleteBottom:after": {
-        content: '"···"',
-        opacity: 0.5,
-        display: "block",
-        textAlign: "center"
-    },
-    ".cm-tooltip.cm-completionInfo": {
-        position: "absolute",
-        padding: "3px 9px",
-        width: "max-content",
-        maxWidth: `${400 /* Info.Width */}px`,
-        boxSizing: "border-box"
-    },
-    ".cm-completionInfo.cm-completionInfo-left": { right: "100%" },
-    ".cm-completionInfo.cm-completionInfo-right": { left: "100%" },
-    ".cm-completionInfo.cm-completionInfo-left-narrow": { right: `${30 /* Info.Margin */}px` },
-    ".cm-completionInfo.cm-completionInfo-right-narrow": { left: `${30 /* Info.Margin */}px` },
-    "&light .cm-snippetField": { backgroundColor: "#00000022" },
-    "&dark .cm-snippetField": { backgroundColor: "#ffffff22" },
-    ".cm-snippetFieldPosition": {
-        verticalAlign: "text-top",
-        width: 0,
-        height: "1.15em",
-        display: "inline-block",
-        margin: "0 -0.7px -.7em",
-        borderLeft: "1.4px dotted #888"
-    },
-    ".cm-completionMatchedText": {
-        textDecoration: "underline"
-    },
-    ".cm-completionDetail": {
-        marginLeft: "0.5em",
-        fontStyle: "italic"
-    },
-    ".cm-completionIcon": {
-        fontSize: "90%",
-        width: ".8em",
-        display: "inline-block",
-        textAlign: "center",
-        paddingRight: ".6em",
-        opacity: "0.6",
-        boxSizing: "content-box"
-    },
-    ".cm-completionIcon-function, .cm-completionIcon-method": {
-        "&:after": { content: "'ƒ'" }
-    },
-    ".cm-completionIcon-class": {
-        "&:after": { content: "'○'" }
-    },
-    ".cm-completionIcon-interface": {
-        "&:after": { content: "'◌'" }
-    },
-    ".cm-completionIcon-variable": {
-        "&:after": { content: "'𝑥'" }
-    },
-    ".cm-completionIcon-constant": {
-        "&:after": { content: "'𝐶'" }
-    },
-    ".cm-completionIcon-type": {
-        "&:after": { content: "'𝑡'" }
-    },
-    ".cm-completionIcon-enum": {
-        "&:after": { content: "'∪'" }
-    },
-    ".cm-completionIcon-property": {
-        "&:after": { content: "'□'" }
-    },
-    ".cm-completionIcon-keyword": {
-        "&:after": { content: "'🔑\uFE0E'" } // Disable emoji rendering
-    },
-    ".cm-completionIcon-namespace": {
-        "&:after": { content: "'▢'" }
-    },
-    ".cm-completionIcon-text": {
-        "&:after": { content: "'abc'", fontSize: "50%", verticalAlign: "middle" }
-    }
-});
-
-class FieldPos {
-    constructor(field, line, from, to) {
-        this.field = field;
-        this.line = line;
-        this.from = from;
-        this.to = to;
-    }
-}
-class FieldRange {
-    constructor(field, from, to) {
-        this.field = field;
-        this.from = from;
-        this.to = to;
-    }
-    map(changes) {
-        let from = changes.mapPos(this.from, -1, MapMode.TrackDel);
-        let to = changes.mapPos(this.to, 1, MapMode.TrackDel);
-        return from == null || to == null ? null : new FieldRange(this.field, from, to);
-    }
-}
-class Snippet {
-    constructor(lines, fieldPositions) {
-        this.lines = lines;
-        this.fieldPositions = fieldPositions;
-    }
-    instantiate(state, pos) {
-        let text = [], lineStart = [pos];
-        let lineObj = state.doc.lineAt(pos), baseIndent = /^\s*/.exec(lineObj.text)[0];
-        for (let line of this.lines) {
-            if (text.length) {
-                let indent = baseIndent, tabs = /^\t*/.exec(line)[0].length;
-                for (let i = 0; i < tabs; i++)
-                    indent += state.facet(indentUnit);
-                lineStart.push(pos + indent.length - tabs);
-                line = indent + line.slice(tabs);
-            }
-            text.push(line);
-            pos += line.length + 1;
-        }
-        let ranges = this.fieldPositions.map(pos => new FieldRange(pos.field, lineStart[pos.line] + pos.from, lineStart[pos.line] + pos.to));
-        return { text, ranges };
-    }
-    static parse(template) {
-        let fields = [];
-        let lines = [], positions = [], m;
-        for (let line of template.split(/\r\n?|\n/)) {
-            while (m = /[#$]\{(?:(\d+)(?::([^}]*))?|([^}]*))\}/.exec(line)) {
-                let seq = m[1] ? +m[1] : null, name = m[2] || m[3] || "", found = -1;
-                for (let i = 0; i < fields.length; i++) {
-                    if (seq != null ? fields[i].seq == seq : name ? fields[i].name == name : false)
-                        found = i;
-                }
-                if (found < 0) {
-                    let i = 0;
-                    while (i < fields.length && (seq == null || (fields[i].seq != null && fields[i].seq < seq)))
-                        i++;
-                    fields.splice(i, 0, { seq, name });
-                    found = i;
-                    for (let pos of positions)
-                        if (pos.field >= found)
-                            pos.field++;
-                }
-                positions.push(new FieldPos(found, lines.length, m.index, m.index + name.length));
-                line = line.slice(0, m.index) + name + line.slice(m.index + m[0].length);
-            }
-            for (let esc; esc = /\\([{}])/.exec(line);) {
-                line = line.slice(0, esc.index) + esc[1] + line.slice(esc.index + esc[0].length);
-                for (let pos of positions)
-                    if (pos.line == lines.length && pos.from > esc.index) {
-                        pos.from--;
-                        pos.to--;
-                    }
-            }
-            lines.push(line);
-        }
-        return new Snippet(lines, positions);
-    }
-}
-let fieldMarker = /*@__PURE__*/Decoration.widget({ widget: /*@__PURE__*/new class extends WidgetType {
-        toDOM() {
-            let span = document.createElement("span");
-            span.className = "cm-snippetFieldPosition";
-            return span;
-        }
-        ignoreEvent() { return false; }
-    } });
-let fieldRange = /*@__PURE__*/Decoration.mark({ class: "cm-snippetField" });
-class ActiveSnippet {
-    constructor(ranges, active) {
-        this.ranges = ranges;
-        this.active = active;
-        this.deco = Decoration.set(ranges.map(r => (r.from == r.to ? fieldMarker : fieldRange).range(r.from, r.to)));
-    }
-    map(changes) {
-        let ranges = [];
-        for (let r of this.ranges) {
-            let mapped = r.map(changes);
-            if (!mapped)
-                return null;
-            ranges.push(mapped);
-        }
-        return new ActiveSnippet(ranges, this.active);
-    }
-    selectionInsideField(sel) {
-        return sel.ranges.every(range => this.ranges.some(r => r.field == this.active && r.from <= range.from && r.to >= range.to));
-    }
-}
-const setActive = /*@__PURE__*/StateEffect.define({
-    map(value, changes) { return value && value.map(changes); }
-});
-const moveToField = /*@__PURE__*/StateEffect.define();
-const snippetState = /*@__PURE__*/StateField.define({
-    create() { return null; },
-    update(value, tr) {
-        for (let effect of tr.effects) {
-            if (effect.is(setActive))
-                return effect.value;
-            if (effect.is(moveToField) && value)
-                return new ActiveSnippet(value.ranges, effect.value);
-        }
-        if (value && tr.docChanged)
-            value = value.map(tr.changes);
-        if (value && tr.selection && !value.selectionInsideField(tr.selection))
-            value = null;
-        return value;
-    },
-    provide: f => EditorView.decorations.from(f, val => val ? val.deco : Decoration.none)
-});
-function fieldSelection(ranges, field) {
-    return EditorSelection.create(ranges.filter(r => r.field == field).map(r => EditorSelection.range(r.from, r.to)));
-}
-/**
-Convert a snippet template to a function that can
-[apply](https://codemirror.net/6/docs/ref/#autocomplete.Completion.apply) it. Snippets are written
-using syntax like this:
-
-    "for (let ${index} = 0; ${index} < ${end}; ${index}++) {\n\t${}\n}"
-
-Each `${}` placeholder (you may also use `#{}`) indicates a field
-that the user can fill in. Its name, if any, will be the default
-content for the field.
-
-When the snippet is activated by calling the returned function,
-the code is inserted at the given position. Newlines in the
-template are indented by the indentation of the start line, plus
-one [indent unit](https://codemirror.net/6/docs/ref/#language.indentUnit) per tab character after
-the newline.
-
-On activation, (all instances of) the first field are selected.
-The user can move between fields with Tab and Shift-Tab as long as
-the fields are active. Moving to the last field or moving the
-cursor out of the current field deactivates the fields.
-
-The order of fields defaults to textual order, but you can add
-numbers to placeholders (`${1}` or `${1:defaultText}`) to provide
-a custom order.
-
-To include a literal `{` or `}` in your template, put a backslash
-in front of it. This will be removed and the brace will not be
-interpreted as indicating a placeholder.
-*/
-function snippet(template) {
-    let snippet = Snippet.parse(template);
-    return (editor, completion, from, to) => {
-        let { text, ranges } = snippet.instantiate(editor.state, from);
-        let spec = {
-            changes: { from, to, insert: Text.of(text) },
-            scrollIntoView: true,
-            annotations: completion ? [pickedCompletion.of(completion), Transaction.userEvent.of("input.complete")] : undefined
-        };
-        if (ranges.length)
-            spec.selection = fieldSelection(ranges, 0);
-        if (ranges.some(r => r.field > 0)) {
-            let active = new ActiveSnippet(ranges, 0);
-            let effects = spec.effects = [setActive.of(active)];
-            if (editor.state.field(snippetState, false) === undefined)
-                effects.push(StateEffect.appendConfig.of([snippetState, addSnippetKeymap, snippetPointerHandler, baseTheme$1]));
-        }
-        editor.dispatch(editor.state.update(spec));
-    };
-}
-function moveField(dir) {
-    return ({ state, dispatch }) => {
-        let active = state.field(snippetState, false);
-        if (!active || dir < 0 && active.active == 0)
-            return false;
-        let next = active.active + dir, last = dir > 0 && !active.ranges.some(r => r.field == next + dir);
-        dispatch(state.update({
-            selection: fieldSelection(active.ranges, next),
-            effects: setActive.of(last ? null : new ActiveSnippet(active.ranges, next)),
-            scrollIntoView: true
-        }));
-        return true;
-    };
-}
-/**
-A command that clears the active snippet, if any.
-*/
-const clearSnippet = ({ state, dispatch }) => {
-    let active = state.field(snippetState, false);
-    if (!active)
-        return false;
-    dispatch(state.update({ effects: setActive.of(null) }));
-    return true;
-};
-/**
-Move to the next snippet field, if available.
-*/
-const nextSnippetField = /*@__PURE__*/moveField(1);
-/**
-Move to the previous snippet field, if available.
-*/
-const prevSnippetField = /*@__PURE__*/moveField(-1);
-const defaultSnippetKeymap = [
-    { key: "Tab", run: nextSnippetField, shift: prevSnippetField },
-    { key: "Escape", run: clearSnippet }
-];
-/**
-A facet that can be used to configure the key bindings used by
-snippets. The default binds Tab to
-[`nextSnippetField`](https://codemirror.net/6/docs/ref/#autocomplete.nextSnippetField), Shift-Tab to
-[`prevSnippetField`](https://codemirror.net/6/docs/ref/#autocomplete.prevSnippetField), and Escape
-to [`clearSnippet`](https://codemirror.net/6/docs/ref/#autocomplete.clearSnippet).
-*/
-const snippetKeymap = /*@__PURE__*/Facet.define({
-    combine(maps) { return maps.length ? maps[0] : defaultSnippetKeymap; }
-});
-const addSnippetKeymap = /*@__PURE__*/Prec.highest(/*@__PURE__*/keymap.compute([snippetKeymap], state => state.facet(snippetKeymap)));
-/**
-Create a completion from a snippet. Returns an object with the
-properties from `completion`, plus an `apply` function that
-applies the snippet.
-*/
-function snippetCompletion(template, completion) {
-    return Object.assign(Object.assign({}, completion), { apply: snippet(template) });
-}
-const snippetPointerHandler = /*@__PURE__*/EditorView.domEventHandlers({
-    mousedown(event, view) {
-        let active = view.state.field(snippetState, false), pos;
-        if (!active || (pos = view.posAtCoords({ x: event.clientX, y: event.clientY })) == null)
-            return false;
-        let match = active.ranges.find(r => r.from <= pos && r.to >= pos);
-        if (!match || match.field == active.active)
-            return false;
-        view.dispatch({
-            selection: fieldSelection(active.ranges, match.field),
-            effects: setActive.of(active.ranges.some(r => r.field > match.field)
-                ? new ActiveSnippet(active.ranges, match.field) : null),
-            scrollIntoView: true
-        });
-        return true;
-    }
-});
-
 const defaults = {
     brackets: ["(", "[", "{", "'", '"'],
     before: ")]}:;>",
@@ -23432,9 +18932,9 @@ function closing(ch) {
 function config(state, pos) {
     return state.languageDataAt("closeBrackets", pos)[0] || defaults;
 }
-const android$1 = typeof navigator == "object" && /*@__PURE__*//Android\b/.test(navigator.userAgent);
+const android = typeof navigator == "object" && /*@__PURE__*//Android\b/.test(navigator.userAgent);
 const inputHandler = /*@__PURE__*/EditorView.inputHandler.of((view, from, to, insert) => {
-    if ((android$1 ? view.composing : view.compositionStarted) || view.state.readOnly)
+    if ((android ? view.composing : view.compositionStarted) || view.state.readOnly)
         return false;
     let sel = view.state.selection.main;
     if (insert.length > 2 || insert.length == 2 && codePointSize(codePointAt(insert, 0)) == 1 ||
@@ -23446,37 +18946,6 @@ const inputHandler = /*@__PURE__*/EditorView.inputHandler.of((view, from, to, in
     view.dispatch(tr);
     return true;
 });
-/**
-Command that implements deleting a pair of matching brackets when
-the cursor is between them.
-*/
-const deleteBracketPair = ({ state, dispatch }) => {
-    if (state.readOnly)
-        return false;
-    let conf = config(state, state.selection.main.head);
-    let tokens = conf.brackets || defaults.brackets;
-    let dont = null, changes = state.changeByRange(range => {
-        if (range.empty) {
-            let before = prevChar(state.doc, range.head);
-            for (let token of tokens) {
-                if (token == before && nextChar(state.doc, range.head) == closing(codePointAt(token, 0)))
-                    return { changes: { from: range.head - token.length, to: range.head + token.length },
-                        range: EditorSelection.cursor(range.head - token.length) };
-            }
-        }
-        return { range: dont = range };
-    });
-    if (!dont)
-        dispatch(state.update(changes, { scrollIntoView: true, userEvent: "delete.backward" }));
-    return !dont;
-};
-/**
-Close-brackets related key bindings. Binds Backspace to
-[`deleteBracketPair`](https://codemirror.net/6/docs/ref/#autocomplete.deleteBracketPair).
-*/
-const closeBracketsKeymap = [
-    { key: "Backspace", run: deleteBracketPair }
-];
 /**
 Implements the extension's behavior on text insertion. If the
 given string counts as a bracket in the language around the
@@ -23512,10 +18981,6 @@ function closedBracketAt(state, pos) {
 function nextChar(doc, pos) {
     let next = doc.sliceString(pos, pos + 2);
     return next.slice(0, codePointSize(codePointAt(next, 0)));
-}
-function prevChar(doc, pos) {
-    let prev = doc.sliceString(pos - 2, pos);
-    return codePointSize(codePointAt(prev, 0)) == prev.length ? prev : prev.slice(1);
 }
 function handleOpen(state, open, close, closeBefore) {
     let dont = null, changes = state.changeByRange(range => {
@@ -23629,3268 +19094,23 @@ function canStartStringAt(state, pos, prefixes) {
 }
 
 /**
-Returns an extension that enables autocompletion.
+A minimal set of extensions to create a functional editor. Only
+includes [the default keymap](https://codemirror.net/6/docs/ref/#commands.defaultKeymap), [undo
+history](https://codemirror.net/6/docs/ref/#commands.history), [special character
+highlighting](https://codemirror.net/6/docs/ref/#view.highlightSpecialChars), [custom selection
+drawing](https://codemirror.net/6/docs/ref/#view.drawSelection), and [default highlight
+style](https://codemirror.net/6/docs/ref/#language.defaultHighlightStyle).
 */
-function autocompletion(config = {}) {
-    return [
-        commitCharacters,
-        completionState,
-        completionConfig.of(config),
-        completionPlugin,
-        completionKeymapExt,
-        baseTheme$1
-    ];
-}
-/**
-Basic keybindings for autocompletion.
-
- - Ctrl-Space: [`startCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.startCompletion)
- - Escape: [`closeCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.closeCompletion)
- - ArrowDown: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(true)`
- - ArrowUp: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(false)`
- - PageDown: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(true, "page")`
- - PageDown: [`moveCompletionSelection`](https://codemirror.net/6/docs/ref/#autocomplete.moveCompletionSelection)`(true, "page")`
- - Enter: [`acceptCompletion`](https://codemirror.net/6/docs/ref/#autocomplete.acceptCompletion)
-*/
-const completionKeymap = [
-    { key: "Ctrl-Space", run: startCompletion },
-    { key: "Escape", run: closeCompletion },
-    { key: "ArrowDown", run: /*@__PURE__*/moveCompletionSelection(true) },
-    { key: "ArrowUp", run: /*@__PURE__*/moveCompletionSelection(false) },
-    { key: "PageDown", run: /*@__PURE__*/moveCompletionSelection(true, "page") },
-    { key: "PageUp", run: /*@__PURE__*/moveCompletionSelection(false, "page") },
-    { key: "Enter", run: acceptCompletion }
-];
-const completionKeymapExt = /*@__PURE__*/Prec.highest(/*@__PURE__*/keymap.computeN([completionConfig], state => state.facet(completionConfig).defaultKeymap ? [completionKeymap] : []));
-
-class SelectedDiagnostic {
-    constructor(from, to, diagnostic) {
-        this.from = from;
-        this.to = to;
-        this.diagnostic = diagnostic;
-    }
-}
-class LintState {
-    constructor(diagnostics, panel, selected) {
-        this.diagnostics = diagnostics;
-        this.panel = panel;
-        this.selected = selected;
-    }
-    static init(diagnostics, panel, state) {
-        // Filter the list of diagnostics for which to create markers
-        let markedDiagnostics = diagnostics;
-        let diagnosticFilter = state.facet(lintConfig).markerFilter;
-        if (diagnosticFilter)
-            markedDiagnostics = diagnosticFilter(markedDiagnostics, state);
-        let ranges = Decoration.set(markedDiagnostics.map((d) => {
-            // For zero-length ranges or ranges covering only a line break, create a widget
-            return d.from == d.to || (d.from == d.to - 1 && state.doc.lineAt(d.from).to == d.from)
-                ? Decoration.widget({
-                    widget: new DiagnosticWidget(d),
-                    diagnostic: d
-                }).range(d.from)
-                : Decoration.mark({
-                    attributes: { class: "cm-lintRange cm-lintRange-" + d.severity + (d.markClass ? " " + d.markClass : "") },
-                    diagnostic: d,
-                    inclusive: true
-                }).range(d.from, d.to);
-        }), true);
-        return new LintState(ranges, panel, findDiagnostic(ranges));
-    }
-}
-function findDiagnostic(diagnostics, diagnostic = null, after = 0) {
-    let found = null;
-    diagnostics.between(after, 1e9, (from, to, { spec }) => {
-        if (diagnostic && spec.diagnostic != diagnostic)
-            return;
-        found = new SelectedDiagnostic(from, to, spec.diagnostic);
-        return false;
-    });
-    return found;
-}
-function hideTooltip(tr, tooltip) {
-    let from = tooltip.pos, to = tooltip.end || from;
-    let result = tr.state.facet(lintConfig).hideOn(tr, from, to);
-    if (result != null)
-        return result;
-    let line = tr.startState.doc.lineAt(tooltip.pos);
-    return !!(tr.effects.some(e => e.is(setDiagnosticsEffect)) || tr.changes.touchesRange(line.from, Math.max(line.to, to)));
-}
-function maybeEnableLint(state, effects) {
-    return state.field(lintState, false) ? effects : effects.concat(StateEffect.appendConfig.of(lintExtensions));
-}
-/**
-The state effect that updates the set of active diagnostics. Can
-be useful when writing an extension that needs to track these.
-*/
-const setDiagnosticsEffect = /*@__PURE__*/StateEffect.define();
-const togglePanel = /*@__PURE__*/StateEffect.define();
-const movePanelSelection = /*@__PURE__*/StateEffect.define();
-const lintState = /*@__PURE__*/StateField.define({
-    create() {
-        return new LintState(Decoration.none, null, null);
-    },
-    update(value, tr) {
-        if (tr.docChanged) {
-            let mapped = value.diagnostics.map(tr.changes), selected = null;
-            if (value.selected) {
-                let selPos = tr.changes.mapPos(value.selected.from, 1);
-                selected = findDiagnostic(mapped, value.selected.diagnostic, selPos) || findDiagnostic(mapped, null, selPos);
-            }
-            value = new LintState(mapped, value.panel, selected);
-        }
-        for (let effect of tr.effects) {
-            if (effect.is(setDiagnosticsEffect)) {
-                value = LintState.init(effect.value, value.panel, tr.state);
-            }
-            else if (effect.is(togglePanel)) {
-                value = new LintState(value.diagnostics, effect.value ? LintPanel.open : null, value.selected);
-            }
-            else if (effect.is(movePanelSelection)) {
-                value = new LintState(value.diagnostics, value.panel, effect.value);
-            }
-        }
-        return value;
-    },
-    provide: f => [showPanel.from(f, val => val.panel),
-        EditorView.decorations.from(f, s => s.diagnostics)]
-});
-const activeMark = /*@__PURE__*/Decoration.mark({ class: "cm-lintRange cm-lintRange-active", inclusive: true });
-function lintTooltip(view, pos, side) {
-    let { diagnostics } = view.state.field(lintState);
-    let found = [], stackStart = 2e8, stackEnd = 0;
-    diagnostics.between(pos - (side < 0 ? 1 : 0), pos + (side > 0 ? 1 : 0), (from, to, { spec }) => {
-        if (pos >= from && pos <= to &&
-            (from == to || ((pos > from || side > 0) && (pos < to || side < 0)))) {
-            found.push(spec.diagnostic);
-            stackStart = Math.min(from, stackStart);
-            stackEnd = Math.max(to, stackEnd);
-        }
-    });
-    let diagnosticFilter = view.state.facet(lintConfig).tooltipFilter;
-    if (diagnosticFilter)
-        found = diagnosticFilter(found, view.state);
-    if (!found.length)
-        return null;
-    return {
-        pos: stackStart,
-        end: stackEnd,
-        above: view.state.doc.lineAt(stackStart).to < stackEnd,
-        create() {
-            return { dom: diagnosticsTooltip(view, found) };
-        }
-    };
-}
-function diagnosticsTooltip(view, diagnostics) {
-    return crelt("ul", { class: "cm-tooltip-lint" }, diagnostics.map(d => renderDiagnostic(view, d, false)));
-}
-/**
-Command to open and focus the lint panel.
-*/
-const openLintPanel = (view) => {
-    let field = view.state.field(lintState, false);
-    if (!field || !field.panel)
-        view.dispatch({ effects: maybeEnableLint(view.state, [togglePanel.of(true)]) });
-    let panel = getPanel(view, LintPanel.open);
-    if (panel)
-        panel.dom.querySelector(".cm-panel-lint ul").focus();
-    return true;
-};
-/**
-Command to close the lint panel, when open.
-*/
-const closeLintPanel = (view) => {
-    let field = view.state.field(lintState, false);
-    if (!field || !field.panel)
-        return false;
-    view.dispatch({ effects: togglePanel.of(false) });
-    return true;
-};
-/**
-Move the selection to the next diagnostic.
-*/
-const nextDiagnostic = (view) => {
-    let field = view.state.field(lintState, false);
-    if (!field)
-        return false;
-    let sel = view.state.selection.main, next = field.diagnostics.iter(sel.to + 1);
-    if (!next.value) {
-        next = field.diagnostics.iter(0);
-        if (!next.value || next.from == sel.from && next.to == sel.to)
-            return false;
-    }
-    view.dispatch({ selection: { anchor: next.from, head: next.to }, scrollIntoView: true });
-    return true;
-};
-/**
-A set of default key bindings for the lint functionality.
-
-- Ctrl-Shift-m (Cmd-Shift-m on macOS): [`openLintPanel`](https://codemirror.net/6/docs/ref/#lint.openLintPanel)
-- F8: [`nextDiagnostic`](https://codemirror.net/6/docs/ref/#lint.nextDiagnostic)
-*/
-const lintKeymap = [
-    { key: "Mod-Shift-m", run: openLintPanel, preventDefault: true },
-    { key: "F8", run: nextDiagnostic }
-];
-const lintConfig = /*@__PURE__*/Facet.define({
-    combine(input) {
-        return Object.assign({ sources: input.map(i => i.source).filter(x => x != null) }, combineConfig(input.map(i => i.config), {
-            delay: 750,
-            markerFilter: null,
-            tooltipFilter: null,
-            needsRefresh: null,
-            hideOn: () => null,
-        }, {
-            needsRefresh: (a, b) => !a ? b : !b ? a : u => a(u) || b(u)
-        }));
-    }
-});
-function assignKeys(actions) {
-    let assigned = [];
-    if (actions)
-        actions: for (let { name } of actions) {
-            for (let i = 0; i < name.length; i++) {
-                let ch = name[i];
-                if (/[a-zA-Z]/.test(ch) && !assigned.some(c => c.toLowerCase() == ch.toLowerCase())) {
-                    assigned.push(ch);
-                    continue actions;
-                }
-            }
-            assigned.push("");
-        }
-    return assigned;
-}
-function renderDiagnostic(view, diagnostic, inPanel) {
-    var _a;
-    let keys = inPanel ? assignKeys(diagnostic.actions) : [];
-    return crelt("li", { class: "cm-diagnostic cm-diagnostic-" + diagnostic.severity }, crelt("span", { class: "cm-diagnosticText" }, diagnostic.renderMessage ? diagnostic.renderMessage(view) : diagnostic.message), (_a = diagnostic.actions) === null || _a === void 0 ? void 0 : _a.map((action, i) => {
-        let fired = false, click = (e) => {
-            e.preventDefault();
-            if (fired)
-                return;
-            fired = true;
-            let found = findDiagnostic(view.state.field(lintState).diagnostics, diagnostic);
-            if (found)
-                action.apply(view, found.from, found.to);
-        };
-        let { name } = action, keyIndex = keys[i] ? name.indexOf(keys[i]) : -1;
-        let nameElt = keyIndex < 0 ? name : [name.slice(0, keyIndex),
-            crelt("u", name.slice(keyIndex, keyIndex + 1)),
-            name.slice(keyIndex + 1)];
-        return crelt("button", {
-            type: "button",
-            class: "cm-diagnosticAction",
-            onclick: click,
-            onmousedown: click,
-            "aria-label": ` Action: ${name}${keyIndex < 0 ? "" : ` (access key "${keys[i]})"`}.`
-        }, nameElt);
-    }), diagnostic.source && crelt("div", { class: "cm-diagnosticSource" }, diagnostic.source));
-}
-class DiagnosticWidget extends WidgetType {
-    constructor(diagnostic) {
-        super();
-        this.diagnostic = diagnostic;
-    }
-    eq(other) { return other.diagnostic == this.diagnostic; }
-    toDOM() {
-        return crelt("span", { class: "cm-lintPoint cm-lintPoint-" + this.diagnostic.severity });
-    }
-}
-class PanelItem {
-    constructor(view, diagnostic) {
-        this.diagnostic = diagnostic;
-        this.id = "item_" + Math.floor(Math.random() * 0xffffffff).toString(16);
-        this.dom = renderDiagnostic(view, diagnostic, true);
-        this.dom.id = this.id;
-        this.dom.setAttribute("role", "option");
-    }
-}
-class LintPanel {
-    constructor(view) {
-        this.view = view;
-        this.items = [];
-        let onkeydown = (event) => {
-            if (event.keyCode == 27) { // Escape
-                closeLintPanel(this.view);
-                this.view.focus();
-            }
-            else if (event.keyCode == 38 || event.keyCode == 33) { // ArrowUp, PageUp
-                this.moveSelection((this.selectedIndex - 1 + this.items.length) % this.items.length);
-            }
-            else if (event.keyCode == 40 || event.keyCode == 34) { // ArrowDown, PageDown
-                this.moveSelection((this.selectedIndex + 1) % this.items.length);
-            }
-            else if (event.keyCode == 36) { // Home
-                this.moveSelection(0);
-            }
-            else if (event.keyCode == 35) { // End
-                this.moveSelection(this.items.length - 1);
-            }
-            else if (event.keyCode == 13) { // Enter
-                this.view.focus();
-            }
-            else if (event.keyCode >= 65 && event.keyCode <= 90 && this.selectedIndex >= 0) { // A-Z
-                let { diagnostic } = this.items[this.selectedIndex], keys = assignKeys(diagnostic.actions);
-                for (let i = 0; i < keys.length; i++)
-                    if (keys[i].toUpperCase().charCodeAt(0) == event.keyCode) {
-                        let found = findDiagnostic(this.view.state.field(lintState).diagnostics, diagnostic);
-                        if (found)
-                            diagnostic.actions[i].apply(view, found.from, found.to);
-                    }
-            }
-            else {
-                return;
-            }
-            event.preventDefault();
-        };
-        let onclick = (event) => {
-            for (let i = 0; i < this.items.length; i++) {
-                if (this.items[i].dom.contains(event.target))
-                    this.moveSelection(i);
-            }
-        };
-        this.list = crelt("ul", {
-            tabIndex: 0,
-            role: "listbox",
-            "aria-label": this.view.state.phrase("Diagnostics"),
-            onkeydown,
-            onclick
-        });
-        this.dom = crelt("div", { class: "cm-panel-lint" }, this.list, crelt("button", {
-            type: "button",
-            name: "close",
-            "aria-label": this.view.state.phrase("close"),
-            onclick: () => closeLintPanel(this.view)
-        }, "×"));
-        this.update();
-    }
-    get selectedIndex() {
-        let selected = this.view.state.field(lintState).selected;
-        if (!selected)
-            return -1;
-        for (let i = 0; i < this.items.length; i++)
-            if (this.items[i].diagnostic == selected.diagnostic)
-                return i;
-        return -1;
-    }
-    update() {
-        let { diagnostics, selected } = this.view.state.field(lintState);
-        let i = 0, needsSync = false, newSelectedItem = null;
-        diagnostics.between(0, this.view.state.doc.length, (_start, _end, { spec }) => {
-            let found = -1, item;
-            for (let j = i; j < this.items.length; j++)
-                if (this.items[j].diagnostic == spec.diagnostic) {
-                    found = j;
-                    break;
-                }
-            if (found < 0) {
-                item = new PanelItem(this.view, spec.diagnostic);
-                this.items.splice(i, 0, item);
-                needsSync = true;
-            }
-            else {
-                item = this.items[found];
-                if (found > i) {
-                    this.items.splice(i, found - i);
-                    needsSync = true;
-                }
-            }
-            if (selected && item.diagnostic == selected.diagnostic) {
-                if (!item.dom.hasAttribute("aria-selected")) {
-                    item.dom.setAttribute("aria-selected", "true");
-                    newSelectedItem = item;
-                }
-            }
-            else if (item.dom.hasAttribute("aria-selected")) {
-                item.dom.removeAttribute("aria-selected");
-            }
-            i++;
-        });
-        while (i < this.items.length && !(this.items.length == 1 && this.items[0].diagnostic.from < 0)) {
-            needsSync = true;
-            this.items.pop();
-        }
-        if (this.items.length == 0) {
-            this.items.push(new PanelItem(this.view, {
-                from: -1, to: -1,
-                severity: "info",
-                message: this.view.state.phrase("No diagnostics")
-            }));
-            needsSync = true;
-        }
-        if (newSelectedItem) {
-            this.list.setAttribute("aria-activedescendant", newSelectedItem.id);
-            this.view.requestMeasure({
-                key: this,
-                read: () => ({ sel: newSelectedItem.dom.getBoundingClientRect(), panel: this.list.getBoundingClientRect() }),
-                write: ({ sel, panel }) => {
-                    let scaleY = panel.height / this.list.offsetHeight;
-                    if (sel.top < panel.top)
-                        this.list.scrollTop -= (panel.top - sel.top) / scaleY;
-                    else if (sel.bottom > panel.bottom)
-                        this.list.scrollTop += (sel.bottom - panel.bottom) / scaleY;
-                }
-            });
-        }
-        else if (this.selectedIndex < 0) {
-            this.list.removeAttribute("aria-activedescendant");
-        }
-        if (needsSync)
-            this.sync();
-    }
-    sync() {
-        let domPos = this.list.firstChild;
-        function rm() {
-            let prev = domPos;
-            domPos = prev.nextSibling;
-            prev.remove();
-        }
-        for (let item of this.items) {
-            if (item.dom.parentNode == this.list) {
-                while (domPos != item.dom)
-                    rm();
-                domPos = item.dom.nextSibling;
-            }
-            else {
-                this.list.insertBefore(item.dom, domPos);
-            }
-        }
-        while (domPos)
-            rm();
-    }
-    moveSelection(selectedIndex) {
-        if (this.selectedIndex < 0)
-            return;
-        let field = this.view.state.field(lintState);
-        let selection = findDiagnostic(field.diagnostics, this.items[selectedIndex].diagnostic);
-        if (!selection)
-            return;
-        this.view.dispatch({
-            selection: { anchor: selection.from, head: selection.to },
-            scrollIntoView: true,
-            effects: movePanelSelection.of(selection)
-        });
-    }
-    static open(view) { return new LintPanel(view); }
-}
-function svg(content, attrs = `viewBox="0 0 40 40"`) {
-    return `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" ${attrs}>${encodeURIComponent(content)}</svg>')`;
-}
-function underline(color) {
-    return svg(`<path d="m0 2.5 l2 -1.5 l1 0 l2 1.5 l1 0" stroke="${color}" fill="none" stroke-width=".7"/>`, `width="6" height="3"`);
-}
-const baseTheme = /*@__PURE__*/EditorView.baseTheme({
-    ".cm-diagnostic": {
-        padding: "3px 6px 3px 8px",
-        marginLeft: "-1px",
-        display: "block",
-        whiteSpace: "pre-wrap"
-    },
-    ".cm-diagnostic-error": { borderLeft: "5px solid #d11" },
-    ".cm-diagnostic-warning": { borderLeft: "5px solid orange" },
-    ".cm-diagnostic-info": { borderLeft: "5px solid #999" },
-    ".cm-diagnostic-hint": { borderLeft: "5px solid #66d" },
-    ".cm-diagnosticAction": {
-        font: "inherit",
-        border: "none",
-        padding: "2px 4px",
-        backgroundColor: "#444",
-        color: "white",
-        borderRadius: "3px",
-        marginLeft: "8px",
-        cursor: "pointer"
-    },
-    ".cm-diagnosticSource": {
-        fontSize: "70%",
-        opacity: .7
-    },
-    ".cm-lintRange": {
-        backgroundPosition: "left bottom",
-        backgroundRepeat: "repeat-x",
-        paddingBottom: "0.7px",
-    },
-    ".cm-lintRange-error": { backgroundImage: /*@__PURE__*/underline("#d11") },
-    ".cm-lintRange-warning": { backgroundImage: /*@__PURE__*/underline("orange") },
-    ".cm-lintRange-info": { backgroundImage: /*@__PURE__*/underline("#999") },
-    ".cm-lintRange-hint": { backgroundImage: /*@__PURE__*/underline("#66d") },
-    ".cm-lintRange-active": { backgroundColor: "#ffdd9980" },
-    ".cm-tooltip-lint": {
-        padding: 0,
-        margin: 0
-    },
-    ".cm-lintPoint": {
-        position: "relative",
-        "&:after": {
-            content: '""',
-            position: "absolute",
-            bottom: 0,
-            left: "-2px",
-            borderLeft: "3px solid transparent",
-            borderRight: "3px solid transparent",
-            borderBottom: "4px solid #d11"
-        }
-    },
-    ".cm-lintPoint-warning": {
-        "&:after": { borderBottomColor: "orange" }
-    },
-    ".cm-lintPoint-info": {
-        "&:after": { borderBottomColor: "#999" }
-    },
-    ".cm-lintPoint-hint": {
-        "&:after": { borderBottomColor: "#66d" }
-    },
-    ".cm-panel.cm-panel-lint": {
-        position: "relative",
-        "& ul": {
-            maxHeight: "100px",
-            overflowY: "auto",
-            "& [aria-selected]": {
-                backgroundColor: "#ddd",
-                "& u": { textDecoration: "underline" }
-            },
-            "&:focus [aria-selected]": {
-                background_fallback: "#bdf",
-                backgroundColor: "Highlight",
-                color_fallback: "white",
-                color: "HighlightText"
-            },
-            "& u": { textDecoration: "none" },
-            padding: 0,
-            margin: 0
-        },
-        "& [name=close]": {
-            position: "absolute",
-            top: "0",
-            right: "2px",
-            background: "inherit",
-            border: "none",
-            font: "inherit",
-            padding: 0,
-            margin: 0
-        }
-    }
-});
-const lintExtensions = [
-    lintState,
-    /*@__PURE__*/EditorView.decorations.compute([lintState], state => {
-        let { selected, panel } = state.field(lintState);
-        return !selected || !panel || selected.from == selected.to ? Decoration.none : Decoration.set([
-            activeMark.range(selected.from, selected.to)
-        ]);
-    }),
-    /*@__PURE__*/hoverTooltip(lintTooltip, { hideOn: hideTooltip }),
-    baseTheme
-];
-
-// (The superfluous function calls around the list of extensions work
-// around current limitations in tree-shaking software.)
-/**
-This is an extension value that just pulls together a number of
-extensions that you might want in a basic editor. It is meant as a
-convenient helper to quickly set up CodeMirror without installing
-and importing a lot of separate packages.
-
-Specifically, it includes...
-
- - [the default command bindings](https://codemirror.net/6/docs/ref/#commands.defaultKeymap)
- - [line numbers](https://codemirror.net/6/docs/ref/#view.lineNumbers)
- - [special character highlighting](https://codemirror.net/6/docs/ref/#view.highlightSpecialChars)
- - [the undo history](https://codemirror.net/6/docs/ref/#commands.history)
- - [a fold gutter](https://codemirror.net/6/docs/ref/#language.foldGutter)
- - [custom selection drawing](https://codemirror.net/6/docs/ref/#view.drawSelection)
- - [drop cursor](https://codemirror.net/6/docs/ref/#view.dropCursor)
- - [multiple selections](https://codemirror.net/6/docs/ref/#state.EditorState^allowMultipleSelections)
- - [reindentation on input](https://codemirror.net/6/docs/ref/#language.indentOnInput)
- - [the default highlight style](https://codemirror.net/6/docs/ref/#language.defaultHighlightStyle) (as fallback)
- - [bracket matching](https://codemirror.net/6/docs/ref/#language.bracketMatching)
- - [bracket closing](https://codemirror.net/6/docs/ref/#autocomplete.closeBrackets)
- - [autocompletion](https://codemirror.net/6/docs/ref/#autocomplete.autocompletion)
- - [rectangular selection](https://codemirror.net/6/docs/ref/#view.rectangularSelection) and [crosshair cursor](https://codemirror.net/6/docs/ref/#view.crosshairCursor)
- - [active line highlighting](https://codemirror.net/6/docs/ref/#view.highlightActiveLine)
- - [active line gutter highlighting](https://codemirror.net/6/docs/ref/#view.highlightActiveLineGutter)
- - [selection match highlighting](https://codemirror.net/6/docs/ref/#search.highlightSelectionMatches)
- - [search](https://codemirror.net/6/docs/ref/#search.searchKeymap)
- - [linting](https://codemirror.net/6/docs/ref/#lint.lintKeymap)
-
-(You'll probably want to add some language package to your setup
-too.)
-
-This extension does not allow customization. The idea is that,
-once you decide you want to configure your editor more precisely,
-you take this package's source (which is just a bunch of imports
-and an array literal), copy it into your own code, and adjust it
-as desired.
-*/
-const basicSetup = /*@__PURE__*/(() => [
-    lineNumbers(),
-    highlightActiveLineGutter(),
+const minimalSetup = /*@__PURE__*/(() => [
     highlightSpecialChars(),
     history(),
-    foldGutter(),
     drawSelection(),
-    dropCursor(),
-    EditorState.allowMultipleSelections.of(true),
-    indentOnInput(),
     syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-    bracketMatching(),
-    closeBrackets(),
-    autocompletion(),
-    rectangularSelection(),
-    crosshairCursor(),
-    highlightActiveLine(),
-    highlightSelectionMatches(),
     keymap.of([
-        ...closeBracketsKeymap,
         ...defaultKeymap,
-        ...searchKeymap,
         ...historyKeymap,
-        ...foldKeymap,
-        ...completionKeymap,
-        ...lintKeymap
     ])
 ])();
-
-const globals = {};
-
-const mods = {
-  '^':  'scale',
-  '|':  'Repeat',
-  '||': 'SmoothRepetition',
-  ':':  'material',
-  '::': 'texture',
-  '>':  'translate',
-  '@':  'rotate'
-};
- 
-const mouse = { x:0, y:0 };
-
-const vecMembers = ['x','y','z','w'];
-
-const screamer = {
-  config : {
-    render: 'med',
-    fog: [0,0,0,0],
-    background:[0,0,0],
-    post: []
-      
-  },
-
-  init() {
-    window.onmousemove = function(e) {
-      mouse.x = e.clientX / window.innerWidth;
-      mouse.y = e.clientY / window.innerHeight;
-    };
-
-    return this
-  },
-
-  mathwalk( obj ) {
-    let out = 1;
-    if( Array.isArray( obj ) ) { 
-      if( obj.length > 1 ) {
-        const a = screamer.mathwalk( obj[2] );
-        const b = obj[3] !== undefined ? screamer.mathwalk( obj[3] ) : null;
-
-        const op = obj[1];                  
-        switch( op ) {
-          case '+': 
-            out = t => a( t ) + b( t ); 
-            break
-          case '-':
-            out = t => a( t ) - b( t ); 
-            break
-          case '*':
-            out = t => a( t ) * b( t ); 
-            break
-          case '/':
-            out = t => a( t ) / b( t ); 
-            break
-          case '%':
-            out = t => a( t ) % b( t ); 
-            break
-          case 'sin':
-            out = t => Math.sin( a( t ) );
-            break
-          case 'cos':
-            out = t => Math.cos( a( t ) );
-            break
-          case 'round':
-            out = t => Math.round( a( t ) );
-            break
-          case 'random':
-            out = t => Math.random();
-            break
-          case 'floor':
-            out = t => Math.floor( a( t ) );
-            break
-          case 'ceil':
-            out = t => Math.ceil( a( t ) );
-            break
-          case 'abs':
-            out = t => Math.abs( a( t ) );
-            break
-        }
-      }else {
-        out = screamer.mathwalk( obj[0] );
-      }
-    }else if( typeof obj === 'string' ) {       
-      switch( obj ) {
-        case 'time': out = t => t; break;
-        case 'mousex': out = t => mouse.x; break;
-        case 'mousey': out = t => mouse.y; break;
-        case 'low':
-          // .start() is a null operation if audio
-          // has already been initialized
-          Marching.FFT.start();
-          out = t => Marching.FFT.low;
-          break
-        case 'mid':
-          Marching.FFT.start();
-          out = t => Marching.FFT.mid;
-          break
-        case 'high':
-          Marching.FFT.start();
-          out = t => Marching.FFT.high;
-          break
-      }
-    }else {
-      const val = parseFloat( obj );
-      out = t => val; 
-    }
-
-    return out
-  },
-
-  walk( obj ) {
-    let out = null;
-
-    if( obj[0] === 'comment' ) {
-      out = false;
-    } else if( obj[0] === 'geometry' || obj[0] === 'combinator' ) {
-      const constructor = window[ obj[1] ];
-      const args = [];
-      for( let i = 2; i < obj.length; i++ ) {
-        if( Array.isArray( obj[ i ] ) 
-          && obj[i].length !== 0 ) {
-
-          if( obj[0] === 'combinator' ){ 
-            if( i === 4 ) {
-              obj[i].forEach( v => {
-                args.push( Array.isArray(v) ? screamer.walk(v) : v );
-              });
-            }else {
-              args.push( screamer.walk( obj[ i ] ) );
-            }
-          }else {
-            args.push( ...obj[ i ].map( screamer.walk ));
-          }
-        }else {
-          if( !Array.isArray( obj[i] ) ) {
-            if( obj[i] !== null && obj[i] !== undefined )
-              args.push( obj[ i ] );
-          }else {
-            args.push( ...obj[i] );
-          }
-        }
-      }
-      out = constructor( ...args );
-    }else if( obj[0] === 'mod' ) {
-      const geo = screamer.walk( obj[1] );
-      for( let mod of obj[2] ) {
-        const name = mods[ mod[0] ];
-
-        if( name === 'scale' || name === 'translate' || name === 'rotate' ) {
-          let args, isList = false;
-
-          if( mod[1].name === 'list' ) {
-            isList = true;
-            args = mod[1].values.map( screamer.mathwalk );
-
-            Marching.postrendercallbacks.push( time => {
-              const __args = args.map( v => v( time ));
-              geo[ name ]( ...__args );
-            });
-          }else {
-            args = screamer.mathwalk( mod[1] );  
-          }
-
-          if( isList ) { 
-            out = geo[ name ]( ...args  );
-          }else {
-            out = geo[ name ]( args );
-          }
-        }else if( name === 'material' || name === 'texture' ) {
-          out = geo[ name ]( mod[1] );
-        }else {
-          out = window[ name ]( geo, screamer.mathwalk( mod[1] ) );
-        }
-      }
-    } else if( obj[0] === 'config' ) {
-      if( obj[1] === 'post' ) {
-        // correct for lists
-        if( !Array.isArray( obj[2] )) { obj[2] = obj[2].values; }
-        obj[2] = obj[2].map( v => {
-          const func = window[ v[0][0].toUpperCase() + v[0].slice(1) ];
-          const out = v[1] !== null
-            ? func( ...v[1] )
-            : func();
-          return out
-        });
-      }
-
-      // test for string in case of render preset
-      const isPreset = Array.isArray( obj[2] ) || typeof obj[2] === 'string'; 
-      screamer.config[ obj[1] ] = isPreset ? obj[2] : obj[2].values;
-      out = false;
-
-    } else if( obj[0] === 'assignment' ) {
-      if( obj[1].indexOf('.') === -1 ) {
-        globals[ obj[1] ] = screamer.walk( obj[2] );
-        out = globals[ obj[1] ];
-      }else {
-        const split = obj[1].split('.');
-        let value = screamer.walk( obj[2] ),
-          __obj = globals[ split[0] ];
-
-        if( typeof value === 'function' ) {
-          let __value = value;
-
-          Marching.postrendercallbacks.push( t => {
-            __obj[ split[1] ] = __value( t );
-          });
-
-          value = value(0);
-        }else if( Array.isArray( value ) ) {
-          const vec = window[ `Vec${value.length}` ](0);
-
-          for( let i = 0; i < value.length; i++ ) {
-            const v = screamer.mathwalk( value[ i ] );
-            if( typeof v === 'function' ) {
-              const fnc = time => {
-                vec[ vecMembers[ i ] ] = v( time );
-                __obj[ split[1] ] = vec;
-              };
-              Marching.postrendercallbacks.push( fnc );
-
-              vec[ vecMembers[i] ] = v(0);
-            }else {
-              vec[ vecMembers[i] ] = v;
-            }
-          }
-          __obj[ split[1] ] = vec;
-        }
-
-        out = false;
-      }
-
-    } else if( obj[0] === 'math' || typeof obj[0] === 'string' ) {
-      out = screamer.mathwalk( obj );
-    } else {
-      out = obj;
-    }
-
-    return out
-  },
-
-  run( code ) {
-    try {
-      console.log( 'code:', code );
-      const tree = walking.parse( code );
-      let out;
-
-      for( let s of tree ) {
-        out = screamer.walk(s);
-      }
-
-      const config = screamer.config;
-      if( out !== false ) {
-        march( out )
-          .fog( 
-            config.fog.length > 0 ? config.fog[0] : 0, 
-            config.fog.length > 0 ? [ config.fog[1], config.fog[2], config.fog[3] ] : [0,0,0]
-          )
-          .background( Vec3(...config.background ) )
-          .post(   ...config.post )
-          .render( config.render );
-      }
-    } catch (e) {
-      console.log( e );
-    }
-  }
-};
-
-/**
-A parse stack. These are used internally by the parser to track
-parsing progress. They also provide some properties and methods
-that external code such as a tokenizer can use to get information
-about the parse state.
-*/
-class Stack {
-    /**
-    @internal
-    */
-    constructor(
-    /**
-    The parse that this stack is part of @internal
-    */
-    p, 
-    /**
-    Holds state, input pos, buffer index triplets for all but the
-    top state @internal
-    */
-    stack, 
-    /**
-    The current parse state @internal
-    */
-    state, 
-    // The position at which the next reduce should take place. This
-    // can be less than `this.pos` when skipped expressions have been
-    // added to the stack (which should be moved outside of the next
-    // reduction)
-    /**
-    @internal
-    */
-    reducePos, 
-    /**
-    The input position up to which this stack has parsed.
-    */
-    pos, 
-    /**
-    The dynamic score of the stack, including dynamic precedence
-    and error-recovery penalties
-    @internal
-    */
-    score, 
-    // The output buffer. Holds (type, start, end, size) quads
-    // representing nodes created by the parser, where `size` is
-    // amount of buffer array entries covered by this node.
-    /**
-    @internal
-    */
-    buffer, 
-    // The base offset of the buffer. When stacks are split, the split
-    // instance shared the buffer history with its parent up to
-    // `bufferBase`, which is the absolute offset (including the
-    // offset of previous splits) into the buffer at which this stack
-    // starts writing.
-    /**
-    @internal
-    */
-    bufferBase, 
-    /**
-    @internal
-    */
-    curContext, 
-    /**
-    @internal
-    */
-    lookAhead = 0, 
-    // A parent stack from which this was split off, if any. This is
-    // set up so that it always points to a stack that has some
-    // additional buffer content, never to a stack with an equal
-    // `bufferBase`.
-    /**
-    @internal
-    */
-    parent) {
-        this.p = p;
-        this.stack = stack;
-        this.state = state;
-        this.reducePos = reducePos;
-        this.pos = pos;
-        this.score = score;
-        this.buffer = buffer;
-        this.bufferBase = bufferBase;
-        this.curContext = curContext;
-        this.lookAhead = lookAhead;
-        this.parent = parent;
-    }
-    /**
-    @internal
-    */
-    toString() {
-        return `[${this.stack.filter((_, i) => i % 3 == 0).concat(this.state)}]@${this.pos}${this.score ? "!" + this.score : ""}`;
-    }
-    // Start an empty stack
-    /**
-    @internal
-    */
-    static start(p, state, pos = 0) {
-        let cx = p.parser.context;
-        return new Stack(p, [], state, pos, pos, 0, [], 0, cx ? new StackContext(cx, cx.start) : null, 0, null);
-    }
-    /**
-    The stack's current [context](#lr.ContextTracker) value, if
-    any. Its type will depend on the context tracker's type
-    parameter, or it will be `null` if there is no context
-    tracker.
-    */
-    get context() { return this.curContext ? this.curContext.context : null; }
-    // Push a state onto the stack, tracking its start position as well
-    // as the buffer base at that point.
-    /**
-    @internal
-    */
-    pushState(state, start) {
-        this.stack.push(this.state, start, this.bufferBase + this.buffer.length);
-        this.state = state;
-    }
-    // Apply a reduce action
-    /**
-    @internal
-    */
-    reduce(action) {
-        var _a;
-        let depth = action >> 19 /* Action.ReduceDepthShift */, type = action & 65535 /* Action.ValueMask */;
-        let { parser } = this.p;
-        let dPrec = parser.dynamicPrecedence(type);
-        if (dPrec)
-            this.score += dPrec;
-        if (depth == 0) {
-            this.pushState(parser.getGoto(this.state, type, true), this.reducePos);
-            // Zero-depth reductions are a special case—they add stuff to
-            // the stack without popping anything off.
-            if (type < parser.minRepeatTerm)
-                this.storeNode(type, this.reducePos, this.reducePos, 4, true);
-            this.reduceContext(type, this.reducePos);
-            return;
-        }
-        // Find the base index into `this.stack`, content after which will
-        // be dropped. Note that with `StayFlag` reductions we need to
-        // consume two extra frames (the dummy parent node for the skipped
-        // expression and the state that we'll be staying in, which should
-        // be moved to `this.state`).
-        let base = this.stack.length - ((depth - 1) * 3) - (action & 262144 /* Action.StayFlag */ ? 6 : 0);
-        let start = base ? this.stack[base - 2] : this.p.ranges[0].from, size = this.reducePos - start;
-        // This is a kludge to try and detect overly deep left-associative
-        // trees, which will not increase the parse stack depth and thus
-        // won't be caught by the regular stack-depth limit check.
-        if (size >= 2000 /* Recover.MinBigReduction */ && !((_a = this.p.parser.nodeSet.types[type]) === null || _a === void 0 ? void 0 : _a.isAnonymous)) {
-            if (start == this.p.lastBigReductionStart) {
-                this.p.bigReductionCount++;
-                this.p.lastBigReductionSize = size;
-            }
-            else if (this.p.lastBigReductionSize < size) {
-                this.p.bigReductionCount = 1;
-                this.p.lastBigReductionStart = start;
-                this.p.lastBigReductionSize = size;
-            }
-        }
-        let bufferBase = base ? this.stack[base - 1] : 0, count = this.bufferBase + this.buffer.length - bufferBase;
-        // Store normal terms or `R -> R R` repeat reductions
-        if (type < parser.minRepeatTerm || (action & 131072 /* Action.RepeatFlag */)) {
-            let pos = parser.stateFlag(this.state, 1 /* StateFlag.Skipped */) ? this.pos : this.reducePos;
-            this.storeNode(type, start, pos, count + 4, true);
-        }
-        if (action & 262144 /* Action.StayFlag */) {
-            this.state = this.stack[base];
-        }
-        else {
-            let baseStateID = this.stack[base - 3];
-            this.state = parser.getGoto(baseStateID, type, true);
-        }
-        while (this.stack.length > base)
-            this.stack.pop();
-        this.reduceContext(type, start);
-    }
-    // Shift a value into the buffer
-    /**
-    @internal
-    */
-    storeNode(term, start, end, size = 4, isReduce = false) {
-        if (term == 0 /* Term.Err */ &&
-            (!this.stack.length || this.stack[this.stack.length - 1] < this.buffer.length + this.bufferBase)) {
-            // Try to omit/merge adjacent error nodes
-            let cur = this, top = this.buffer.length;
-            if (top == 0 && cur.parent) {
-                top = cur.bufferBase - cur.parent.bufferBase;
-                cur = cur.parent;
-            }
-            if (top > 0 && cur.buffer[top - 4] == 0 /* Term.Err */ && cur.buffer[top - 1] > -1) {
-                if (start == end)
-                    return;
-                if (cur.buffer[top - 2] >= start) {
-                    cur.buffer[top - 2] = end;
-                    return;
-                }
-            }
-        }
-        if (!isReduce || this.pos == end) { // Simple case, just append
-            this.buffer.push(term, start, end, size);
-        }
-        else { // There may be skipped nodes that have to be moved forward
-            let index = this.buffer.length;
-            if (index > 0 && this.buffer[index - 4] != 0 /* Term.Err */)
-                while (index > 0 && this.buffer[index - 2] > end) {
-                    // Move this record forward
-                    this.buffer[index] = this.buffer[index - 4];
-                    this.buffer[index + 1] = this.buffer[index - 3];
-                    this.buffer[index + 2] = this.buffer[index - 2];
-                    this.buffer[index + 3] = this.buffer[index - 1];
-                    index -= 4;
-                    if (size > 4)
-                        size -= 4;
-                }
-            this.buffer[index] = term;
-            this.buffer[index + 1] = start;
-            this.buffer[index + 2] = end;
-            this.buffer[index + 3] = size;
-        }
-    }
-    // Apply a shift action
-    /**
-    @internal
-    */
-    shift(action, type, start, end) {
-        if (action & 131072 /* Action.GotoFlag */) {
-            this.pushState(action & 65535 /* Action.ValueMask */, this.pos);
-        }
-        else if ((action & 262144 /* Action.StayFlag */) == 0) { // Regular shift
-            let nextState = action, { parser } = this.p;
-            if (end > this.pos || type <= parser.maxNode) {
-                this.pos = end;
-                if (!parser.stateFlag(nextState, 1 /* StateFlag.Skipped */))
-                    this.reducePos = end;
-            }
-            this.pushState(nextState, start);
-            this.shiftContext(type, start);
-            if (type <= parser.maxNode)
-                this.buffer.push(type, start, end, 4);
-        }
-        else { // Shift-and-stay, which means this is a skipped token
-            this.pos = end;
-            this.shiftContext(type, start);
-            if (type <= this.p.parser.maxNode)
-                this.buffer.push(type, start, end, 4);
-        }
-    }
-    // Apply an action
-    /**
-    @internal
-    */
-    apply(action, next, nextStart, nextEnd) {
-        if (action & 65536 /* Action.ReduceFlag */)
-            this.reduce(action);
-        else
-            this.shift(action, next, nextStart, nextEnd);
-    }
-    // Add a prebuilt (reused) node into the buffer.
-    /**
-    @internal
-    */
-    useNode(value, next) {
-        let index = this.p.reused.length - 1;
-        if (index < 0 || this.p.reused[index] != value) {
-            this.p.reused.push(value);
-            index++;
-        }
-        let start = this.pos;
-        this.reducePos = this.pos = start + value.length;
-        this.pushState(next, start);
-        this.buffer.push(index, start, this.reducePos, -1 /* size == -1 means this is a reused value */);
-        if (this.curContext)
-            this.updateContext(this.curContext.tracker.reuse(this.curContext.context, value, this, this.p.stream.reset(this.pos - value.length)));
-    }
-    // Split the stack. Due to the buffer sharing and the fact
-    // that `this.stack` tends to stay quite shallow, this isn't very
-    // expensive.
-    /**
-    @internal
-    */
-    split() {
-        let parent = this;
-        let off = parent.buffer.length;
-        // Because the top of the buffer (after this.pos) may be mutated
-        // to reorder reductions and skipped tokens, and shared buffers
-        // should be immutable, this copies any outstanding skipped tokens
-        // to the new buffer, and puts the base pointer before them.
-        while (off > 0 && parent.buffer[off - 2] > parent.reducePos)
-            off -= 4;
-        let buffer = parent.buffer.slice(off), base = parent.bufferBase + off;
-        // Make sure parent points to an actual parent with content, if there is such a parent.
-        while (parent && base == parent.bufferBase)
-            parent = parent.parent;
-        return new Stack(this.p, this.stack.slice(), this.state, this.reducePos, this.pos, this.score, buffer, base, this.curContext, this.lookAhead, parent);
-    }
-    // Try to recover from an error by 'deleting' (ignoring) one token.
-    /**
-    @internal
-    */
-    recoverByDelete(next, nextEnd) {
-        let isNode = next <= this.p.parser.maxNode;
-        if (isNode)
-            this.storeNode(next, this.pos, nextEnd, 4);
-        this.storeNode(0 /* Term.Err */, this.pos, nextEnd, isNode ? 8 : 4);
-        this.pos = this.reducePos = nextEnd;
-        this.score -= 190 /* Recover.Delete */;
-    }
-    /**
-    Check if the given term would be able to be shifted (optionally
-    after some reductions) on this stack. This can be useful for
-    external tokenizers that want to make sure they only provide a
-    given token when it applies.
-    */
-    canShift(term) {
-        for (let sim = new SimulatedStack(this);;) {
-            let action = this.p.parser.stateSlot(sim.state, 4 /* ParseState.DefaultReduce */) || this.p.parser.hasAction(sim.state, term);
-            if (action == 0)
-                return false;
-            if ((action & 65536 /* Action.ReduceFlag */) == 0)
-                return true;
-            sim.reduce(action);
-        }
-    }
-    // Apply up to Recover.MaxNext recovery actions that conceptually
-    // inserts some missing token or rule.
-    /**
-    @internal
-    */
-    recoverByInsert(next) {
-        if (this.stack.length >= 300 /* Recover.MaxInsertStackDepth */)
-            return [];
-        let nextStates = this.p.parser.nextStates(this.state);
-        if (nextStates.length > 4 /* Recover.MaxNext */ << 1 || this.stack.length >= 120 /* Recover.DampenInsertStackDepth */) {
-            let best = [];
-            for (let i = 0, s; i < nextStates.length; i += 2) {
-                if ((s = nextStates[i + 1]) != this.state && this.p.parser.hasAction(s, next))
-                    best.push(nextStates[i], s);
-            }
-            if (this.stack.length < 120 /* Recover.DampenInsertStackDepth */)
-                for (let i = 0; best.length < 4 /* Recover.MaxNext */ << 1 && i < nextStates.length; i += 2) {
-                    let s = nextStates[i + 1];
-                    if (!best.some((v, i) => (i & 1) && v == s))
-                        best.push(nextStates[i], s);
-                }
-            nextStates = best;
-        }
-        let result = [];
-        for (let i = 0; i < nextStates.length && result.length < 4 /* Recover.MaxNext */; i += 2) {
-            let s = nextStates[i + 1];
-            if (s == this.state)
-                continue;
-            let stack = this.split();
-            stack.pushState(s, this.pos);
-            stack.storeNode(0 /* Term.Err */, stack.pos, stack.pos, 4, true);
-            stack.shiftContext(nextStates[i], this.pos);
-            stack.reducePos = this.pos;
-            stack.score -= 200 /* Recover.Insert */;
-            result.push(stack);
-        }
-        return result;
-    }
-    // Force a reduce, if possible. Return false if that can't
-    // be done.
-    /**
-    @internal
-    */
-    forceReduce() {
-        let { parser } = this.p;
-        let reduce = parser.stateSlot(this.state, 5 /* ParseState.ForcedReduce */);
-        if ((reduce & 65536 /* Action.ReduceFlag */) == 0)
-            return false;
-        if (!parser.validAction(this.state, reduce)) {
-            let depth = reduce >> 19 /* Action.ReduceDepthShift */, term = reduce & 65535 /* Action.ValueMask */;
-            let target = this.stack.length - depth * 3;
-            if (target < 0 || parser.getGoto(this.stack[target], term, false) < 0) {
-                let backup = this.findForcedReduction();
-                if (backup == null)
-                    return false;
-                reduce = backup;
-            }
-            this.storeNode(0 /* Term.Err */, this.pos, this.pos, 4, true);
-            this.score -= 100 /* Recover.Reduce */;
-        }
-        this.reducePos = this.pos;
-        this.reduce(reduce);
-        return true;
-    }
-    /**
-    Try to scan through the automaton to find some kind of reduction
-    that can be applied. Used when the regular ForcedReduce field
-    isn't a valid action. @internal
-    */
-    findForcedReduction() {
-        let { parser } = this.p, seen = [];
-        let explore = (state, depth) => {
-            if (seen.includes(state))
-                return;
-            seen.push(state);
-            return parser.allActions(state, (action) => {
-                if (action & (262144 /* Action.StayFlag */ | 131072 /* Action.GotoFlag */)) ;
-                else if (action & 65536 /* Action.ReduceFlag */) {
-                    let rDepth = (action >> 19 /* Action.ReduceDepthShift */) - depth;
-                    if (rDepth > 1) {
-                        let term = action & 65535 /* Action.ValueMask */, target = this.stack.length - rDepth * 3;
-                        if (target >= 0 && parser.getGoto(this.stack[target], term, false) >= 0)
-                            return (rDepth << 19 /* Action.ReduceDepthShift */) | 65536 /* Action.ReduceFlag */ | term;
-                    }
-                }
-                else {
-                    let found = explore(action, depth + 1);
-                    if (found != null)
-                        return found;
-                }
-            });
-        };
-        return explore(this.state, 0);
-    }
-    /**
-    @internal
-    */
-    forceAll() {
-        while (!this.p.parser.stateFlag(this.state, 2 /* StateFlag.Accepting */)) {
-            if (!this.forceReduce()) {
-                this.storeNode(0 /* Term.Err */, this.pos, this.pos, 4, true);
-                break;
-            }
-        }
-        return this;
-    }
-    /**
-    Check whether this state has no further actions (assumed to be a direct descendant of the
-    top state, since any other states must be able to continue
-    somehow). @internal
-    */
-    get deadEnd() {
-        if (this.stack.length != 3)
-            return false;
-        let { parser } = this.p;
-        return parser.data[parser.stateSlot(this.state, 1 /* ParseState.Actions */)] == 65535 /* Seq.End */ &&
-            !parser.stateSlot(this.state, 4 /* ParseState.DefaultReduce */);
-    }
-    /**
-    Restart the stack (put it back in its start state). Only safe
-    when this.stack.length == 3 (state is directly below the top
-    state). @internal
-    */
-    restart() {
-        this.storeNode(0 /* Term.Err */, this.pos, this.pos, 4, true);
-        this.state = this.stack[0];
-        this.stack.length = 0;
-    }
-    /**
-    @internal
-    */
-    sameState(other) {
-        if (this.state != other.state || this.stack.length != other.stack.length)
-            return false;
-        for (let i = 0; i < this.stack.length; i += 3)
-            if (this.stack[i] != other.stack[i])
-                return false;
-        return true;
-    }
-    /**
-    Get the parser used by this stack.
-    */
-    get parser() { return this.p.parser; }
-    /**
-    Test whether a given dialect (by numeric ID, as exported from
-    the terms file) is enabled.
-    */
-    dialectEnabled(dialectID) { return this.p.parser.dialect.flags[dialectID]; }
-    shiftContext(term, start) {
-        if (this.curContext)
-            this.updateContext(this.curContext.tracker.shift(this.curContext.context, term, this, this.p.stream.reset(start)));
-    }
-    reduceContext(term, start) {
-        if (this.curContext)
-            this.updateContext(this.curContext.tracker.reduce(this.curContext.context, term, this, this.p.stream.reset(start)));
-    }
-    /**
-    @internal
-    */
-    emitContext() {
-        let last = this.buffer.length - 1;
-        if (last < 0 || this.buffer[last] != -3)
-            this.buffer.push(this.curContext.hash, this.pos, this.pos, -3);
-    }
-    /**
-    @internal
-    */
-    emitLookAhead() {
-        let last = this.buffer.length - 1;
-        if (last < 0 || this.buffer[last] != -4)
-            this.buffer.push(this.lookAhead, this.pos, this.pos, -4);
-    }
-    updateContext(context) {
-        if (context != this.curContext.context) {
-            let newCx = new StackContext(this.curContext.tracker, context);
-            if (newCx.hash != this.curContext.hash)
-                this.emitContext();
-            this.curContext = newCx;
-        }
-    }
-    /**
-    @internal
-    */
-    setLookAhead(lookAhead) {
-        if (lookAhead > this.lookAhead) {
-            this.emitLookAhead();
-            this.lookAhead = lookAhead;
-        }
-    }
-    /**
-    @internal
-    */
-    close() {
-        if (this.curContext && this.curContext.tracker.strict)
-            this.emitContext();
-        if (this.lookAhead > 0)
-            this.emitLookAhead();
-    }
-}
-class StackContext {
-    constructor(tracker, context) {
-        this.tracker = tracker;
-        this.context = context;
-        this.hash = tracker.strict ? tracker.hash(context) : 0;
-    }
-}
-// Used to cheaply run some reductions to scan ahead without mutating
-// an entire stack
-class SimulatedStack {
-    constructor(start) {
-        this.start = start;
-        this.state = start.state;
-        this.stack = start.stack;
-        this.base = this.stack.length;
-    }
-    reduce(action) {
-        let term = action & 65535 /* Action.ValueMask */, depth = action >> 19 /* Action.ReduceDepthShift */;
-        if (depth == 0) {
-            if (this.stack == this.start.stack)
-                this.stack = this.stack.slice();
-            this.stack.push(this.state, 0, 0);
-            this.base += 3;
-        }
-        else {
-            this.base -= (depth - 1) * 3;
-        }
-        let goto = this.start.p.parser.getGoto(this.stack[this.base - 3], term, true);
-        this.state = goto;
-    }
-}
-// This is given to `Tree.build` to build a buffer, and encapsulates
-// the parent-stack-walking necessary to read the nodes.
-class StackBufferCursor {
-    constructor(stack, pos, index) {
-        this.stack = stack;
-        this.pos = pos;
-        this.index = index;
-        this.buffer = stack.buffer;
-        if (this.index == 0)
-            this.maybeNext();
-    }
-    static create(stack, pos = stack.bufferBase + stack.buffer.length) {
-        return new StackBufferCursor(stack, pos, pos - stack.bufferBase);
-    }
-    maybeNext() {
-        let next = this.stack.parent;
-        if (next != null) {
-            this.index = this.stack.bufferBase - next.bufferBase;
-            this.stack = next;
-            this.buffer = next.buffer;
-        }
-    }
-    get id() { return this.buffer[this.index - 4]; }
-    get start() { return this.buffer[this.index - 3]; }
-    get end() { return this.buffer[this.index - 2]; }
-    get size() { return this.buffer[this.index - 1]; }
-    next() {
-        this.index -= 4;
-        this.pos -= 4;
-        if (this.index == 0)
-            this.maybeNext();
-    }
-    fork() {
-        return new StackBufferCursor(this.stack, this.pos, this.index);
-    }
-}
-
-// See lezer-generator/src/encode.ts for comments about the encoding
-// used here
-function decodeArray(input, Type = Uint16Array) {
-    if (typeof input != "string")
-        return input;
-    let array = null;
-    for (let pos = 0, out = 0; pos < input.length;) {
-        let value = 0;
-        for (;;) {
-            let next = input.charCodeAt(pos++), stop = false;
-            if (next == 126 /* Encode.BigValCode */) {
-                value = 65535 /* Encode.BigVal */;
-                break;
-            }
-            if (next >= 92 /* Encode.Gap2 */)
-                next--;
-            if (next >= 34 /* Encode.Gap1 */)
-                next--;
-            let digit = next - 32 /* Encode.Start */;
-            if (digit >= 46 /* Encode.Base */) {
-                digit -= 46 /* Encode.Base */;
-                stop = true;
-            }
-            value += digit;
-            if (stop)
-                break;
-            value *= 46 /* Encode.Base */;
-        }
-        if (array)
-            array[out++] = value;
-        else
-            array = new Type(value);
-    }
-    return array;
-}
-
-class CachedToken {
-    constructor() {
-        this.start = -1;
-        this.value = -1;
-        this.end = -1;
-        this.extended = -1;
-        this.lookAhead = 0;
-        this.mask = 0;
-        this.context = 0;
-    }
-}
-const nullToken = new CachedToken;
-/**
-[Tokenizers](#lr.ExternalTokenizer) interact with the input
-through this interface. It presents the input as a stream of
-characters, tracking lookahead and hiding the complexity of
-[ranges](#common.Parser.parse^ranges) from tokenizer code.
-*/
-class InputStream {
-    /**
-    @internal
-    */
-    constructor(
-    /**
-    @internal
-    */
-    input, 
-    /**
-    @internal
-    */
-    ranges) {
-        this.input = input;
-        this.ranges = ranges;
-        /**
-        @internal
-        */
-        this.chunk = "";
-        /**
-        @internal
-        */
-        this.chunkOff = 0;
-        /**
-        Backup chunk
-        */
-        this.chunk2 = "";
-        this.chunk2Pos = 0;
-        /**
-        The character code of the next code unit in the input, or -1
-        when the stream is at the end of the input.
-        */
-        this.next = -1;
-        /**
-        @internal
-        */
-        this.token = nullToken;
-        this.rangeIndex = 0;
-        this.pos = this.chunkPos = ranges[0].from;
-        this.range = ranges[0];
-        this.end = ranges[ranges.length - 1].to;
-        this.readNext();
-    }
-    /**
-    @internal
-    */
-    resolveOffset(offset, assoc) {
-        let range = this.range, index = this.rangeIndex;
-        let pos = this.pos + offset;
-        while (pos < range.from) {
-            if (!index)
-                return null;
-            let next = this.ranges[--index];
-            pos -= range.from - next.to;
-            range = next;
-        }
-        while (assoc < 0 ? pos > range.to : pos >= range.to) {
-            if (index == this.ranges.length - 1)
-                return null;
-            let next = this.ranges[++index];
-            pos += next.from - range.to;
-            range = next;
-        }
-        return pos;
-    }
-    /**
-    @internal
-    */
-    clipPos(pos) {
-        if (pos >= this.range.from && pos < this.range.to)
-            return pos;
-        for (let range of this.ranges)
-            if (range.to > pos)
-                return Math.max(pos, range.from);
-        return this.end;
-    }
-    /**
-    Look at a code unit near the stream position. `.peek(0)` equals
-    `.next`, `.peek(-1)` gives you the previous character, and so
-    on.
-    
-    Note that looking around during tokenizing creates dependencies
-    on potentially far-away content, which may reduce the
-    effectiveness incremental parsing—when looking forward—or even
-    cause invalid reparses when looking backward more than 25 code
-    units, since the library does not track lookbehind.
-    */
-    peek(offset) {
-        let idx = this.chunkOff + offset, pos, result;
-        if (idx >= 0 && idx < this.chunk.length) {
-            pos = this.pos + offset;
-            result = this.chunk.charCodeAt(idx);
-        }
-        else {
-            let resolved = this.resolveOffset(offset, 1);
-            if (resolved == null)
-                return -1;
-            pos = resolved;
-            if (pos >= this.chunk2Pos && pos < this.chunk2Pos + this.chunk2.length) {
-                result = this.chunk2.charCodeAt(pos - this.chunk2Pos);
-            }
-            else {
-                let i = this.rangeIndex, range = this.range;
-                while (range.to <= pos)
-                    range = this.ranges[++i];
-                this.chunk2 = this.input.chunk(this.chunk2Pos = pos);
-                if (pos + this.chunk2.length > range.to)
-                    this.chunk2 = this.chunk2.slice(0, range.to - pos);
-                result = this.chunk2.charCodeAt(0);
-            }
-        }
-        if (pos >= this.token.lookAhead)
-            this.token.lookAhead = pos + 1;
-        return result;
-    }
-    /**
-    Accept a token. By default, the end of the token is set to the
-    current stream position, but you can pass an offset (relative to
-    the stream position) to change that.
-    */
-    acceptToken(token, endOffset = 0) {
-        let end = endOffset ? this.resolveOffset(endOffset, -1) : this.pos;
-        if (end == null || end < this.token.start)
-            throw new RangeError("Token end out of bounds");
-        this.token.value = token;
-        this.token.end = end;
-    }
-    /**
-    Accept a token ending at a specific given position.
-    */
-    acceptTokenTo(token, endPos) {
-        this.token.value = token;
-        this.token.end = endPos;
-    }
-    getChunk() {
-        if (this.pos >= this.chunk2Pos && this.pos < this.chunk2Pos + this.chunk2.length) {
-            let { chunk, chunkPos } = this;
-            this.chunk = this.chunk2;
-            this.chunkPos = this.chunk2Pos;
-            this.chunk2 = chunk;
-            this.chunk2Pos = chunkPos;
-            this.chunkOff = this.pos - this.chunkPos;
-        }
-        else {
-            this.chunk2 = this.chunk;
-            this.chunk2Pos = this.chunkPos;
-            let nextChunk = this.input.chunk(this.pos);
-            let end = this.pos + nextChunk.length;
-            this.chunk = end > this.range.to ? nextChunk.slice(0, this.range.to - this.pos) : nextChunk;
-            this.chunkPos = this.pos;
-            this.chunkOff = 0;
-        }
-    }
-    readNext() {
-        if (this.chunkOff >= this.chunk.length) {
-            this.getChunk();
-            if (this.chunkOff == this.chunk.length)
-                return this.next = -1;
-        }
-        return this.next = this.chunk.charCodeAt(this.chunkOff);
-    }
-    /**
-    Move the stream forward N (defaults to 1) code units. Returns
-    the new value of [`next`](#lr.InputStream.next).
-    */
-    advance(n = 1) {
-        this.chunkOff += n;
-        while (this.pos + n >= this.range.to) {
-            if (this.rangeIndex == this.ranges.length - 1)
-                return this.setDone();
-            n -= this.range.to - this.pos;
-            this.range = this.ranges[++this.rangeIndex];
-            this.pos = this.range.from;
-        }
-        this.pos += n;
-        if (this.pos >= this.token.lookAhead)
-            this.token.lookAhead = this.pos + 1;
-        return this.readNext();
-    }
-    setDone() {
-        this.pos = this.chunkPos = this.end;
-        this.range = this.ranges[this.rangeIndex = this.ranges.length - 1];
-        this.chunk = "";
-        return this.next = -1;
-    }
-    /**
-    @internal
-    */
-    reset(pos, token) {
-        if (token) {
-            this.token = token;
-            token.start = pos;
-            token.lookAhead = pos + 1;
-            token.value = token.extended = -1;
-        }
-        else {
-            this.token = nullToken;
-        }
-        if (this.pos != pos) {
-            this.pos = pos;
-            if (pos == this.end) {
-                this.setDone();
-                return this;
-            }
-            while (pos < this.range.from)
-                this.range = this.ranges[--this.rangeIndex];
-            while (pos >= this.range.to)
-                this.range = this.ranges[++this.rangeIndex];
-            if (pos >= this.chunkPos && pos < this.chunkPos + this.chunk.length) {
-                this.chunkOff = pos - this.chunkPos;
-            }
-            else {
-                this.chunk = "";
-                this.chunkOff = 0;
-            }
-            this.readNext();
-        }
-        return this;
-    }
-    /**
-    @internal
-    */
-    read(from, to) {
-        if (from >= this.chunkPos && to <= this.chunkPos + this.chunk.length)
-            return this.chunk.slice(from - this.chunkPos, to - this.chunkPos);
-        if (from >= this.chunk2Pos && to <= this.chunk2Pos + this.chunk2.length)
-            return this.chunk2.slice(from - this.chunk2Pos, to - this.chunk2Pos);
-        if (from >= this.range.from && to <= this.range.to)
-            return this.input.read(from, to);
-        let result = "";
-        for (let r of this.ranges) {
-            if (r.from >= to)
-                break;
-            if (r.to > from)
-                result += this.input.read(Math.max(r.from, from), Math.min(r.to, to));
-        }
-        return result;
-    }
-}
-/**
-@internal
-*/
-class TokenGroup {
-    constructor(data, id) {
-        this.data = data;
-        this.id = id;
-    }
-    token(input, stack) {
-        let { parser } = stack.p;
-        readToken(this.data, input, stack, this.id, parser.data, parser.tokenPrecTable);
-    }
-}
-TokenGroup.prototype.contextual = TokenGroup.prototype.fallback = TokenGroup.prototype.extend = false;
-/**
-@hide
-*/
-class LocalTokenGroup {
-    constructor(data, precTable, elseToken) {
-        this.precTable = precTable;
-        this.elseToken = elseToken;
-        this.data = typeof data == "string" ? decodeArray(data) : data;
-    }
-    token(input, stack) {
-        let start = input.pos, skipped = 0;
-        for (;;) {
-            let atEof = input.next < 0, nextPos = input.resolveOffset(1, 1);
-            readToken(this.data, input, stack, 0, this.data, this.precTable);
-            if (input.token.value > -1)
-                break;
-            if (this.elseToken == null)
-                return;
-            if (!atEof)
-                skipped++;
-            if (nextPos == null)
-                break;
-            input.reset(nextPos, input.token);
-        }
-        if (skipped) {
-            input.reset(start, input.token);
-            input.acceptToken(this.elseToken, skipped);
-        }
-    }
-}
-LocalTokenGroup.prototype.contextual = TokenGroup.prototype.fallback = TokenGroup.prototype.extend = false;
-/**
-`@external tokens` declarations in the grammar should resolve to
-an instance of this class.
-*/
-class ExternalTokenizer {
-    /**
-    Create a tokenizer. The first argument is the function that,
-    given an input stream, scans for the types of tokens it
-    recognizes at the stream's position, and calls
-    [`acceptToken`](#lr.InputStream.acceptToken) when it finds
-    one.
-    */
-    constructor(
-    /**
-    @internal
-    */
-    token, options = {}) {
-        this.token = token;
-        this.contextual = !!options.contextual;
-        this.fallback = !!options.fallback;
-        this.extend = !!options.extend;
-    }
-}
-// Tokenizer data is stored a big uint16 array containing, for each
-// state:
-//
-//  - A group bitmask, indicating what token groups are reachable from
-//    this state, so that paths that can only lead to tokens not in
-//    any of the current groups can be cut off early.
-//
-//  - The position of the end of the state's sequence of accepting
-//    tokens
-//
-//  - The number of outgoing edges for the state
-//
-//  - The accepting tokens, as (token id, group mask) pairs
-//
-//  - The outgoing edges, as (start character, end character, state
-//    index) triples, with end character being exclusive
-//
-// This function interprets that data, running through a stream as
-// long as new states with the a matching group mask can be reached,
-// and updating `input.token` when it matches a token.
-function readToken(data, input, stack, group, precTable, precOffset) {
-    let state = 0, groupMask = 1 << group, { dialect } = stack.p.parser;
-    scan: for (;;) {
-        if ((groupMask & data[state]) == 0)
-            break;
-        let accEnd = data[state + 1];
-        // Check whether this state can lead to a token in the current group
-        // Accept tokens in this state, possibly overwriting
-        // lower-precedence / shorter tokens
-        for (let i = state + 3; i < accEnd; i += 2)
-            if ((data[i + 1] & groupMask) > 0) {
-                let term = data[i];
-                if (dialect.allows(term) &&
-                    (input.token.value == -1 || input.token.value == term ||
-                        overrides(term, input.token.value, precTable, precOffset))) {
-                    input.acceptToken(term);
-                    break;
-                }
-            }
-        let next = input.next, low = 0, high = data[state + 2];
-        // Special case for EOF
-        if (input.next < 0 && high > low && data[accEnd + high * 3 - 3] == 65535 /* Seq.End */) {
-            state = data[accEnd + high * 3 - 1];
-            continue scan;
-        }
-        // Do a binary search on the state's edges
-        for (; low < high;) {
-            let mid = (low + high) >> 1;
-            let index = accEnd + mid + (mid << 1);
-            let from = data[index], to = data[index + 1] || 0x10000;
-            if (next < from)
-                high = mid;
-            else if (next >= to)
-                low = mid + 1;
-            else {
-                state = data[index + 2];
-                input.advance();
-                continue scan;
-            }
-        }
-        break;
-    }
-}
-function findOffset(data, start, term) {
-    for (let i = start, next; (next = data[i]) != 65535 /* Seq.End */; i++)
-        if (next == term)
-            return i - start;
-    return -1;
-}
-function overrides(token, prev, tableData, tableOffset) {
-    let iPrev = findOffset(tableData, tableOffset, prev);
-    return iPrev < 0 || findOffset(tableData, tableOffset, token) < iPrev;
-}
-
-// Environment variable used to control console output
-const verbose = typeof process != "undefined" && process.env && /\bparse\b/.test(process.env.LOG);
-let stackIDs = null;
-function cutAt(tree, pos, side) {
-    let cursor = tree.cursor(IterMode.IncludeAnonymous);
-    cursor.moveTo(pos);
-    for (;;) {
-        if (!(side < 0 ? cursor.childBefore(pos) : cursor.childAfter(pos)))
-            for (;;) {
-                if ((side < 0 ? cursor.to < pos : cursor.from > pos) && !cursor.type.isError)
-                    return side < 0 ? Math.max(0, Math.min(cursor.to - 1, pos - 25 /* Safety.Margin */))
-                        : Math.min(tree.length, Math.max(cursor.from + 1, pos + 25 /* Safety.Margin */));
-                if (side < 0 ? cursor.prevSibling() : cursor.nextSibling())
-                    break;
-                if (!cursor.parent())
-                    return side < 0 ? 0 : tree.length;
-            }
-    }
-}
-class FragmentCursor {
-    constructor(fragments, nodeSet) {
-        this.fragments = fragments;
-        this.nodeSet = nodeSet;
-        this.i = 0;
-        this.fragment = null;
-        this.safeFrom = -1;
-        this.safeTo = -1;
-        this.trees = [];
-        this.start = [];
-        this.index = [];
-        this.nextFragment();
-    }
-    nextFragment() {
-        let fr = this.fragment = this.i == this.fragments.length ? null : this.fragments[this.i++];
-        if (fr) {
-            this.safeFrom = fr.openStart ? cutAt(fr.tree, fr.from + fr.offset, 1) - fr.offset : fr.from;
-            this.safeTo = fr.openEnd ? cutAt(fr.tree, fr.to + fr.offset, -1) - fr.offset : fr.to;
-            while (this.trees.length) {
-                this.trees.pop();
-                this.start.pop();
-                this.index.pop();
-            }
-            this.trees.push(fr.tree);
-            this.start.push(-fr.offset);
-            this.index.push(0);
-            this.nextStart = this.safeFrom;
-        }
-        else {
-            this.nextStart = 1e9;
-        }
-    }
-    // `pos` must be >= any previously given `pos` for this cursor
-    nodeAt(pos) {
-        if (pos < this.nextStart)
-            return null;
-        while (this.fragment && this.safeTo <= pos)
-            this.nextFragment();
-        if (!this.fragment)
-            return null;
-        for (;;) {
-            let last = this.trees.length - 1;
-            if (last < 0) { // End of tree
-                this.nextFragment();
-                return null;
-            }
-            let top = this.trees[last], index = this.index[last];
-            if (index == top.children.length) {
-                this.trees.pop();
-                this.start.pop();
-                this.index.pop();
-                continue;
-            }
-            let next = top.children[index];
-            let start = this.start[last] + top.positions[index];
-            if (start > pos) {
-                this.nextStart = start;
-                return null;
-            }
-            if (next instanceof Tree) {
-                if (start == pos) {
-                    if (start < this.safeFrom)
-                        return null;
-                    let end = start + next.length;
-                    if (end <= this.safeTo) {
-                        let lookAhead = next.prop(NodeProp.lookAhead);
-                        if (!lookAhead || end + lookAhead < this.fragment.to)
-                            return next;
-                    }
-                }
-                this.index[last]++;
-                if (start + next.length >= Math.max(this.safeFrom, pos)) { // Enter this node
-                    this.trees.push(next);
-                    this.start.push(start);
-                    this.index.push(0);
-                }
-            }
-            else {
-                this.index[last]++;
-                this.nextStart = start + next.length;
-            }
-        }
-    }
-}
-class TokenCache {
-    constructor(parser, stream) {
-        this.stream = stream;
-        this.tokens = [];
-        this.mainToken = null;
-        this.actions = [];
-        this.tokens = parser.tokenizers.map(_ => new CachedToken);
-    }
-    getActions(stack) {
-        let actionIndex = 0;
-        let main = null;
-        let { parser } = stack.p, { tokenizers } = parser;
-        let mask = parser.stateSlot(stack.state, 3 /* ParseState.TokenizerMask */);
-        let context = stack.curContext ? stack.curContext.hash : 0;
-        let lookAhead = 0;
-        for (let i = 0; i < tokenizers.length; i++) {
-            if (((1 << i) & mask) == 0)
-                continue;
-            let tokenizer = tokenizers[i], token = this.tokens[i];
-            if (main && !tokenizer.fallback)
-                continue;
-            if (tokenizer.contextual || token.start != stack.pos || token.mask != mask || token.context != context) {
-                this.updateCachedToken(token, tokenizer, stack);
-                token.mask = mask;
-                token.context = context;
-            }
-            if (token.lookAhead > token.end + 25 /* Safety.Margin */)
-                lookAhead = Math.max(token.lookAhead, lookAhead);
-            if (token.value != 0 /* Term.Err */) {
-                let startIndex = actionIndex;
-                if (token.extended > -1)
-                    actionIndex = this.addActions(stack, token.extended, token.end, actionIndex);
-                actionIndex = this.addActions(stack, token.value, token.end, actionIndex);
-                if (!tokenizer.extend) {
-                    main = token;
-                    if (actionIndex > startIndex)
-                        break;
-                }
-            }
-        }
-        while (this.actions.length > actionIndex)
-            this.actions.pop();
-        if (lookAhead)
-            stack.setLookAhead(lookAhead);
-        if (!main && stack.pos == this.stream.end) {
-            main = new CachedToken;
-            main.value = stack.p.parser.eofTerm;
-            main.start = main.end = stack.pos;
-            actionIndex = this.addActions(stack, main.value, main.end, actionIndex);
-        }
-        this.mainToken = main;
-        return this.actions;
-    }
-    getMainToken(stack) {
-        if (this.mainToken)
-            return this.mainToken;
-        let main = new CachedToken, { pos, p } = stack;
-        main.start = pos;
-        main.end = Math.min(pos + 1, p.stream.end);
-        main.value = pos == p.stream.end ? p.parser.eofTerm : 0 /* Term.Err */;
-        return main;
-    }
-    updateCachedToken(token, tokenizer, stack) {
-        let start = this.stream.clipPos(stack.pos);
-        tokenizer.token(this.stream.reset(start, token), stack);
-        if (token.value > -1) {
-            let { parser } = stack.p;
-            for (let i = 0; i < parser.specialized.length; i++)
-                if (parser.specialized[i] == token.value) {
-                    let result = parser.specializers[i](this.stream.read(token.start, token.end), stack);
-                    if (result >= 0 && stack.p.parser.dialect.allows(result >> 1)) {
-                        if ((result & 1) == 0 /* Specialize.Specialize */)
-                            token.value = result >> 1;
-                        else
-                            token.extended = result >> 1;
-                        break;
-                    }
-                }
-        }
-        else {
-            token.value = 0 /* Term.Err */;
-            token.end = this.stream.clipPos(start + 1);
-        }
-    }
-    putAction(action, token, end, index) {
-        // Don't add duplicate actions
-        for (let i = 0; i < index; i += 3)
-            if (this.actions[i] == action)
-                return index;
-        this.actions[index++] = action;
-        this.actions[index++] = token;
-        this.actions[index++] = end;
-        return index;
-    }
-    addActions(stack, token, end, index) {
-        let { state } = stack, { parser } = stack.p, { data } = parser;
-        for (let set = 0; set < 2; set++) {
-            for (let i = parser.stateSlot(state, set ? 2 /* ParseState.Skip */ : 1 /* ParseState.Actions */);; i += 3) {
-                if (data[i] == 65535 /* Seq.End */) {
-                    if (data[i + 1] == 1 /* Seq.Next */) {
-                        i = pair(data, i + 2);
-                    }
-                    else {
-                        if (index == 0 && data[i + 1] == 2 /* Seq.Other */)
-                            index = this.putAction(pair(data, i + 2), token, end, index);
-                        break;
-                    }
-                }
-                if (data[i] == token)
-                    index = this.putAction(pair(data, i + 1), token, end, index);
-            }
-        }
-        return index;
-    }
-}
-class Parse {
-    constructor(parser, input, fragments, ranges) {
-        this.parser = parser;
-        this.input = input;
-        this.ranges = ranges;
-        this.recovering = 0;
-        this.nextStackID = 0x2654; // ♔, ♕, ♖, ♗, ♘, ♙, ♠, ♡, ♢, ♣, ♤, ♥, ♦, ♧
-        this.minStackPos = 0;
-        this.reused = [];
-        this.stoppedAt = null;
-        this.lastBigReductionStart = -1;
-        this.lastBigReductionSize = 0;
-        this.bigReductionCount = 0;
-        this.stream = new InputStream(input, ranges);
-        this.tokens = new TokenCache(parser, this.stream);
-        this.topTerm = parser.top[1];
-        let { from } = ranges[0];
-        this.stacks = [Stack.start(this, parser.top[0], from)];
-        this.fragments = fragments.length && this.stream.end - from > parser.bufferLength * 4
-            ? new FragmentCursor(fragments, parser.nodeSet) : null;
-    }
-    get parsedPos() {
-        return this.minStackPos;
-    }
-    // Move the parser forward. This will process all parse stacks at
-    // `this.pos` and try to advance them to a further position. If no
-    // stack for such a position is found, it'll start error-recovery.
-    //
-    // When the parse is finished, this will return a syntax tree. When
-    // not, it returns `null`.
-    advance() {
-        let stacks = this.stacks, pos = this.minStackPos;
-        // This will hold stacks beyond `pos`.
-        let newStacks = this.stacks = [];
-        let stopped, stoppedTokens;
-        // If a large amount of reductions happened with the same start
-        // position, force the stack out of that production in order to
-        // avoid creating a tree too deep to recurse through.
-        // (This is an ugly kludge, because unfortunately there is no
-        // straightforward, cheap way to check for this happening, due to
-        // the history of reductions only being available in an
-        // expensive-to-access format in the stack buffers.)
-        if (this.bigReductionCount > 300 /* Rec.MaxLeftAssociativeReductionCount */ && stacks.length == 1) {
-            let [s] = stacks;
-            while (s.forceReduce() && s.stack.length && s.stack[s.stack.length - 2] >= this.lastBigReductionStart) { }
-            this.bigReductionCount = this.lastBigReductionSize = 0;
-        }
-        // Keep advancing any stacks at `pos` until they either move
-        // forward or can't be advanced. Gather stacks that can't be
-        // advanced further in `stopped`.
-        for (let i = 0; i < stacks.length; i++) {
-            let stack = stacks[i];
-            for (;;) {
-                this.tokens.mainToken = null;
-                if (stack.pos > pos) {
-                    newStacks.push(stack);
-                }
-                else if (this.advanceStack(stack, newStacks, stacks)) {
-                    continue;
-                }
-                else {
-                    if (!stopped) {
-                        stopped = [];
-                        stoppedTokens = [];
-                    }
-                    stopped.push(stack);
-                    let tok = this.tokens.getMainToken(stack);
-                    stoppedTokens.push(tok.value, tok.end);
-                }
-                break;
-            }
-        }
-        if (!newStacks.length) {
-            let finished = stopped && findFinished(stopped);
-            if (finished) {
-                if (verbose)
-                    console.log("Finish with " + this.stackID(finished));
-                return this.stackToTree(finished);
-            }
-            if (this.parser.strict) {
-                if (verbose && stopped)
-                    console.log("Stuck with token " + (this.tokens.mainToken ? this.parser.getName(this.tokens.mainToken.value) : "none"));
-                throw new SyntaxError("No parse at " + pos);
-            }
-            if (!this.recovering)
-                this.recovering = 5 /* Rec.Distance */;
-        }
-        if (this.recovering && stopped) {
-            let finished = this.stoppedAt != null && stopped[0].pos > this.stoppedAt ? stopped[0]
-                : this.runRecovery(stopped, stoppedTokens, newStacks);
-            if (finished) {
-                if (verbose)
-                    console.log("Force-finish " + this.stackID(finished));
-                return this.stackToTree(finished.forceAll());
-            }
-        }
-        if (this.recovering) {
-            let maxRemaining = this.recovering == 1 ? 1 : this.recovering * 3 /* Rec.MaxRemainingPerStep */;
-            if (newStacks.length > maxRemaining) {
-                newStacks.sort((a, b) => b.score - a.score);
-                while (newStacks.length > maxRemaining)
-                    newStacks.pop();
-            }
-            if (newStacks.some(s => s.reducePos > pos))
-                this.recovering--;
-        }
-        else if (newStacks.length > 1) {
-            // Prune stacks that are in the same state, or that have been
-            // running without splitting for a while, to avoid getting stuck
-            // with multiple successful stacks running endlessly on.
-            outer: for (let i = 0; i < newStacks.length - 1; i++) {
-                let stack = newStacks[i];
-                for (let j = i + 1; j < newStacks.length; j++) {
-                    let other = newStacks[j];
-                    if (stack.sameState(other) ||
-                        stack.buffer.length > 500 /* Rec.MinBufferLengthPrune */ && other.buffer.length > 500 /* Rec.MinBufferLengthPrune */) {
-                        if (((stack.score - other.score) || (stack.buffer.length - other.buffer.length)) > 0) {
-                            newStacks.splice(j--, 1);
-                        }
-                        else {
-                            newStacks.splice(i--, 1);
-                            continue outer;
-                        }
-                    }
-                }
-            }
-            if (newStacks.length > 12 /* Rec.MaxStackCount */)
-                newStacks.splice(12 /* Rec.MaxStackCount */, newStacks.length - 12 /* Rec.MaxStackCount */);
-        }
-        this.minStackPos = newStacks[0].pos;
-        for (let i = 1; i < newStacks.length; i++)
-            if (newStacks[i].pos < this.minStackPos)
-                this.minStackPos = newStacks[i].pos;
-        return null;
-    }
-    stopAt(pos) {
-        if (this.stoppedAt != null && this.stoppedAt < pos)
-            throw new RangeError("Can't move stoppedAt forward");
-        this.stoppedAt = pos;
-    }
-    // Returns an updated version of the given stack, or null if the
-    // stack can't advance normally. When `split` and `stacks` are
-    // given, stacks split off by ambiguous operations will be pushed to
-    // `split`, or added to `stacks` if they move `pos` forward.
-    advanceStack(stack, stacks, split) {
-        let start = stack.pos, { parser } = this;
-        let base = verbose ? this.stackID(stack) + " -> " : "";
-        if (this.stoppedAt != null && start > this.stoppedAt)
-            return stack.forceReduce() ? stack : null;
-        if (this.fragments) {
-            let strictCx = stack.curContext && stack.curContext.tracker.strict, cxHash = strictCx ? stack.curContext.hash : 0;
-            for (let cached = this.fragments.nodeAt(start); cached;) {
-                let match = this.parser.nodeSet.types[cached.type.id] == cached.type ? parser.getGoto(stack.state, cached.type.id) : -1;
-                if (match > -1 && cached.length && (!strictCx || (cached.prop(NodeProp.contextHash) || 0) == cxHash)) {
-                    stack.useNode(cached, match);
-                    if (verbose)
-                        console.log(base + this.stackID(stack) + ` (via reuse of ${parser.getName(cached.type.id)})`);
-                    return true;
-                }
-                if (!(cached instanceof Tree) || cached.children.length == 0 || cached.positions[0] > 0)
-                    break;
-                let inner = cached.children[0];
-                if (inner instanceof Tree && cached.positions[0] == 0)
-                    cached = inner;
-                else
-                    break;
-            }
-        }
-        let defaultReduce = parser.stateSlot(stack.state, 4 /* ParseState.DefaultReduce */);
-        if (defaultReduce > 0) {
-            stack.reduce(defaultReduce);
-            if (verbose)
-                console.log(base + this.stackID(stack) + ` (via always-reduce ${parser.getName(defaultReduce & 65535 /* Action.ValueMask */)})`);
-            return true;
-        }
-        if (stack.stack.length >= 8400 /* Rec.CutDepth */) {
-            while (stack.stack.length > 6000 /* Rec.CutTo */ && stack.forceReduce()) { }
-        }
-        let actions = this.tokens.getActions(stack);
-        for (let i = 0; i < actions.length;) {
-            let action = actions[i++], term = actions[i++], end = actions[i++];
-            let last = i == actions.length || !split;
-            let localStack = last ? stack : stack.split();
-            let main = this.tokens.mainToken;
-            localStack.apply(action, term, main ? main.start : localStack.pos, end);
-            if (verbose)
-                console.log(base + this.stackID(localStack) + ` (via ${(action & 65536 /* Action.ReduceFlag */) == 0 ? "shift"
-                    : `reduce of ${parser.getName(action & 65535 /* Action.ValueMask */)}`} for ${parser.getName(term)} @ ${start}${localStack == stack ? "" : ", split"})`);
-            if (last)
-                return true;
-            else if (localStack.pos > start)
-                stacks.push(localStack);
-            else
-                split.push(localStack);
-        }
-        return false;
-    }
-    // Advance a given stack forward as far as it will go. Returns the
-    // (possibly updated) stack if it got stuck, or null if it moved
-    // forward and was given to `pushStackDedup`.
-    advanceFully(stack, newStacks) {
-        let pos = stack.pos;
-        for (;;) {
-            if (!this.advanceStack(stack, null, null))
-                return false;
-            if (stack.pos > pos) {
-                pushStackDedup(stack, newStacks);
-                return true;
-            }
-        }
-    }
-    runRecovery(stacks, tokens, newStacks) {
-        let finished = null, restarted = false;
-        for (let i = 0; i < stacks.length; i++) {
-            let stack = stacks[i], token = tokens[i << 1], tokenEnd = tokens[(i << 1) + 1];
-            let base = verbose ? this.stackID(stack) + " -> " : "";
-            if (stack.deadEnd) {
-                if (restarted)
-                    continue;
-                restarted = true;
-                stack.restart();
-                if (verbose)
-                    console.log(base + this.stackID(stack) + " (restarted)");
-                let done = this.advanceFully(stack, newStacks);
-                if (done)
-                    continue;
-            }
-            let force = stack.split(), forceBase = base;
-            for (let j = 0; force.forceReduce() && j < 10 /* Rec.ForceReduceLimit */; j++) {
-                if (verbose)
-                    console.log(forceBase + this.stackID(force) + " (via force-reduce)");
-                let done = this.advanceFully(force, newStacks);
-                if (done)
-                    break;
-                if (verbose)
-                    forceBase = this.stackID(force) + " -> ";
-            }
-            for (let insert of stack.recoverByInsert(token)) {
-                if (verbose)
-                    console.log(base + this.stackID(insert) + " (via recover-insert)");
-                this.advanceFully(insert, newStacks);
-            }
-            if (this.stream.end > stack.pos) {
-                if (tokenEnd == stack.pos) {
-                    tokenEnd++;
-                    token = 0 /* Term.Err */;
-                }
-                stack.recoverByDelete(token, tokenEnd);
-                if (verbose)
-                    console.log(base + this.stackID(stack) + ` (via recover-delete ${this.parser.getName(token)})`);
-                pushStackDedup(stack, newStacks);
-            }
-            else if (!finished || finished.score < stack.score) {
-                finished = stack;
-            }
-        }
-        return finished;
-    }
-    // Convert the stack's buffer to a syntax tree.
-    stackToTree(stack) {
-        stack.close();
-        return Tree.build({ buffer: StackBufferCursor.create(stack),
-            nodeSet: this.parser.nodeSet,
-            topID: this.topTerm,
-            maxBufferLength: this.parser.bufferLength,
-            reused: this.reused,
-            start: this.ranges[0].from,
-            length: stack.pos - this.ranges[0].from,
-            minRepeatType: this.parser.minRepeatTerm });
-    }
-    stackID(stack) {
-        let id = (stackIDs || (stackIDs = new WeakMap)).get(stack);
-        if (!id)
-            stackIDs.set(stack, id = String.fromCodePoint(this.nextStackID++));
-        return id + stack;
-    }
-}
-function pushStackDedup(stack, newStacks) {
-    for (let i = 0; i < newStacks.length; i++) {
-        let other = newStacks[i];
-        if (other.pos == stack.pos && other.sameState(stack)) {
-            if (newStacks[i].score < stack.score)
-                newStacks[i] = stack;
-            return;
-        }
-    }
-    newStacks.push(stack);
-}
-class Dialect {
-    constructor(source, flags, disabled) {
-        this.source = source;
-        this.flags = flags;
-        this.disabled = disabled;
-    }
-    allows(term) { return !this.disabled || this.disabled[term] == 0; }
-}
-const id = x => x;
-/**
-Context trackers are used to track stateful context (such as
-indentation in the Python grammar, or parent elements in the XML
-grammar) needed by external tokenizers. You declare them in a
-grammar file as `@context exportName from "module"`.
-
-Context values should be immutable, and can be updated (replaced)
-on shift or reduce actions.
-
-The export used in a `@context` declaration should be of this
-type.
-*/
-class ContextTracker {
-    /**
-    Define a context tracker.
-    */
-    constructor(spec) {
-        this.start = spec.start;
-        this.shift = spec.shift || id;
-        this.reduce = spec.reduce || id;
-        this.reuse = spec.reuse || id;
-        this.hash = spec.hash || (() => 0);
-        this.strict = spec.strict !== false;
-    }
-}
-/**
-Holds the parse tables for a given grammar, as generated by
-`lezer-generator`, and provides [methods](#common.Parser) to parse
-content with.
-*/
-class LRParser extends Parser {
-    /**
-    @internal
-    */
-    constructor(spec) {
-        super();
-        /**
-        @internal
-        */
-        this.wrappers = [];
-        if (spec.version != 14 /* File.Version */)
-            throw new RangeError(`Parser version (${spec.version}) doesn't match runtime version (${14 /* File.Version */})`);
-        let nodeNames = spec.nodeNames.split(" ");
-        this.minRepeatTerm = nodeNames.length;
-        for (let i = 0; i < spec.repeatNodeCount; i++)
-            nodeNames.push("");
-        let topTerms = Object.keys(spec.topRules).map(r => spec.topRules[r][1]);
-        let nodeProps = [];
-        for (let i = 0; i < nodeNames.length; i++)
-            nodeProps.push([]);
-        function setProp(nodeID, prop, value) {
-            nodeProps[nodeID].push([prop, prop.deserialize(String(value))]);
-        }
-        if (spec.nodeProps)
-            for (let propSpec of spec.nodeProps) {
-                let prop = propSpec[0];
-                if (typeof prop == "string")
-                    prop = NodeProp[prop];
-                for (let i = 1; i < propSpec.length;) {
-                    let next = propSpec[i++];
-                    if (next >= 0) {
-                        setProp(next, prop, propSpec[i++]);
-                    }
-                    else {
-                        let value = propSpec[i + -next];
-                        for (let j = -next; j > 0; j--)
-                            setProp(propSpec[i++], prop, value);
-                        i++;
-                    }
-                }
-            }
-        this.nodeSet = new NodeSet(nodeNames.map((name, i) => NodeType.define({
-            name: i >= this.minRepeatTerm ? undefined : name,
-            id: i,
-            props: nodeProps[i],
-            top: topTerms.indexOf(i) > -1,
-            error: i == 0,
-            skipped: spec.skippedNodes && spec.skippedNodes.indexOf(i) > -1
-        })));
-        if (spec.propSources)
-            this.nodeSet = this.nodeSet.extend(...spec.propSources);
-        this.strict = false;
-        this.bufferLength = DefaultBufferLength;
-        let tokenArray = decodeArray(spec.tokenData);
-        this.context = spec.context;
-        this.specializerSpecs = spec.specialized || [];
-        this.specialized = new Uint16Array(this.specializerSpecs.length);
-        for (let i = 0; i < this.specializerSpecs.length; i++)
-            this.specialized[i] = this.specializerSpecs[i].term;
-        this.specializers = this.specializerSpecs.map(getSpecializer);
-        this.states = decodeArray(spec.states, Uint32Array);
-        this.data = decodeArray(spec.stateData);
-        this.goto = decodeArray(spec.goto);
-        this.maxTerm = spec.maxTerm;
-        this.tokenizers = spec.tokenizers.map(value => typeof value == "number" ? new TokenGroup(tokenArray, value) : value);
-        this.topRules = spec.topRules;
-        this.dialects = spec.dialects || {};
-        this.dynamicPrecedences = spec.dynamicPrecedences || null;
-        this.tokenPrecTable = spec.tokenPrec;
-        this.termNames = spec.termNames || null;
-        this.maxNode = this.nodeSet.types.length - 1;
-        this.dialect = this.parseDialect();
-        this.top = this.topRules[Object.keys(this.topRules)[0]];
-    }
-    createParse(input, fragments, ranges) {
-        let parse = new Parse(this, input, fragments, ranges);
-        for (let w of this.wrappers)
-            parse = w(parse, input, fragments, ranges);
-        return parse;
-    }
-    /**
-    Get a goto table entry @internal
-    */
-    getGoto(state, term, loose = false) {
-        let table = this.goto;
-        if (term >= table[0])
-            return -1;
-        for (let pos = table[term + 1];;) {
-            let groupTag = table[pos++], last = groupTag & 1;
-            let target = table[pos++];
-            if (last && loose)
-                return target;
-            for (let end = pos + (groupTag >> 1); pos < end; pos++)
-                if (table[pos] == state)
-                    return target;
-            if (last)
-                return -1;
-        }
-    }
-    /**
-    Check if this state has an action for a given terminal @internal
-    */
-    hasAction(state, terminal) {
-        let data = this.data;
-        for (let set = 0; set < 2; set++) {
-            for (let i = this.stateSlot(state, set ? 2 /* ParseState.Skip */ : 1 /* ParseState.Actions */), next;; i += 3) {
-                if ((next = data[i]) == 65535 /* Seq.End */) {
-                    if (data[i + 1] == 1 /* Seq.Next */)
-                        next = data[i = pair(data, i + 2)];
-                    else if (data[i + 1] == 2 /* Seq.Other */)
-                        return pair(data, i + 2);
-                    else
-                        break;
-                }
-                if (next == terminal || next == 0 /* Term.Err */)
-                    return pair(data, i + 1);
-            }
-        }
-        return 0;
-    }
-    /**
-    @internal
-    */
-    stateSlot(state, slot) {
-        return this.states[(state * 6 /* ParseState.Size */) + slot];
-    }
-    /**
-    @internal
-    */
-    stateFlag(state, flag) {
-        return (this.stateSlot(state, 0 /* ParseState.Flags */) & flag) > 0;
-    }
-    /**
-    @internal
-    */
-    validAction(state, action) {
-        return !!this.allActions(state, a => a == action ? true : null);
-    }
-    /**
-    @internal
-    */
-    allActions(state, action) {
-        let deflt = this.stateSlot(state, 4 /* ParseState.DefaultReduce */);
-        let result = deflt ? action(deflt) : undefined;
-        for (let i = this.stateSlot(state, 1 /* ParseState.Actions */); result == null; i += 3) {
-            if (this.data[i] == 65535 /* Seq.End */) {
-                if (this.data[i + 1] == 1 /* Seq.Next */)
-                    i = pair(this.data, i + 2);
-                else
-                    break;
-            }
-            result = action(pair(this.data, i + 1));
-        }
-        return result;
-    }
-    /**
-    Get the states that can follow this one through shift actions or
-    goto jumps. @internal
-    */
-    nextStates(state) {
-        let result = [];
-        for (let i = this.stateSlot(state, 1 /* ParseState.Actions */);; i += 3) {
-            if (this.data[i] == 65535 /* Seq.End */) {
-                if (this.data[i + 1] == 1 /* Seq.Next */)
-                    i = pair(this.data, i + 2);
-                else
-                    break;
-            }
-            if ((this.data[i + 2] & (65536 /* Action.ReduceFlag */ >> 16)) == 0) {
-                let value = this.data[i + 1];
-                if (!result.some((v, i) => (i & 1) && v == value))
-                    result.push(this.data[i], value);
-            }
-        }
-        return result;
-    }
-    /**
-    Configure the parser. Returns a new parser instance that has the
-    given settings modified. Settings not provided in `config` are
-    kept from the original parser.
-    */
-    configure(config) {
-        // Hideous reflection-based kludge to make it easy to create a
-        // slightly modified copy of a parser.
-        let copy = Object.assign(Object.create(LRParser.prototype), this);
-        if (config.props)
-            copy.nodeSet = this.nodeSet.extend(...config.props);
-        if (config.top) {
-            let info = this.topRules[config.top];
-            if (!info)
-                throw new RangeError(`Invalid top rule name ${config.top}`);
-            copy.top = info;
-        }
-        if (config.tokenizers)
-            copy.tokenizers = this.tokenizers.map(t => {
-                let found = config.tokenizers.find(r => r.from == t);
-                return found ? found.to : t;
-            });
-        if (config.specializers) {
-            copy.specializers = this.specializers.slice();
-            copy.specializerSpecs = this.specializerSpecs.map((s, i) => {
-                let found = config.specializers.find(r => r.from == s.external);
-                if (!found)
-                    return s;
-                let spec = Object.assign(Object.assign({}, s), { external: found.to });
-                copy.specializers[i] = getSpecializer(spec);
-                return spec;
-            });
-        }
-        if (config.contextTracker)
-            copy.context = config.contextTracker;
-        if (config.dialect)
-            copy.dialect = this.parseDialect(config.dialect);
-        if (config.strict != null)
-            copy.strict = config.strict;
-        if (config.wrap)
-            copy.wrappers = copy.wrappers.concat(config.wrap);
-        if (config.bufferLength != null)
-            copy.bufferLength = config.bufferLength;
-        return copy;
-    }
-    /**
-    Tells you whether any [parse wrappers](#lr.ParserConfig.wrap)
-    are registered for this parser.
-    */
-    hasWrappers() {
-        return this.wrappers.length > 0;
-    }
-    /**
-    Returns the name associated with a given term. This will only
-    work for all terms when the parser was generated with the
-    `--names` option. By default, only the names of tagged terms are
-    stored.
-    */
-    getName(term) {
-        return this.termNames ? this.termNames[term] : String(term <= this.maxNode && this.nodeSet.types[term].name || term);
-    }
-    /**
-    The eof term id is always allocated directly after the node
-    types. @internal
-    */
-    get eofTerm() { return this.maxNode + 1; }
-    /**
-    The type of top node produced by the parser.
-    */
-    get topNode() { return this.nodeSet.types[this.top[1]]; }
-    /**
-    @internal
-    */
-    dynamicPrecedence(term) {
-        let prec = this.dynamicPrecedences;
-        return prec == null ? 0 : prec[term] || 0;
-    }
-    /**
-    @internal
-    */
-    parseDialect(dialect) {
-        let values = Object.keys(this.dialects), flags = values.map(() => false);
-        if (dialect)
-            for (let part of dialect.split(" ")) {
-                let id = values.indexOf(part);
-                if (id >= 0)
-                    flags[id] = true;
-            }
-        let disabled = null;
-        for (let i = 0; i < values.length; i++)
-            if (!flags[i]) {
-                for (let j = this.dialects[values[i]], id; (id = this.data[j++]) != 65535 /* Seq.End */;)
-                    (disabled || (disabled = new Uint8Array(this.maxTerm + 1)))[id] = 1;
-            }
-        return new Dialect(dialect, flags, disabled);
-    }
-    /**
-    Used by the output of the parser generator. Not available to
-    user code. @hide
-    */
-    static deserialize(spec) {
-        return new LRParser(spec);
-    }
-}
-function pair(data, off) { return data[off] | (data[off + 1] << 16); }
-function findFinished(stacks) {
-    let best = null;
-    for (let stack of stacks) {
-        let stopped = stack.p.stoppedAt;
-        if ((stack.pos == stack.p.stream.end || stopped != null && stack.pos > stopped) &&
-            stack.p.parser.stateFlag(stack.state, 2 /* StateFlag.Accepting */) &&
-            (!best || best.score < stack.score))
-            best = stack;
-    }
-    return best;
-}
-function getSpecializer(spec) {
-    if (spec.external) {
-        let mask = spec.extend ? 1 /* Specialize.Extend */ : 0 /* Specialize.Specialize */;
-        return (value, stack) => (spec.external(value, stack) << 1) | mask;
-    }
-    return spec.get;
-}
-
-// This file was generated by lezer-generator. You probably shouldn't edit it.
-const noSemi = 312,
-  incdec = 1,
-  incdecPrefix = 2,
-  questionDot = 3,
-  JSXStartTag = 4,
-  insertSemi = 313,
-  spaces = 315,
-  newline = 316,
-  LineComment = 5,
-  BlockComment = 6,
-  Dialect_jsx = 0;
-
-/* Hand-written tokenizers for JavaScript tokens that can't be
-   expressed by lezer's built-in tokenizer. */
-
-const space = [9, 10, 11, 12, 13, 32, 133, 160, 5760, 8192, 8193, 8194, 8195, 8196, 8197, 8198, 8199, 8200,
-               8201, 8202, 8232, 8233, 8239, 8287, 12288];
-
-const braceR = 125, semicolon = 59, slash = 47, star = 42, plus = 43, minus = 45, lt = 60, comma = 44,
-      question = 63, dot = 46;
-
-const trackNewline = new ContextTracker({
-  start: false,
-  shift(context, term) {
-    return term == LineComment || term == BlockComment || term == spaces ? context : term == newline
-  },
-  strict: false
-});
-
-const insertSemicolon = new ExternalTokenizer((input, stack) => {
-  let {next} = input;
-  if (next == braceR || next == -1 || stack.context)
-    input.acceptToken(insertSemi);
-}, {contextual: true, fallback: true});
-
-const noSemicolon = new ExternalTokenizer((input, stack) => {
-  let {next} = input, after;
-  if (space.indexOf(next) > -1) return
-  if (next == slash && ((after = input.peek(1)) == slash || after == star)) return
-  if (next != braceR && next != semicolon && next != -1 && !stack.context)
-    input.acceptToken(noSemi);
-}, {contextual: true});
-
-const operatorToken = new ExternalTokenizer((input, stack) => {
-  let {next} = input;
-  if (next == plus || next == minus) {
-    input.advance();
-    if (next == input.next) {
-      input.advance();
-      let mayPostfix = !stack.context && stack.canShift(incdec);
-      input.acceptToken(mayPostfix ? incdec : incdecPrefix);
-    }
-  } else if (next == question && input.peek(1) == dot) {
-    input.advance(); input.advance();
-    if (input.next < 48 || input.next > 57) // No digit after
-      input.acceptToken(questionDot);
-  }
-}, {contextual: true});
-
-function identifierChar(ch, start) {
-  return ch >= 65 && ch <= 90 || ch >= 97 && ch <= 122 || ch == 95 || ch >= 192 ||
-    !start && ch >= 48 && ch <= 57
-}
-
-const jsx = new ExternalTokenizer((input, stack) => {
-  if (input.next != lt || !stack.dialectEnabled(Dialect_jsx)) return
-  input.advance();
-  if (input.next == slash) return
-  // Scan for an identifier followed by a comma or 'extends', don't
-  // treat this as a start tag if present.
-  let back = 0;
-  while (space.indexOf(input.next) > -1) { input.advance(); back++; }
-  if (identifierChar(input.next, true)) {
-    input.advance();
-    back++;
-    while (identifierChar(input.next, false)) { input.advance(); back++; }
-    while (space.indexOf(input.next) > -1) { input.advance(); back++; }
-    if (input.next == comma) return
-    for (let i = 0;; i++) {
-      if (i == 7) {
-        if (!identifierChar(input.next, true)) return
-        break
-      }
-      if (input.next != "extends".charCodeAt(i)) break
-      input.advance();
-      back++;
-    }
-  }
-  input.acceptToken(JSXStartTag, -back);
-});
-
-const jsHighlight = styleTags({
-  "get set async static": tags.modifier,
-  "for while do if else switch try catch finally return throw break continue default case": tags.controlKeyword,
-  "in of await yield void typeof delete instanceof": tags.operatorKeyword,
-  "let var const using function class extends": tags.definitionKeyword,
-  "import export from": tags.moduleKeyword,
-  "with debugger as new": tags.keyword,
-  TemplateString: tags.special(tags.string),
-  super: tags.atom,
-  BooleanLiteral: tags.bool,
-  this: tags.self,
-  null: tags.null,
-  Star: tags.modifier,
-  VariableName: tags.variableName,
-  "CallExpression/VariableName TaggedTemplateExpression/VariableName": tags.function(tags.variableName),
-  VariableDefinition: tags.definition(tags.variableName),
-  Label: tags.labelName,
-  PropertyName: tags.propertyName,
-  PrivatePropertyName: tags.special(tags.propertyName),
-  "CallExpression/MemberExpression/PropertyName": tags.function(tags.propertyName),
-  "FunctionDeclaration/VariableDefinition": tags.function(tags.definition(tags.variableName)),
-  "ClassDeclaration/VariableDefinition": tags.definition(tags.className),
-  PropertyDefinition: tags.definition(tags.propertyName),
-  PrivatePropertyDefinition: tags.definition(tags.special(tags.propertyName)),
-  UpdateOp: tags.updateOperator,
-  "LineComment Hashbang": tags.lineComment,
-  BlockComment: tags.blockComment,
-  Number: tags.number,
-  String: tags.string,
-  Escape: tags.escape,
-  ArithOp: tags.arithmeticOperator,
-  LogicOp: tags.logicOperator,
-  BitOp: tags.bitwiseOperator,
-  CompareOp: tags.compareOperator,
-  RegExp: tags.regexp,
-  Equals: tags.definitionOperator,
-  Arrow: tags.function(tags.punctuation),
-  ": Spread": tags.punctuation,
-  "( )": tags.paren,
-  "[ ]": tags.squareBracket,
-  "{ }": tags.brace,
-  "InterpolationStart InterpolationEnd": tags.special(tags.brace),
-  ".": tags.derefOperator,
-  ", ;": tags.separator,
-  "@": tags.meta,
-
-  TypeName: tags.typeName,
-  TypeDefinition: tags.definition(tags.typeName),
-  "type enum interface implements namespace module declare": tags.definitionKeyword,
-  "abstract global Privacy readonly override": tags.modifier,
-  "is keyof unique infer": tags.operatorKeyword,
-
-  JSXAttributeValue: tags.attributeValue,
-  JSXText: tags.content,
-  "JSXStartTag JSXStartCloseTag JSXSelfCloseEndTag JSXEndTag": tags.angleBracket,
-  "JSXIdentifier JSXNameSpacedName": tags.tagName,
-  "JSXAttribute/JSXIdentifier JSXAttribute/JSXNameSpacedName": tags.attributeName,
-  "JSXBuiltin/JSXIdentifier": tags.standard(tags.tagName)
-});
-
-// This file was generated by lezer-generator. You probably shouldn't edit it.
-const spec_identifier = {__proto__:null,export:20, as:25, from:33, default:36, async:41, function:42, extends:54, this:58, true:66, false:66, null:78, void:82, typeof:86, super:102, new:136, delete:148, yield:157, await:161, class:166, public:229, private:229, protected:229, readonly:231, instanceof:250, satisfies:253, in:254, const:256, import:290, keyof:345, unique:349, infer:355, is:391, abstract:411, implements:413, type:415, let:418, var:420, using:423, interface:429, enum:433, namespace:439, module:441, declare:445, global:449, for:468, of:477, while:480, with:484, do:488, if:492, else:494, switch:498, case:504, try:510, catch:514, finally:518, return:522, throw:526, break:530, continue:534, debugger:538};
-const spec_word = {__proto__:null,async:123, get:125, set:127, declare:189, public:191, private:191, protected:191, static:193, abstract:195, override:197, readonly:203, accessor:205, new:395};
-const spec_LessThan = {__proto__:null,"<":187};
-const parser = LRParser.deserialize({
-  version: 14,
-  states: "$=dO%TQ^OOO%[Q^OOO'_Q`OOP(lOWOOO*zQ?NdO'#CiO+RO!bO'#CjO+aO#tO'#CjO+oO!0LbO'#D^O.QQ^O'#DdO.bQ^O'#DoO%[Q^O'#DwO0fQ^O'#EPOOQ?Mr'#EX'#EXO1PQWO'#EUOOQO'#Em'#EmOOQO'#Ih'#IhO1XQWO'#GpO1dQWO'#ElO1iQWO'#ElO3hQ?NdO'#JmO6[Q?NdO'#JnO6uQWO'#F[O6zQ&jO'#FsOOQ?Mr'#Fe'#FeO7VO,YO'#FeO7eQ7[O'#FzO9RQWO'#FyOOQ?Mr'#Jn'#JnOOQ?Mp'#Jm'#JmO9WQWO'#GtOOQU'#KZ'#KZO9cQWO'#IUO9hQ?MxO'#IVOOQU'#JZ'#JZOOQU'#IZ'#IZQ`Q^OOO`Q^OOO9pQMnO'#DsO9wQ^O'#D{O:OQ^O'#D}O9^QWO'#GpO:VQ7[O'#CoO:eQWO'#EkO:pQWO'#EvO:uQ7[O'#FdO;dQWO'#GpOOQO'#K['#K[O;iQWO'#K[O;wQWO'#GxO;wQWO'#GyO;wQWO'#G{O9^QWO'#HOO<nQWO'#HRO>VQWO'#CeO>gQWO'#H_O>oQWO'#HeO>oQWO'#HgO`Q^O'#HiO>oQWO'#HkO>oQWO'#HnO>tQWO'#HtO>yQ?MyO'#HzO%[Q^O'#H|O?UQ?MyO'#IOO?aQ?MyO'#IQO9hQ?MxO'#ISO?lQ?NdO'#CiO@nQ`O'#DiQOQWOOO%[Q^O'#D}OAUQWO'#EQO:VQ7[O'#EkOAaQWO'#EkOAlQpO'#FdOOQU'#Cg'#CgOOQ?Mp'#Dn'#DnOOQ?Mp'#Jq'#JqO%[Q^O'#JqOOQO'#Jt'#JtOOQO'#Id'#IdOBlQ`O'#EdOOQ?Mp'#Ec'#EcOOQ?Mp'#Jx'#JxOChQ?NQO'#EdOCrQ`O'#ETOOQO'#Js'#JsODWQ`O'#JtOEeQ`O'#ETOCrQ`O'#EdPErO#@ItO'#CbPOOO)CDx)CDxOOOO'#I['#I[OE}O!bO,59UOOQ?Mr,59U,59UOOOO'#I]'#I]OF]O#tO,59UO%[Q^O'#D`OOOO'#I_'#I_OFkO!0LbO,59xOOQ?Mr,59x,59xOFyQ^O'#I`OG^QWO'#JoOI]QrO'#JoO+}Q^O'#JoOIdQWO,5:OOIzQWO'#EmOJXQWO'#KOOJdQWO'#J}OJdQWO'#J}OJlQWO,5;ZOJqQWO'#J|OOQ?Mv,5:Z,5:ZOJxQ^O,5:ZOLvQ?NdO,5:cOMgQWO,5:kONQQ?MxO'#J{ONXQWO'#JzO9WQWO'#JzONmQWO'#JzONuQWO,5;YONzQWO'#JzO!#PQrO'#JnOOQ?Mr'#Ci'#CiO%[Q^O'#EPO!#oQrO,5:pOOQQ'#Ju'#JuOOQO-E<f-E<fO9^QWO,5=[O!$VQWO,5=[O!$[Q^O,5;WO!&_Q7[O'#EhO!'xQWO,5;WO!'}Q^O'#DvO!(XQ`O,5;aO!(aQ`O,5;aO%[Q^O,5;aOOQU'#FS'#FSOOQU'#FU'#FUO%[Q^O,5;bO%[Q^O,5;bO%[Q^O,5;bO%[Q^O,5;bO%[Q^O,5;bO%[Q^O,5;bO%[Q^O,5;bO%[Q^O,5;bO%[Q^O,5;bO%[Q^O,5;bO%[Q^O,5;bOOQU'#FY'#FYO!(oQ^O,5;sOOQ?Mr,5;x,5;xOOQ?Mr,5;y,5;yOOQ?Mr,5;{,5;{O%[Q^O'#IlO!*rQ?MxO,5<gO!&_Q7[O,5;bO!+aQ7[O,5;bO!-RQ7[O'#EZO%[Q^O,5;vOOQ?Mr,5;z,5;zO!-YQ&jO'#FiO!.VQ&jO'#KSO!-qQ&jO'#KSO!.^Q&jO'#KSOOQO'#KS'#KSO!.rQ&jO,5<ROOOS,5<_,5<_O!/TQ^O'#FuOOOS'#Ik'#IkO7VO,YO,5<PO!/[Q&jO'#FwOOQ?Mr,5<P,5<PO!/{Q!LQO'#CvOOQ?Mr'#Cz'#CzO!0`QWO'#CzO!0eO!0LbO'#DOO!1RQ7[O,5<dO!1YQWO,5<fO!2uQ$ISO'#GVO!3SQWO'#GWO!3XQWO'#GWO!4wQ$ISO'#G[O!5sQ`O'#G`OOQO'#Gk'#GkO!+hQ7[O'#GjOOQO'#Gm'#GmO!+hQ7[O'#GlO!6fQ!LQO'#JgOOQ?Mr'#Jg'#JgO!6pQWO'#JfO!7OQWO'#JeO!7WQWO'#CuOOQ?Mr'#Cx'#CxOOQ?Mr'#DS'#DSOOQ?Mr'#DU'#DUO1SQWO'#DWO!+hQ7[O'#F}O!+hQ7[O'#GPO!7`QWO'#GRO!7eQWO'#GSO!3XQWO'#GYO!+hQ7[O'#G_O!7jQWO'#EnO!8XQWO,5<eOOQ?Mp'#Cr'#CrO!8aQWO'#EoO!9ZQ`O'#EpOOQ?Mp'#J|'#J|O!9bQ?MxO'#K]O9hQ?MxO,5=`O`Q^O,5>pOOQU'#Jc'#JcOOQU,5>q,5>qOOQU-E<X-E<XO!;aQ?NdO,5:_O!9UQ`O,5:]O!=zQ?NdO,5:gO%[Q^O,5:gO!@bQ?NdO,5:iOOQO,5@v,5@vO!ARQ7[O,5=[O!AaQ?MxO'#JdO9RQWO'#JdO!ArQ?MxO,59ZO!A}Q`O,59ZO!BVQ7[O,59ZO:VQ7[O,59ZO!BbQWO,5;WO!BjQWO'#H^O!COQWO'#K`O%[Q^O,5;|O!9UQ`O,5<OO!CWQWO,5=wO!C]QWO,5=wO!CbQWO,5=wO9hQ?MxO,5=wO;wQWO,5=gOOQO'#Cv'#CvO!CpQ`O,5=dO!CxQ7[O,5=eO!DTQWO,5=gO!DYQpO,5=jO!DbQWO'#K[O>tQWO'#HTO9^QWO'#HVO!DgQWO'#HVO:VQ7[O'#HXO!DlQWO'#HXOOQU,5=m,5=mO!DqQWO'#HYO!ESQWO'#CoO!EXQWO,59PO!EcQWO,59PO!GhQ^O,59POOQU,59P,59PO!GxQ?MxO,59PO%[Q^O,59PO!JTQ^O'#HaOOQU'#Hb'#HbOOQU'#Hc'#HcO`Q^O,5=yO!JkQWO,5=yO`Q^O,5>PO`Q^O,5>RO!JpQWO,5>TO`Q^O,5>VO!JuQWO,5>YO!JzQ^O,5>`OOQU,5>f,5>fO%[Q^O,5>fO9hQ?MxO,5>hOOQU,5>j,5>jO# UQWO,5>jOOQU,5>l,5>lO# UQWO,5>lOOQU,5>n,5>nO# rQ`O'#D[O%[Q^O'#JqO# |Q`O'#JqO#!kQ`O'#DjO#!|Q`O'#DjO#%_Q^O'#DjO#%fQWO'#JpO#%nQWO,5:TO#%sQWO'#EqO#&RQWO'#KPO#&ZQWO,5;[O#&`Q`O'#DjO#&mQ`O'#ESOOQ?Mr,5:l,5:lO%[Q^O,5:lO#&tQWO,5:lO>tQWO,5;VO!A}Q`O,5;VO!BVQ7[O,5;VO:VQ7[O,5;VO#&|QWO,5@]O#'RQ(CYO,5:pOOQO-E<b-E<bO#(XQ?NQO,5;OOCrQ`O,5:oO#(cQ`O,5:oOCrQ`O,5;OO!ArQ?MxO,5:oOOQ?Mp'#Eg'#EgOOQO,5;O,5;OO%[Q^O,5;OO#(pQ?MxO,5;OO#({Q?MxO,5;OO!A}Q`O,5:oOOQO,5;U,5;UO#)ZQ?MxO,5;OPOOO'#IY'#IYP#)oO#@ItO,58|POOO,58|,58|OOOO-E<Y-E<YOOQ?Mr1G.p1G.pOOOO-E<Z-E<ZO#)zQpO,59zOOOO-E<]-E<]OOQ?Mr1G/d1G/dO#*PQrO,5>zO+}Q^O,5>zOOQO,5?Q,5?QO#*ZQ^O'#I`OOQO-E<^-E<^O#*hQWO,5@ZO#*pQrO,5@ZO#*wQWO,5@iOOQ?Mr1G/j1G/jO%[Q^O,5@jO#+PQWO'#IfOOQO-E<d-E<dO#*wQWO,5@iOOQ?Mp1G0u1G0uOOQ?Mv1G/u1G/uOOQ?Mv1G0V1G0VO%[Q^O,5@gO#+eQ?MxO,5@gO#+vQ?MxO,5@gO#+}QWO,5@fO9WQWO,5@fO#,VQWO,5@fO#,eQWO'#IiO#+}QWO,5@fOOQ?Mp1G0t1G0tO!(XQ`O,5:rO!(dQ`O,5:rOOQQ,5:t,5:tO#-VQYO,5:tO#-_Q7[O1G2vO9^QWO1G2vOOQ?Mr1G0r1G0rO#-mQ?NdO1G0rO#.rQ?NbO,5;SOOQ?Mr'#GU'#GUO#/`Q?NdO'#JgO!$[Q^O1G0rO#1hQrO'#JrO%[Q^O'#JrO#1rQWO,5:bOOQ?Mr'#D['#D[OOQ?Mr1G0{1G0{O%[Q^O1G0{OOQ?Mr1G1e1G1eO#1wQWO1G0{O#4]Q?NdO1G0|O#4dQ?NdO1G0|O#6zQ?NdO1G0|O#7RQ?NdO1G0|O#9YQ?NdO1G0|O#9pQ?NdO1G0|O#<gQ?NdO1G0|O#<nQ?NdO1G0|O#?OQ?NdO1G0|O#?]Q?NdO1G0|O#AWQ?NdO1G0|O#DWQ07bO'#CiO#FRQ07bO1G1_O#FYQ07bO'#JnO#FmQ?NdO,5?WOOQ?Mp-E<j-E<jO#GaQ?NdO1G0|OOQ?Mr1G0|1G0|O#IiQ7[O'#JwO#IsQWO,5:uO#IxQ?NdO1G1bO#JlQ&jO,5<VO#JtQ&jO,5<WO#J|Q&jO'#FnO#KeQWO'#FmOOQO'#KT'#KTOOQO'#Ij'#IjO#KjQ&jO1G1mOOQ?Mr1G1m1G1mOOOS1G1x1G1xO#K{Q07bO'#JmO#LVQWO,5<aO!(oQ^O,5<aOOOS-E<i-E<iOOQ?Mr1G1k1G1kO#L[Q`O'#KSOOQ?Mr,5<c,5<cO#LdQ`O,5<cOOQ?Mr,59f,59fO!&_Q7[O'#DQOOOO'#I^'#I^O#LiO!0LbO,59jOOQ?Mr,59j,59jO%[Q^O1G2OO!7eQWO'#InO#LtQ7[O,5<xOOQ?Mr,5<u,5<uO!+hQ7[O'#IqO#MdQ7[O,5=UO!+hQ7[O'#IsO#NVQ7[O,5=WO!&_Q7[O,5=YOOQO1G2Q1G2QO#NaQpO'#CrO#NtQ$ISO'#EoO$ sQ`O'#G`O$!aQpO,5<qO$!hQWO'#KWO9WQWO'#KWO$!vQWO,5<sO!+hQ7[O,5<rO$!{QWO'#GXO$#^QWO,5<rO$#cQpO'#GUO$#pQpO'#KXO$#zQWO'#KXO!&_Q7[O'#KXO$$PQWO,5<vO$$UQ`O'#GaO!5nQ`O'#GaO$$gQWO'#GcO$$lQWO'#GeO!3XQWO'#GhO$$qQ?MxO'#IpO$$|Q`O,5<zOOQ?Mv,5<z,5<zO$%TQ`O'#GaO$%cQ`O'#GbO$%kQ`O'#GbO$%pQ7[O,5=UO$&QQ7[O,5=WOOQ?Mr,5=Z,5=ZO!+hQ7[O,5@QO!+hQ7[O,5@QO$&bQWO'#IuO$&mQWO,5@PO$&uQWO,59aO$'iQ!LSO,59rOOQ?Mr'#Jk'#JkO$([Q7[O,5<iO$(}Q7[O,5<kO@fQWO,5<mOOQ?Mr,5<n,5<nO$)XQWO,5<tO$)^Q7[O,5<yO$)nQWO'#JzO!$[Q^O1G2PO$)sQWO1G2PO9WQWO'#J}O9WQWO'#EqO%[Q^O'#EqO9WQWO'#IwO$)xQ?MxO,5@wOOQU1G2z1G2zOOQU1G4[1G4[OOQ?Mr1G/y1G/yOOQ?Mr1G/w1G/wO$+zQ?NdO1G0ROOQU1G2v1G2vO!&_Q7[O1G2vO%[Q^O1G2vO#-bQWO1G2vO$.OQ7[O'#EhOOQ?Mp,5@O,5@OO$.YQ?MxO,5@OOOQU1G.u1G.uO!ArQ?MxO1G.uO!A}Q`O1G.uO!BVQ7[O1G.uO$.kQWO1G0rO$.pQWO'#CiO$.{QWO'#KaO$/TQWO,5=xO$/YQWO'#KaO$/_QWO'#KaO$/mQWO'#I}O$/{QWO,5@zO$0TQrO1G1hOOQ?Mr1G1j1G1jO9^QWO1G3cO@fQWO1G3cO$0[QWO1G3cO$0aQWO1G3cOOQU1G3c1G3cO!DTQWO1G3RO!&_Q7[O1G3OO$0fQWO1G3OOOQU1G3P1G3PO!&_Q7[O1G3PO$0kQWO1G3PO$0sQ`O'#G}OOQU1G3R1G3RO!5nQ`O'#IyO!DYQpO1G3UOOQU1G3U1G3UOOQU,5=o,5=oO$0{Q7[O,5=qO9^QWO,5=qO$$lQWO,5=sO9RQWO,5=sO!A}Q`O,5=sO!BVQ7[O,5=sO:VQ7[O,5=sO$1ZQWO'#K_O$1fQWO,5=tOOQU1G.k1G.kO$1kQ?MxO1G.kO@fQWO1G.kO$1vQWO1G.kO9hQ?MxO1G.kO$4OQrO,5@|O$4]QWO,5@|O9WQWO,5@|O$4hQ^O,5={O$4oQWO,5={OOQU1G3e1G3eO`Q^O1G3eOOQU1G3k1G3kOOQU1G3m1G3mO>oQWO1G3oO$4tQ^O1G3qO$8xQ^O'#HpOOQU1G3t1G3tO$9VQWO'#HvO>tQWO'#HxOOQU1G3z1G3zO$9_Q^O1G3zO9hQ?MxO1G4QOOQU1G4S1G4SOOQ?Mp'#G]'#G]O9hQ?MxO1G4UO9hQ?MxO1G4WO$=fQWO,5@]O!(oQ^O,5;]O9WQWO,5;]O>tQWO,5:UO!(oQ^O,5:UO!A}Q`O,5:UO$=kQ07bO,5:UOOQO,5;],5;]O$=uQ`O'#IaO$>]QWO,5@[OOQ?Mr1G/o1G/oO$>eQ`O'#IgO$>oQWO,5@kOOQ?Mp1G0v1G0vO#!|Q`O,5:UOOQO'#Ic'#IcO$>wQ`O,5:nOOQ?Mv,5:n,5:nO#&wQWO1G0WOOQ?Mr1G0W1G0WO%[Q^O1G0WOOQ?Mr1G0q1G0qO>tQWO1G0qO!A}Q`O1G0qO!BVQ7[O1G0qOOQ?Mp1G5w1G5wO!ArQ?MxO1G0ZOOQO1G0j1G0jO%[Q^O1G0jO$?OQ?MxO1G0jO$?ZQ?MxO1G0jO!A}Q`O1G0ZOCrQ`O1G0ZO$?iQ?MxO1G0jOOQO1G0Z1G0ZO$?}Q?NdO1G0jPOOO-E<W-E<WPOOO1G.h1G.hOOOO1G/f1G/fO$@XQpO,5<gO$@aQrO1G4fOOQO1G4l1G4lO%[Q^O,5>zO$@kQWO1G5uO$@sQWO1G6TO$@{QrO1G6UO9WQWO,5?QO$AVQ?NdO1G6RO%[Q^O1G6RO$AgQ?MxO1G6RO$AxQWO1G6QO$AxQWO1G6QO9WQWO1G6QO$BQQWO,5?TO9WQWO,5?TOOQO,5?T,5?TO$BfQWO,5?TO$)nQWO,5?TOOQO-E<g-E<gOOQQ1G0^1G0^OOQQ1G0`1G0`O#-YQWO1G0`OOQU7+(b7+(bO!&_Q7[O7+(bO%[Q^O7+(bO$BtQWO7+(bO$CPQ7[O7+(bO$C_Q?NdO,5=UO$EgQ?NdO,5=WO$GoQ?NdO,5=UO$I}Q?NdO,5=WO$L]Q?NdO,59rO$NbQ?NdO,5<iO%!jQ?NdO,5<kO%$rQ?NdO,5<yOOQ?Mr7+&^7+&^O%'QQ?NdO7+&^O%'tQ^O'#IbO%(RQWO,5@^O%(ZQrO,5@^OOQ?Mr1G/|1G/|O%(eQWO7+&gOOQ?Mr7+&g7+&gO%(jQ07bO,5:cO%[Q^O7+&yO%(tQ07bO,5:_O%)RQ07bO,5:gO%)]Q07bO,5:iO%)gQ7[O'#IeO%)qQWO,5@cOOQ?Mr1G0a1G0aOOQO1G1q1G1qOOQO1G1r1G1rO%)yQtO,5<YO!(oQ^O,5<XOOQO-E<h-E<hOOQ?Mr7+'X7+'XOOOS7+'d7+'dOOOS1G1{1G1{O%*UQWO1G1{OOQ?Mr1G1}1G1}O%*ZQpO,59lOOOO-E<[-E<[OOQ?Mr1G/U1G/UO%*bQ?NdO7+'jOOQ?Mr,5?Y,5?YO%+UQpO,5?YOOQ?Mr1G2d1G2dP!&_Q7[O'#InPOQ?Mr-E<l-E<lO%+tQ7[O,5?]OOQ?Mr-E<o-E<oO%,gQ7[O,5?_OOQ?Mr-E<q-E<qO%,qQpO1G2tO%,xQpO'#CrO%-`Q7[O'#J}O%-gQ^O'#EqOOQ?Mr1G2]1G2]O%-qQWO'#ImO%.VQWO,5@rO%.VQWO,5@rO%._QWO,5@rO%.jQWO,5@rOOQO1G2_1G2_O%.xQ7[O1G2^O!+hQ7[O1G2^O%/YQ$ISO'#IoO%/gQWO,5@sO!&_Q7[O,5@sO%/oQpO,5@sOOQ?Mr1G2b1G2bOOQ?Mp,5<{,5<{OOQ?Mp,5<|,5<|O$)nQWO,5<|OCcQWO,5<|O!A}Q`O,5<{OOQO'#Gd'#GdO%/yQWO,5<}OOQ?Mp,5=P,5=PO$)nQWO,5=SOOQO,5?[,5?[OOQO-E<n-E<nOOQ?Mv1G2f1G2fO!5nQ`O,5<{O%0RQWO,5<|O$$gQWO,5<}O!5nQ`O,5<|O!+hQ7[O'#IqO%0uQ7[O1G2pO!+hQ7[O'#IsO%1hQ7[O1G2rO%1rQ7[O1G5lO%1|Q7[O1G5lOOQO,5?a,5?aOOQO-E<s-E<sOOQO1G.{1G.{O!9UQ`O,59tO%[Q^O,59tOOQ?Mr,5<h,5<hO%2ZQWO1G2XO!+hQ7[O1G2`O%2`Q?NdO7+'kOOQ?Mr7+'k7+'kO!$[Q^O7+'kO%3SQWO,5;]OOQ?Mp,5?c,5?cOOQ?Mp-E<u-E<uO%3XQpO'#KYO#&wQWO7+(bO4UQrO7+(bO$BwQWO7+(bO%3cQ?NbO'#CiO%3vQ?NbO,5=QO%4hQWO,5=QOOQ?Mp1G5j1G5jOOQU7+$a7+$aO!ArQ?MxO7+$aO!A}Q`O7+$aO!$[Q^O7+&^O%4mQWO'#I|O%5UQWO,5@{OOQO1G3d1G3dO9^QWO,5@{O%5UQWO,5@{O%5^QWO,5@{OOQO,5?i,5?iOOQO-E<{-E<{OOQ?Mr7+'S7+'SO%5cQWO7+(}O9hQ?MxO7+(}O9^QWO7+(}O@fQWO7+(}OOQU7+(m7+(mO%5hQ?NbO7+(jO!&_Q7[O7+(jO%5rQpO7+(kOOQU7+(k7+(kO!&_Q7[O7+(kO%5yQWO'#K^O%6UQWO,5=iOOQO,5?e,5?eOOQO-E<w-E<wOOQU7+(p7+(pO%7eQ`O'#HWOOQU1G3]1G3]O!&_Q7[O1G3]O%[Q^O1G3]O%7lQWO1G3]O%7wQ7[O1G3]O9hQ?MxO1G3_O$$lQWO1G3_O9RQWO1G3_O!A}Q`O1G3_O!BVQ7[O1G3_O%8VQWO'#I{O%8kQWO,5@yO%8sQ`O,5@yOOQ?Mp1G3`1G3`OOQU7+$V7+$VO@fQWO7+$VO9hQ?MxO7+$VO%9OQWO7+$VO%[Q^O1G6hO%[Q^O1G6iO%9TQ?MxO1G6hO%9_Q^O1G3gO%9fQWO1G3gO%9kQ^O1G3gOOQU7+)P7+)PO9hQ?MxO7+)ZO`Q^O7+)]OOQU'#Kd'#KdOOQU'#JO'#JOO%9rQ^O,5>[OOQU,5>[,5>[O%[Q^O'#HqO%:PQWO'#HsOOQU,5>b,5>bO9WQWO,5>bOOQU,5>d,5>dOOQU7+)f7+)fOOQU7+)l7+)lOOQU7+)p7+)pOOQU7+)r7+)rO%:UQ`O1G5wO%:jQ07bO1G0wO%:tQWO1G0wOOQO1G/p1G/pO%;PQ07bO1G/pO>tQWO1G/pO!(oQ^O'#DjOOQO,5>{,5>{OOQO-E<_-E<_OOQO,5?R,5?ROOQO-E<e-E<eO!A}Q`O1G/pOOQO-E<a-E<aOOQ?Mv1G0Y1G0YOOQ?Mr7+%r7+%rO#&wQWO7+%rOOQ?Mr7+&]7+&]O>tQWO7+&]O!A}Q`O7+&]OOQO7+%u7+%uO$?}Q?NdO7+&UOOQO7+&U7+&UO%[Q^O7+&UO%;ZQ?MxO7+&UO!ArQ?MxO7+%uO!A}Q`O7+%uO%;fQ?MxO7+&UO%;tQ?NdO7++mO%[Q^O7++mO%<UQWO7++lO%<UQWO7++lOOQO1G4o1G4oO9WQWO1G4oO%<^QWO1G4oOOQQ7+%z7+%zO#&wQWO<<K|O4UQrO<<K|O%<lQWO<<K|OOQU<<K|<<K|O!&_Q7[O<<K|O%[Q^O<<K|O%<tQWO<<K|O%=PQ?NdO,5?]O%?XQ?NdO,5?_O%AaQ?NdO1G2^O%CoQ?NdO1G2pO%EwQ?NdO1G2rO%HPQrO,5>|O%[Q^O,5>|OOQO-E<`-E<`O%HZQWO1G5xOOQ?Mr<<JR<<JRO%HcQ07bO1G0rO%JjQ07bO1G0|O%JqQ07bO1G0|O%LrQ07bO1G0|O%LyQ07bO1G0|O%NkQ07bO1G0|O& RQ07bO1G0|O&#cQ07bO1G0|O&#jQ07bO1G0|O&%eQ07bO1G0|O&%rQ07bO1G0|O&'mQ07bO1G0|O&(QQ?NdO<<JeO&)VQ07bO1G0|O&*xQ07bO'#JgO&,{Q07bO1G1bO&-YQ07bO1G0RO&-dQ7[O,5?POOQO-E<c-E<cO!(oQ^O'#FpOOQO'#KU'#KUOOQO1G1t1G1tO&-nQWO1G1sO&-sQ07bO,5?WOOOS7+'g7+'gOOOO1G/W1G/WOOQ?Mr1G4t1G4tO!+hQ7[O7+(`O&0TQrO'#CiO&0_QWO,5?XO9WQWO,5?XOOQO-E<k-E<kO&0mQWO1G6^O&0mQWO1G6^O&0uQWO1G6^O&1QQ7[O7+'xO&1bQpO,5?ZO&1lQWO,5?ZO!&_Q7[O,5?ZOOQO-E<m-E<mO&1qQpO1G6_O&1{QWO1G6_OOQ?Mp1G2h1G2hO$)nQWO1G2hOOQ?Mp1G2g1G2gO&2TQWO1G2iO!&_Q7[O1G2iOOQ?Mp1G2n1G2nO!A}Q`O1G2gOCcQWO1G2hO&2YQWO1G2iO&2bQWO1G2hO&3UQ7[O,5?]OOQ?Mr-E<p-E<pO&3wQ7[O,5?_OOQ?Mr-E<r-E<rO!+hQ7[O7++WOOQ?Mr1G/`1G/`O&4RQWO1G/`OOQ?Mr7+'s7+'sO&4WQ7[O7+'zO&4hQ?NdO<<KVOOQ?Mr<<KV<<KVO&5[QWO1G0wO!&_Q7[O'#IvO&5aQWO,5@tO&7cQrO<<K|O!&_Q7[O1G2lOOQU<<G{<<G{O!ArQ?MxO<<G{O&7jQ?NdO<<IxOOQ?Mr<<Ix<<IxOOQO,5?h,5?hO&8^QWO,5?hO&8cQWO,5?hOOQO-E<z-E<zO&8qQWO1G6gO&8qQWO1G6gO9^QWO1G6gO@fQWO<<LiOOQU<<Li<<LiO&8yQWO<<LiO9hQ?MxO<<LiOOQU<<LU<<LUO%5hQ?NbO<<LUOOQU<<LV<<LVO%5rQpO<<LVO&9OQ`O'#IxO&9ZQWO,5@xO!(oQ^O,5@xOOQU1G3T1G3TO%-gQ^O'#JqOOQO'#Iz'#IzO9hQ?MxO'#IzO&9cQ`O,5=rOOQU,5=r,5=rO&9jQ`O'#EdO&:OQWO7+(wO&:TQWO7+(wOOQU7+(w7+(wO!&_Q7[O7+(wO%[Q^O7+(wO&:]QWO7+(wOOQU7+(y7+(yO9hQ?MxO7+(yO$$lQWO7+(yO9RQWO7+(yO!A}Q`O7+(yO&:hQWO,5?gOOQO-E<y-E<yOOQO'#HZ'#HZO&:sQWO1G6eO9hQ?MxO<<GqOOQU<<Gq<<GqO@fQWO<<GqO&:{QWO7+,SO&;QQWO7+,TO%[Q^O7+,SO%[Q^O7+,TOOQU7+)R7+)RO&;VQWO7+)RO&;[Q^O7+)RO&;cQWO7+)ROOQU<<Lu<<LuOOQU<<Lw<<LwOOQU-E<|-E<|OOQU1G3v1G3vO&;hQWO,5>]OOQU,5>_,5>_O&;mQWO1G3|O9WQWO7+&cO!(oQ^O7+&cOOQO7+%[7+%[O&;rQ07bO1G6UO>tQWO7+%[OOQ?Mr<<I^<<I^OOQ?Mr<<Iw<<IwO>tQWO<<IwOOQO<<Ip<<IpO$?}Q?NdO<<IpO%[Q^O<<IpOOQO<<Ia<<IaO!ArQ?MxO<<IaO&;|Q?MxO<<IpO&<XQ?NdO<= XO&<iQWO<= WOOQO7+*Z7+*ZO9WQWO7+*ZOOQUANAhANAhO&<qQrOANAhO!&_Q7[OANAhO#&wQWOANAhO4UQrOANAhO&<xQWOANAhO%[Q^OANAhO&=QQ?NdO7+'xO&?`Q?NdO,5?]O&AhQ?NdO,5?_O&CpQ?NdO7+'zO&FOQrO1G4hO&FYQ07bO7+&^O&HZQ07bO,5=UO&J_Q07bO,5=WO&JoQ07bO,5=UO&KPQ07bO,5=WO&KaQ07bO,59rO&MdQ07bO,5<iO' dQ07bO,5<kO'#dQ07bO,5<yO'%VQ07bO7+'jO'%dQ07bO7+'kO'%qQWO,5<[OOQO7+'_7+'_O'%vQ7[O<<KzOOQO1G4s1G4sO'%}QWO1G4sO'&YQWO1G4sO'&hQWO7++xO'&hQWO7++xO!&_Q7[O1G4uO'&pQpO1G4uO'&zQWO7++yOOQ?Mp7+(S7+(SO$)nQWO7+(TO''SQpO7+(TOOQ?Mp7+(R7+(RO$)nQWO7+(SO''ZQWO7+(TO!&_Q7[O7+(TOCcQWO7+(SO''`Q7[O<<NrOOQ?Mr7+$z7+$zO''jQpO,5?bOOQO-E<t-E<tO''tQ?NbO7+(WOOQUAN=gAN=gO9^QWO1G5SOOQO1G5S1G5SO'(UQWO1G5SO'(ZQWO7+,RO'(ZQWO7+,RO9hQ?MxOANBTO@fQWOANBTOOQUANBTANBTOOQUANApANApOOQUANAqANAqO'(cQWO,5?dOOQO-E<v-E<vO'(nQ07bO1G6dOOQO,5?f,5?fOOQO-E<x-E<xOOQU1G3^1G3^O%-gQ^O,5<}OOQU<<Lc<<LcO!&_Q7[O<<LcO&:OQWO<<LcO'(xQWO<<LcO%[Q^O<<LcOOQU<<Le<<LeO9hQ?MxO<<LeO$$lQWO<<LeO9RQWO<<LeO')QQ`O1G5RO')]QWO7+,POOQUAN=]AN=]O9hQ?MxOAN=]OOQU<= n<= nOOQU<= o<= oO')eQWO<= nO')jQWO<= oOOQU<<Lm<<LmO')oQWO<<LmO')tQ^O<<LmOOQU1G3w1G3wO>tQWO7+)hO'){QWO<<I}O'*WQ07bO<<I}OOQO<<Hv<<HvOOQ?MrAN?cAN?cOOQOAN?[AN?[O$?}Q?NdOAN?[OOQOAN>{AN>{O%[Q^OAN?[OOQO<<Mu<<MuOOQUG27SG27SO!&_Q7[OG27SO#&wQWOG27SO'*bQrOG27SO4UQrOG27SO'*iQWOG27SO'*qQ07bO<<JeO'+OQ07bO1G2^O',qQ07bO,5?]O'.qQ07bO,5?_O'0qQ07bO1G2pO'2qQ07bO1G2rO'4qQ07bO<<KVO'5OQ07bO<<IxOOQO1G1v1G1vO!+hQ7[OANAfOOQO7+*_7+*_O'5]QWO7+*_O'5hQWO<= dO'5pQpO7+*aOOQ?Mp<<Ko<<KoO$)nQWO<<KoOOQ?Mp<<Kn<<KnO'5zQpO<<KoO$)nQWO<<KnOOQO7+*n7+*nO9^QWO7+*nO'6RQWO<= mOOQUG27oG27oO9hQ?MxOG27oO!(oQ^O1G5OO'6ZQWO7+,OO&:OQWOANA}OOQUANA}ANA}O!&_Q7[OANA}O'6cQWOANA}OOQUANBPANBPO9hQ?MxOANBPO$$lQWOANBPOOQO'#H['#H[OOQO7+*m7+*mOOQUG22wG22wOOQUANEYANEYOOQUANEZANEZOOQUANBXANBXO'6kQWOANBXOOQU<<MS<<MSO!(oQ^OAN?iOOQOG24vG24vO$?}Q?NdOG24vO#&wQWOLD,nOOQULD,nLD,nO!&_Q7[OLD,nO'6pQrOLD,nO'6wQ07bO7+'xO'8jQ07bO,5?]O':jQ07bO,5?_O'<jQ07bO7+'zO'>]Q7[OG27QOOQO<<My<<MyOOQ?MpANAZANAZO$)nQWOANAZOOQ?MpANAYANAYOOQO<<NY<<NYOOQULD-ZLD-ZO'>mQ07bO7+*jOOQUG27iG27iO&:OQWOG27iO!&_Q7[OG27iOOQUG27kG27kO9hQ?MxOG27kOOQUG27sG27sO'>wQ07bOG25TOOQOLD*bLD*bOOQU!$(!Y!$(!YO#&wQWO!$(!YO!&_Q7[O!$(!YO'?RQ?NdOG27QOOQ?MpG26uG26uOOQULD-TLD-TO&:OQWOLD-TOOQULD-VLD-VOOQU!)9Et!)9EtO#&wQWO!)9EtOOQU!$(!o!$(!oOOQU!.K;`!.K;`O'AaQ07bOG27QO!(oQ^O'#DwO1PQWO'#EUO'CSQrO'#JmO'CZQMnO'#DsO'CbQ^O'#D{O'CiQrO'#CiO'FPQrO'#CiO!(oQ^O'#D}O'FaQ^O,5;WO!(oQ^O,5;bO!(oQ^O,5;bO!(oQ^O,5;bO!(oQ^O,5;bO!(oQ^O,5;bO!(oQ^O,5;bO!(oQ^O,5;bO!(oQ^O,5;bO!(oQ^O,5;bO!(oQ^O,5;bO!(oQ^O,5;bO!(oQ^O'#IlO'HdQWO,5<gO'HlQ7[O,5;bO'JVQ7[O,5;bO!(oQ^O,5;vO!&_Q7[O'#GjO'HlQ7[O'#GjO!&_Q7[O'#GlO'HlQ7[O'#GlO1SQWO'#DWO1SQWO'#DWO!&_Q7[O'#F}O'HlQ7[O'#F}O!&_Q7[O'#GPO'HlQ7[O'#GPO!&_Q7[O'#G_O'HlQ7[O'#G_O!(oQ^O,5:gO'J^Q`O'#D[O!(oQ^O,5@jO'FaQ^O1G0rO'JhQ07bO'#CiO!(oQ^O1G2OO!&_Q7[O'#IqO'HlQ7[O'#IqO!&_Q7[O'#IsO'HlQ7[O'#IsO'JrQpO'#CrO!&_Q7[O,5<rO'HlQ7[O,5<rO'FaQ^O1G2PO!(oQ^O7+&yO!&_Q7[O1G2^O'HlQ7[O1G2^O!&_Q7[O'#IqO'HlQ7[O'#IqO!&_Q7[O'#IsO'HlQ7[O'#IsO!&_Q7[O1G2`O'HlQ7[O1G2`O'FaQ^O7+'kO'FaQ^O7+&^O!&_Q7[OANAfO'HlQ7[OANAfO'KVQWO'#ElO'K[QWO'#ElO'KdQWO'#F[O'KiQWO'#EvO'KnQWO'#KOO'KyQWO'#J|O'LUQWO,5;WO'LZQ7[O,5<dO'LbQWO'#GWO'LgQWO'#GWO'LlQWO,5<eO'LtQWO,5;WO'L|Q07bO1G1_O'MTQWO,5<rO'MYQWO,5<rO'M_QWO,5<tO'MdQWO,5<tO'MiQWO1G2PO'MnQWO1G0rO'MsQ7[O<<KzO'MzQ7[O<<KzO7eQ7[O'#FzO9RQWO'#FyOAaQWO'#EkO!(oQ^O,5;sO!3XQWO'#GWO!3XQWO'#GWO!3XQWO'#GYO!3XQWO'#GYO!+hQ7[O7+(`O!+hQ7[O7+(`O%,qQpO1G2tO%,qQpO1G2tO!&_Q7[O,5=YO!&_Q7[O,5=Y",
-  stateData: "( O~O'wOS'xOSTOS'yRQ~OPYOQYOSfOY!VOaqOdzOeyOmkOoYOpkOqkOwkOyYO{YO!PWO!TkO!UkO![XO!fuO!iZO!lYO!mYO!nYO!pvO!rwO!uxO!y]O#t!PO$V|O%e}O%g!QO%i!OO%j!OO%k!OO%n!RO%p!SO%s!TO%t!TO%v!UO&S!WO&Y!XO&[!YO&^!ZO&`![O&c!]O&i!^O&o!_O&q!`O&s!aO&u!bO&w!cO(OSO(QTO(TUO([VO(j[O(yiO~OWtO~P`OPYOQYOSfOd!jOe!iOmkOoYOpkOqkOwkOyYO{YO!PWO!TkO!UkO![!eO!fuO!iZO!lYO!mYO!nYO!pvO!r!gO!u!hO$V!kO(O!dO(QTO(TUO([VO(j[O(yiO~Oa!wOp!nO!P!oO!_!yO!`!vO!a!vO!y:lO#Q!pO#R!pO#S!xO#T!pO#U!pO#X!zO#Y!zO(P!lO(QTO(TUO(`!mO(j!sO~O'y!{O~OP]XR]X[]Xa]Xo]X}]X!P]X!Y]X!i]X!m]X#O]X#P]X#]]X#hfX#k]X#l]X#m]X#n]X#o]X#p]X#q]X#r]X#s]X#u]X#w]X#y]X#z]X$P]X'u]X([]X(m]X(t]X(u]X~O!d%PX~P(qO_!}O(Q#PO(R!}O(S#PO~O_#QO(S#PO(T#PO(U#QO~Ou#SO!R#TO(]#TO(^#VO~OPYOQYOSfOd!jOe!iOmkOoYOpkOqkOwkOyYO{YO!PWO!TkO!UkO![!eO!fuO!iZO!lYO!mYO!nYO!pvO!r!gO!u!hO$V!kO(O:pO(QTO(TUO([VO(j[O(yiO~O!X#ZO!Y#WO!V(cP!V(qP~P+}O!Z#cO~P`OPYOQYOSfOd!jOe!iOoYOpkOqkOwkOyYO{YO!PWO!TkO!UkO![!eO!fuO!iZO!lYO!mYO!nYO!pvO!r!gO!u!hO$V!kO(QTO(TUO([VO(j[O(yiO~Om#mO!X#iO!y]O#f#lO#g#iO(O:qO!h(nP~P.iO!i#oO(O#nO~O!u#sO!y]O%e#tO~O#h#uO~O!d#vO#h#uO~OP$]OR#zO[$cOo$QO}#yO!P#{O!Y$`O!i#xO!m$]O#O$SO#k$OO#l$PO#m$PO#n$PO#o$RO#p$SO#q$SO#r$bO#s$SO#u$TO#w$VO#y$XO#z$YO([VO(m$ZO(t#|O(u#}O~Oa(aX'u(aX's(aX!h(aX!V(aX![(aX%f(aX!d(aX~P1qO#P$dO#]$eO$P$eOP(bXR(bX[(bXo(bX}(bX!P(bX!Y(bX!i(bX!m(bX#O(bX#k(bX#l(bX#m(bX#n(bX#o(bX#p(bX#q(bX#r(bX#s(bX#u(bX#w(bX#y(bX#z(bX([(bX(m(bX(t(bX(u(bX![(bX%f(bX~Oa(bX'u(bX's(bX!V(bX!h(bXs(bX!d(bX~P4UO#]$eO~O$[$hO$^$gO$e$mO~OSfO![$nO$h$oO$j$qO~Oh%WOm%XOo$uOp$tOq$tOw%YOy%ZO{%[O!P$|O![$}O!f%aO!i$yO#g%bO$V%_O$r%]O$t%^O$w%`O(O$sO(QTO(TUO([$vO(t%OO(u%QOg(XP~O!i%cO~O!P%fO![%gO(O%eO~O!d%kO~Oa%lO'u%lO~O}%pO~P%[O(P!lO~P%[O%k%tO~P%[Oh%WO!i%cO(O%eO(P!lO~Oe%{O!i%cO(O%eO~O#s$SO~O}&QO![%}O!i&PO%g&TO(O%eO(P!lO(QTO(TUO`)SP~O!u#sO~O%p&VO!P)OX![)OX(O)OX~O(O&WO~O!r&]O#t!PO%g!QO%i!OO%j!OO%k!OO%n!RO%p!SO%s!TO%t!TO~Od&bOe&aO!u&_O%e&`O%x&^O~P;|Od&eOeyO![&dO!r&]O!uxO!y]O#t!PO%e}O%i!OO%j!OO%k!OO%n!RO%p!SO%s!TO%t!TO%v!UO~Ob&hO#]&kO%g&fO(P!lO~P=RO!i&lO!r&pO~O!i#oO~O![XO~Oa%lO't&xO'u%lO~Oa%lO't&{O'u%lO~Oa%lO't&}O'u%lO~O's]X!V]Xs]X!h]X&W]X![]X%f]X!d]X~P(qO!_'[O!`'TO!a'TO(P!lO(QTO(TUO~Op'RO!P'QO!X'UO(`'PO!Z(dP!Z(sP~P@YOk'_O![']O(O%eO~Oe'dO!i%cO(O%eO~O}&QO!i&PO~Op!nO!P!oO!y:lO#Q!pO#R!pO#T!pO#U!pO(P!lO(QTO(TUO(`!mO(j!sO~O!_'jO!`'iO!a'iO#S!pO#X'kO#Y'kO~PAtOa%lOh%WO!d#vO!i%cO'u%lO(m'mO~O!m'qO#]'oO~PCSOp!nO!P!oO(QTO(TUO(`!mO(j!sO~O![XOp(hX!P(hX!_(hX!`(hX!a(hX!y(hX#Q(hX#R(hX#S(hX#T(hX#U(hX#X(hX#Y(hX(P(hX(Q(hX(T(hX(`(hX(j(hX~O!`'iO!a'iO(P!lO~PCrO'z'uO'{'uO'|'wO~O_!}O(Q'yO(R!}O(S'yO~O_#QO(S'yO(T'yO(U#QO~Ou#SO!R#TO(]#TO(^'}O~O!X(PO!V'SX!V'YX!Y'SX!Y'YX~P+}O!Y(RO!V(cX~OP$]OR#zO[$cOo$QO}#yO!P#{O!Y(RO!i#xO!m$]O#O$SO#k$OO#l$PO#m$PO#n$PO#o$RO#p$SO#q$SO#r$bO#s$SO#u$TO#w$VO#y$XO#z$YO([VO(m$ZO(t#|O(u#}O~O!V(cX~PGfO!V(WO~O!V(pX!Y(pX!d(pX!h(pX(m(pX~O#](pX#h#aX!Z(pX~PIiO#](XO!V(rX!Y(rX~O!Y(YO!V(qX~O!V(]O~O#]$eO~PIiO!Z(^O~P`OR#zO}#yO!P#{O!i#xO([VOP!ka[!kao!ka!Y!ka!m!ka#O!ka#k!ka#l!ka#m!ka#n!ka#o!ka#p!ka#q!ka#r!ka#s!ka#u!ka#w!ka#y!ka#z!ka(m!ka(t!ka(u!ka~Oa!ka'u!ka's!ka!V!ka!h!kas!ka![!ka%f!ka!d!ka~PKPO!h(_O~O!d#vO#](`O(m'mO!Y(oXa(oX'u(oX~O!h(oX~PMlO!P%fO![%gO!y]O#f(eO#g(dO(O%eO~O!Y(fO!h(nX~O!h(hO~O!P%fO![%gO#g(dO(O%eO~OP(bXR(bX[(bXo(bX}(bX!P(bX!Y(bX!i(bX!m(bX#O(bX#k(bX#l(bX#m(bX#n(bX#o(bX#p(bX#q(bX#r(bX#s(bX#u(bX#w(bX#y(bX#z(bX([(bX(m(bX(t(bX(u(bX~O!d#vO!h(bX~P! YOR(jO}(iO!i#xO#P$dO!y!xa!P!xa~O!u!xa%e!xa![!xa#f!xa#g!xa(O!xa~P!#ZO!u(nO~OPYOQYOSfOd!jOe!iOmkOoYOpkOqkOwkOyYO{YO!PWO!TkO!UkO![XO!fuO!iZO!lYO!mYO!nYO!pvO!r!gO!u!hO$V!kO(O!dO(QTO(TUO([VO(j[O(yiO~Oh%WOm%XOo$uOp$tOq$tOw%YOy%ZO{;YO!P$|O![$}O!f<jO!i$yO#g;`O$V%_O$r;[O$t;^O$w%`O(O(rO(QTO(TUO([$vO(t%OO(u%QO~O#h(tO~O!X(vO!h(fP~P%[O(`(xO(j[O~O!P(zO!i#xO(`(xO(j[O~OP:kOQ:kOSfOd<fOe!iOmkOo:kOpkOqkOwkOy:kO{:kO!PWO!TkO!UkO![!eO!f:nO!iZO!l:kO!m:kO!n:kO!p:oO!r:rO!u!hO$V!kO(O)YO(QTO(TUO([VO(j[O(y<dO~O!Y$`Oa$oa'u$oa's$oa!h$oa!V$oa![$oa%f$oa!d$oa~O#t)`O~P!&_Oh%WOm%XOo$uOp$tOq$tOw%YOy%ZO{%[O!P$|O![$}O!f%aO!i$yO#g%bO$V%_O$r%]O$t%^O$w%`O(O(rO(QTO(TUO([$vO(t%OO(u%QO~Og(kP~P!+hO})eO!d)dO![$]X$Y$]X$[$]X$^$]X$e$]X~O!d)dO![(vX$Y(vX$[(vX$^(vX$e(vX~O})eO~P!-qO})eO![(vX$Y(vX$[(vX$^(vX$e(vX~O![)gO$Y)kO$[)fO$^)fO$e)lO~O!X)oO~P!(oO$[$hO$^$gO$e)sO~Ok$xX}$xX!P$xX#P$xX(t$xX(u$xX~OgjXg$xXkjX!YjX#]jX~P!/gOp)uO~Ou)vO(])wO(^)yO~Ok*SO}){O!P)|O(t%OO(u%QO~Og)zO~P!0pOg*TO~Oh%WOm%XOo$uOp$tOq$tOw%YOy%ZO{;YO!P*VO![*WO!f<jO!i$yO#g;`O$V%_O$r;[O$t;^O$w%`O(QTO(TUO([$vO(t%OO(u%QO~O!X*ZO(O*UO!h(zP~P!1_O#h*]O~O!i*^O~Oh%WOm%XOo$uOp$tOq$tOw%YOy%ZO{;YO!P$|O![$}O!f<jO!i$yO#g;`O$V%_O$r;[O$t;^O$w%`O(O*`O(QTO(TUO([$vO(t%OO(u%QO~O!X*cO!V({P~P!3^Oo*oO!P*gO!_*mO!`*fO!a*fO!i*^O#X*nO%]*iO(P!lO(`!mO~O!Z*lO~P!5RO#P$dOk(ZX}(ZX!P(ZX(t(ZX(u(ZX!Y(ZX#](ZX~Og(ZX#}(ZX~P!5zOk*tO#]*sOg(YX!Y(YX~O!Y*uOg(XX~O(O&WOg(XP~O!i*|O~O(O(rO~Om+QO!P%fO!X#iO![%gO!y]O#f#lO#g#iO(O%eO!h(nP~O!d#vO#h+RO~O!P%fO!X+TO!Y(YO![%gO(O%eO!V(qP~Op'XO!P+VO!X+UO(QTO(TUO(`(xO~O!Z(sP~P!8uO!Y+WOa)PX'u)PX~OP$]OR#zO[$cOo$QO}#yO!P#{O!i#xO!m$]O#O$SO#k$OO#l$PO#m$PO#n$PO#o$RO#p$SO#q$SO#r$bO#s$SO#u$TO#w$VO#y$XO#z$YO([VO(m$ZO(t#|O(u#}O~Oa!ga!Y!ga'u!ga's!ga!V!ga!h!gas!ga![!ga%f!ga!d!ga~P!9mOR#zO}#yO!P#{O!i#xO([VOP!oa[!oao!oa!Y!oa!m!oa#O!oa#k!oa#l!oa#m!oa#n!oa#o!oa#p!oa#q!oa#r!oa#s!oa#u!oa#w!oa#y!oa#z!oa(m!oa(t!oa(u!oa~Oa!oa'u!oa's!oa!V!oa!h!oas!oa![!oa%f!oa!d!oa~P!<TOR#zO}#yO!P#{O!i#xO([VOP!qa[!qao!qa!Y!qa!m!qa#O!qa#k!qa#l!qa#m!qa#n!qa#o!qa#p!qa#q!qa#r!qa#s!qa#u!qa#w!qa#y!qa#z!qa(m!qa(t!qa(u!qa~Oa!qa'u!qa's!qa!V!qa!h!qas!qa![!qa%f!qa!d!qa~P!>kOh%WOk+aO![']O%f+`O~O!d+cOa(WX![(WX'u(WX!Y(WX~Oa%lO![XO'u%lO~Oh%WO!i%cO~Oh%WO!i%cO(O%eO~O!d#vO#h(tO~Ob+nO%g+oO(O+kO(QTO(TUO!Z)TP~O!Y+pO`)SX~O[+tO~O`+uO~O![%}O(O%eO(P!lO`)SP~Oh%WO#]+zO~Oh%WOk+}O![$}O~O![,PO~O},RO![XO~O%k%tO~O!u,WO~Oe,]O~Ob,^O(O#nO(QTO(TUO!Z)RP~Oe%{O~O%g!QO(O&WO~P=RO[,cO`,bO~OPYOQYOSfOdzOeyOmkOoYOpkOqkOwkOyYO{YO!PWO!TkO!UkO!fuO!iZO!lYO!mYO!nYO!pvO!uxO!y]O%e}O(QTO(TUO([VO(j[O(yiO~O![!eO!r!gO$V!kO(O!dO~P!EkO`,bOa%lO'u%lO~OPYOQYOSfOd!jOe!iOmkOoYOpkOqkOwkOyYO{YO!PWO!TkO!UkO![!eO!fuO!iZO!lYO!mYO!nYO!pvO!u!hO$V!kO(O!dO(QTO(TUO([VO(j[O(yiO~Oa,hO!rwO#t!OO%i!OO%j!OO%k!OO~P!HTO!i&lO~O&Y,nO~O![,pO~O&k,rO&m,sOP&haQ&haS&haY&haa&had&hae&ham&hao&hap&haq&haw&hay&ha{&ha!P&ha!T&ha!U&ha![&ha!f&ha!i&ha!l&ha!m&ha!n&ha!p&ha!r&ha!u&ha!y&ha#t&ha$V&ha%e&ha%g&ha%i&ha%j&ha%k&ha%n&ha%p&ha%s&ha%t&ha%v&ha&S&ha&Y&ha&[&ha&^&ha&`&ha&c&ha&i&ha&o&ha&q&ha&s&ha&u&ha&w&ha's&ha(O&ha(Q&ha(T&ha([&ha(j&ha(y&ha!Z&ha&a&hab&ha&f&ha~O(O,xO~Oh!bX!Y!OX!Z!OX!d!OX!d!bX!i!bX#]!OX~O!Y!bX!Z!bX~P# ZO!d,}O#],|Oh(eX!Y#eX!Y(eX!Z#eX!Z(eX!d(eX!i(eX~Oh%WO!d-PO!i%cO!Y!^X!Z!^X~Op!nO!P!oO(QTO(TUO(`!mO~OP:kOQ:kOSfOd<fOe!iOmkOo:kOpkOqkOwkOy:kO{:kO!PWO!TkO!UkO![!eO!f:nO!iZO!l:kO!m:kO!n:kO!p:oO!r:rO!u!hO$V!kO(QTO(TUO([VO(j[O(y<dO~O(O;fO~P##_O!Y-TO!Z(dX~O!Z-VO~O!d,}O#],|O!Y#eX!Z#eX~O!Y-WO!Z(sX~O!Z-YO~O!`-ZO!a-ZO(P!lO~P#!|O!Z-^O~P'_Ok-aO![']O~O!V-fO~Op!xa!_!xa!`!xa!a!xa#Q!xa#R!xa#S!xa#T!xa#U!xa#X!xa#Y!xa(P!xa(Q!xa(T!xa(`!xa(j!xa~P!#ZO!m-kO#]-iO~PCSO!`-mO!a-mO(P!lO~PCrOa%lO#]-iO'u%lO~Oa%lO!d#vO#]-iO'u%lO~Oa%lO!d#vO!m-kO#]-iO'u%lO(m'mO~O'z'uO'{'uO'|-rO~Os-sO~O!V'Sa!Y'Sa~P!9mO!X-wO!V'SX!Y'SX~P%[O!Y(RO!V(ca~O!V(ca~PGfO!Y(YO!V(qa~O!P%fO!X-{O![%gO(O%eO!V'YX!Y'YX~O#]-}O!Y(oa!h(oaa(oa'u(oa~O!d#vO~P#+eO!Y(fO!h(na~O!P%fO![%gO#g.RO(O%eO~Om.WO!P%fO!X.TO![%gO!y]O#f.VO#g.TO(O%eO!Y']X!h']X~OR.[O!i#xO~Oh%WOk._O![']O%f.^O~Oa#`i!Y#`i'u#`i's#`i!V#`i!h#`is#`i![#`i%f#`i!d#`i~P!9mOk<pO}){O!P)|O(t%OO(u%QO~O#h#[aa#[a#]#[a'u#[a!Y#[a!h#[a![#[a!V#[a~P#.aO#h(ZXP(ZXR(ZX[(ZXa(ZXo(ZX!i(ZX!m(ZX#O(ZX#k(ZX#l(ZX#m(ZX#n(ZX#o(ZX#p(ZX#q(ZX#r(ZX#s(ZX#u(ZX#w(ZX#y(ZX#z(ZX'u(ZX([(ZX(m(ZX!h(ZX!V(ZX's(ZXs(ZX![(ZX%f(ZX!d(ZX~P!5zO!Y.lO!h(fX~P!9mO!h.oO~O!V.qO~OP$]OR#zO}#yO!P#{O!i#xO!m$]O([VO[#jia#jio#ji!Y#ji#O#ji#l#ji#m#ji#n#ji#o#ji#p#ji#q#ji#r#ji#s#ji#u#ji#w#ji#y#ji#z#ji'u#ji(m#ji(t#ji(u#ji's#ji!V#ji!h#jis#ji![#ji%f#ji!d#ji~O#k#ji~P#1|O#k$OO~P#1|OP$]OR#zO}#yO!P#{O!i#xO!m$]O#k$OO#l$PO#m$PO#n$PO([VO[#jia#ji!Y#ji#O#ji#o#ji#p#ji#q#ji#r#ji#s#ji#u#ji#w#ji#y#ji#z#ji'u#ji(m#ji(t#ji(u#ji's#ji!V#ji!h#jis#ji![#ji%f#ji!d#ji~Oo#ji~P#4kOo$QO~P#4kOP$]OR#zOo$QO}#yO!P#{O!i#xO!m$]O#k$OO#l$PO#m$PO#n$PO#o$RO([VOa#ji!Y#ji#u#ji#w#ji#y#ji#z#ji'u#ji(m#ji(t#ji(u#ji's#ji!V#ji!h#jis#ji![#ji%f#ji!d#ji~O[#ji#O#ji#p#ji#q#ji#r#ji#s#ji~P#7YO[$cO#O$SO#p$SO#q$SO#r$bO#s$SO~P#7YOP$]OR#zO[$cOo$QO}#yO!P#{O!i#xO!m$]O#O$SO#k$OO#l$PO#m$PO#n$PO#o$RO#p$SO#q$SO#r$bO#s$SO#u$TO([VO(u#}Oa#ji!Y#ji#y#ji#z#ji'u#ji(m#ji(t#ji's#ji!V#ji!h#jis#ji![#ji%f#ji!d#ji~O#w$VO~P#:WO#w#ji~P#:WOP$]OR#zO[$cOo$QO}#yO!P#{O!i#xO!m$]O#O$SO#k$OO#l$PO#m$PO#n$PO#o$RO#p$SO#q$SO#r$bO#s$SO#u$TO([VOa#ji!Y#ji#y#ji#z#ji'u#ji(m#ji's#ji!V#ji!h#jis#ji![#ji%f#ji!d#ji~O#w#ji(t#ji(u#ji~P#<uO#w$VO(t#|O(u#}O~P#<uOP$]OR#zO[$cOo$QO}#yO!P#{O!i#xO!m$]O#O$SO#k$OO#l$PO#m$PO#n$PO#o$RO#p$SO#q$SO#r$bO#s$SO#u$TO#w$VO#y$XO([VO(t#|O(u#}O~Oa#ji!Y#ji#z#ji'u#ji(m#ji's#ji!V#ji!h#jis#ji![#ji%f#ji!d#ji~P#?jOP]XR]X[]Xo]X}]X!P]X!i]X!m]X#O]X#P]X#]]X#hfX#k]X#l]X#m]X#n]X#o]X#p]X#q]X#r]X#s]X#u]X#w]X#y]X#z]X$P]X([]X(m]X(t]X(u]X!Y]X!Z]X~O#}]X~P#BQOP$]OR#zO[;SOo:vO}#yO!P#{O!i#xO!m$]O#O:xO#k:tO#l:uO#m:uO#n:uO#o:wO#p:xO#q:xO#r;RO#s:xO#u:yO#w:{O#y:}O#z;OO([VO(m$ZO(t#|O(u#}O~O#}.sO~P#D_O#P$dO#];TO$P;TO#}(bX!Z(bX~P! YOa'`a!Y'`a'u'`a's'`a!h'`a!V'`as'`a!['`a%f'`a!d'`a~P!9mOP#jiR#ji[#jia#jio#ji!Y#ji!i#ji!m#ji#O#ji#k#ji#l#ji#m#ji#n#ji#o#ji#p#ji#q#ji#r#ji#s#ji#u#ji#w#ji#y#ji#z#ji'u#ji([#ji(m#ji's#ji!V#ji!h#jis#ji![#ji%f#ji!d#ji~P#.aO!Y.wOg(kX~P!0pOg.yO~Oa$Oi!Y$Oi'u$Oi's$Oi!V$Oi!h$Ois$Oi![$Oi%f$Oi!d$Oi~P!9mO$[.zO$^.zO~O$[.{O$^.{O~O!d)dO#].|O![$bX$Y$bX$[$bX$^$bX$e$bX~O!X.}O~O![)gO$Y/PO$[)fO$^)fO$e/QO~O!Y;PO!Z(aX~P#D_O!Z/RO~O!d)dO$e(vX~O$e/TO~Ou)vO(])wO(^/WO~O!V/[O~P!&_O(t%OOk%^a}%^a!P%^a(u%^a!Y%^a#]%^a~Og%^a#}%^a~P#L{O(u%QOk%`a}%`a!P%`a(t%`a!Y%`a#]%`a~Og%`a#}%`a~P#MnO!YfX!dfX!hfX!h$xX(mfX~P!/gO!X/eO!Y(YO(O/dO!V(qP!V({P~P!1_Oo*oO!_*mO!`*fO!a*fO!i*^O#X*nO%]*iO(P!lO~Op'XO!P/fO!X+UO!Z*lO(QTO(TUO(`;cO!Z(sP~P$ XO!h/gO~P#.aO!Y/hO!d#vO(m'mO!h(zX~O!h/mO~O!P%fO!X*ZO![%gO(O%eO!h(zP~O#h/oO~O!V$xX!Y$xX!d%PX~P!/gO!Y/pO!V({X~P#.aO!d/rO~O!V/tO~Oh%WOo/xO!d#vO!i%cO(m'mO~O(O/zO~O!d+cO~Oa%lO!Y0OO'u%lO~O!Z0QO~P!5RO!`0RO!a0RO(P!lO(`!mO~O!P0TO(`!mO~O#X0UO~Og%^a!Y%^a#]%^a#}%^a~P!0pOg%`a!Y%`a#]%`a#}%`a~P!0pO(O&WOg'iX!Y'iX~O!Y*uOg(Xa~Og0_O~OR0`O}0`O!P0aO#P$dOkza(tza(uza!Yza#]za~Ogza#}za~P$&zO}){O!P)|Ok$qa(t$qa(u$qa!Y$qa#]$qa~Og$qa#}$qa~P$'sO}){O!P)|Ok$sa(t$sa(u$sa!Y$sa#]$sa~Og$sa#}$sa~P$(fO#h0dO~Og%Ra!Y%Ra#]%Ra#}%Ra~P!0pO!d#vO~O#h0gO~O!Y+WOa)Pa'u)Pa~OR#zO}#yO!P#{O!i#xO([VOP!oi[!oio!oi!Y!oi!m!oi#O!oi#k!oi#l!oi#m!oi#n!oi#o!oi#p!oi#q!oi#r!oi#s!oi#u!oi#w!oi#y!oi#z!oi(m!oi(t!oi(u!oi~Oa!oi'u!oi's!oi!V!oi!h!ois!oi![!oi%f!oi!d!oi~P$*TOh%WOo$uOp$tOq$tOw%YOy%ZO{;YO!P$|O![$}O!f<jO!i$yO#g;`O$V%_O$r;[O$t;^O$w%`O(QTO(TUO([$vO(t%OO(u%QO~Om0pO(O0oO~P$,kO!d+cOa(Wa![(Wa'u(Wa!Y(Wa~O#h0vO~O[]X!YfX!ZfX~O!Y0wO!Z)TX~O!Z0yO~O[0zO~Ob0|O(O+kO(QTO(TUO~O![%}O(O%eO`'qX!Y'qX~O!Y+pO`)Sa~O!h1PO~P!9mO[1SO~O`1TO~O#]1WO~Ok1ZO![$}O~O(`(xO!Z)QP~Oh%WOk1dO![1aO%f1cO~O[1nO!Y1lO!Z)RX~O!Z1oO~O`1qOa%lO'u%lO~O(O#nO(QTO(TUO~O#P$dO#]$eO$P$eOP(bXR(bX[(bXo(bX}(bX!P(bX!Y(bX!i(bX!m(bX#O(bX#k(bX#l(bX#m(bX#n(bX#o(bX#p(bX#q(bX#r(bX#u(bX#w(bX#y(bX#z(bX([(bX(m(bX(t(bX(u(bX~O#s1tO&W1uOa(bX~P$2RO#]$eO#s1tO&W1uO~Oa1wO~P%[Oa1yO~O&a1|OP&_iQ&_iS&_iY&_ia&_id&_ie&_im&_io&_ip&_iq&_iw&_iy&_i{&_i!P&_i!T&_i!U&_i![&_i!f&_i!i&_i!l&_i!m&_i!n&_i!p&_i!r&_i!u&_i!y&_i#t&_i$V&_i%e&_i%g&_i%i&_i%j&_i%k&_i%n&_i%p&_i%s&_i%t&_i%v&_i&S&_i&Y&_i&[&_i&^&_i&`&_i&c&_i&i&_i&o&_i&q&_i&s&_i&u&_i&w&_i's&_i(O&_i(Q&_i(T&_i([&_i(j&_i(y&_i!Z&_ib&_i&f&_i~Ob2SO!Z2QO&f2RO~P`O![XO!i2UO~O&m,sOP&hiQ&hiS&hiY&hia&hid&hie&him&hio&hip&hiq&hiw&hiy&hi{&hi!P&hi!T&hi!U&hi![&hi!f&hi!i&hi!l&hi!m&hi!n&hi!p&hi!r&hi!u&hi!y&hi#t&hi$V&hi%e&hi%g&hi%i&hi%j&hi%k&hi%n&hi%p&hi%s&hi%t&hi%v&hi&S&hi&Y&hi&[&hi&^&hi&`&hi&c&hi&i&hi&o&hi&q&hi&s&hi&u&hi&w&hi's&hi(O&hi(Q&hi(T&hi([&hi(j&hi(y&hi!Z&hi&a&hib&hi&f&hi~O!V2[O~O!Y!^a!Z!^a~P#D_Op!nO!P!oO!X2bO(`!mO!Y'TX!Z'TX~P@YO!Y-TO!Z(da~O!Y'ZX!Z'ZX~P!8uO!Y-WO!Z(sa~O!Z2iO~P'_Oa%lO#]2rO'u%lO~Oa%lO!d#vO#]2rO'u%lO~Oa%lO!d#vO!m2vO#]2rO'u%lO(m'mO~Oa%lO'u%lO~P!9mO!Y$`Os$oa~O!V'Si!Y'Si~P!9mO!Y(RO!V(ci~O!Y(YO!V(qi~O!V(ri!Y(ri~P!9mO!Y(oi!h(oia(oi'u(oi~P!9mO#]2xO!Y(oi!h(oia(oi'u(oi~O!Y(fO!h(ni~O!P%fO![%gO!y]O#f2}O#g2|O(O%eO~O!P%fO![%gO#g2|O(O%eO~Ok3UO![']O%f3TO~Oh%WOk3UO![']O%f3TO~O#h%^aP%^aR%^a[%^aa%^ao%^a!i%^a!m%^a#O%^a#k%^a#l%^a#m%^a#n%^a#o%^a#p%^a#q%^a#r%^a#s%^a#u%^a#w%^a#y%^a#z%^a'u%^a([%^a(m%^a!h%^a!V%^a's%^as%^a![%^a%f%^a!d%^a~P#L{O#h%`aP%`aR%`a[%`aa%`ao%`a!i%`a!m%`a#O%`a#k%`a#l%`a#m%`a#n%`a#o%`a#p%`a#q%`a#r%`a#s%`a#u%`a#w%`a#y%`a#z%`a'u%`a([%`a(m%`a!h%`a!V%`a's%`as%`a![%`a%f%`a!d%`a~P#MnO#h%^aP%^aR%^a[%^aa%^ao%^a!Y%^a!i%^a!m%^a#O%^a#k%^a#l%^a#m%^a#n%^a#o%^a#p%^a#q%^a#r%^a#s%^a#u%^a#w%^a#y%^a#z%^a'u%^a([%^a(m%^a!h%^a!V%^a's%^a#]%^as%^a![%^a%f%^a!d%^a~P#.aO#h%`aP%`aR%`a[%`aa%`ao%`a!Y%`a!i%`a!m%`a#O%`a#k%`a#l%`a#m%`a#n%`a#o%`a#p%`a#q%`a#r%`a#s%`a#u%`a#w%`a#y%`a#z%`a'u%`a([%`a(m%`a!h%`a!V%`a's%`a#]%`as%`a![%`a%f%`a!d%`a~P#.aO#hzaPza[zaazaoza!iza!mza#Oza#kza#lza#mza#nza#oza#pza#qza#rza#sza#uza#wza#yza#zza'uza([za(mza!hza!Vza'szasza![za%fza!dza~P$&zO#h$qaP$qaR$qa[$qaa$qao$qa!i$qa!m$qa#O$qa#k$qa#l$qa#m$qa#n$qa#o$qa#p$qa#q$qa#r$qa#s$qa#u$qa#w$qa#y$qa#z$qa'u$qa([$qa(m$qa!h$qa!V$qa's$qas$qa![$qa%f$qa!d$qa~P$'sO#h$saP$saR$sa[$saa$sao$sa!i$sa!m$sa#O$sa#k$sa#l$sa#m$sa#n$sa#o$sa#p$sa#q$sa#r$sa#s$sa#u$sa#w$sa#y$sa#z$sa'u$sa([$sa(m$sa!h$sa!V$sa's$sas$sa![$sa%f$sa!d$sa~P$(fO#h%RaP%RaR%Ra[%Raa%Rao%Ra!Y%Ra!i%Ra!m%Ra#O%Ra#k%Ra#l%Ra#m%Ra#n%Ra#o%Ra#p%Ra#q%Ra#r%Ra#s%Ra#u%Ra#w%Ra#y%Ra#z%Ra'u%Ra([%Ra(m%Ra!h%Ra!V%Ra's%Ra#]%Ras%Ra![%Ra%f%Ra!d%Ra~P#.aOa#`q!Y#`q'u#`q's#`q!V#`q!h#`qs#`q![#`q%f#`q!d#`q~P!9mO!X3^O!Y'UX!h'UX~P%[O!Y.lO!h(fa~O!Y.lO!h(fa~P!9mO!V3aO~O#}!ka!Z!ka~PKPO#}!ga!Y!ga!Z!ga~P#D_O#}!oa!Z!oa~P!<TO#}!qa!Z!qa~P!>kOg'XX!Y'XX~P!+hO!Y.wOg(ka~OSfO![3uO$c3vO~O!Z3zO~Os3{O~P#.aOa$lq!Y$lq'u$lq's$lq!V$lq!h$lqs$lq![$lq%f$lq!d$lq~P!9mO!V3|O~P#.aO}){O!P)|O(u%QOk'ea(t'ea!Y'ea#]'ea~Og'ea#}'ea~P%+]O}){O!P)|Ok'ga(t'ga(u'ga!Y'ga#]'ga~Og'ga#}'ga~P%,OO(m$ZO~P#.aO!VfX!V$xX!YfX!Y$xX!d%PX#]fX~P!/gO(O;lO~P!1_OmkO(O4OO~P.iO!P%fO!X4QO![%gO(O%eO!Y'aX!h'aX~O!Y/hO!h(za~O!Y/hO!d#vO!h(za~O!Y/hO!d#vO(m'mO!h(za~Og$zi!Y$zi#]$zi#}$zi~P!0pO!X4YO!V'cX!Y'cX~P!3^O!Y/pO!V({a~O!Y/pO!V({a~P#.aO!d#vO#s4bO~Oo4eO!d#vO(m'mO~O(t%OOk%^i}%^i!P%^i(u%^i!Y%^i#]%^i~Og%^i#}%^i~P%0^O(u%QOk%`i}%`i!P%`i(t%`i!Y%`i#]%`i~Og%`i#}%`i~P%1POg(Yi!Y(Yi~P!0pO#]4lOg(Yi!Y(Yi~P!0pO!h4oO~Oa$mq!Y$mq'u$mq's$mq!V$mq!h$mqs$mq![$mq%f$mq!d$mq~P!9mO!V4sO~O!Y4tO![(|X~P#.aOa$xX![$xX%Z]X'u$xX!Y$xX~P!/gO%Z4wOalXklX}lX!PlX![lX'ulX(tlX(ulX!YlX~O%Z4wO~Ob4}O%g5OO(O+kO(QTO(TUO!Y'pX!Z'pX~O!Y0wO!Z)Ta~O[5SO~O`5TO~Oa%lO'u%lO~P#.aO![$}O~P#.aO!Y5]O#]5_O!Z)QX~O!Z5`O~Op!nO!P5aO!_!yO!`!vO!a!vO!y:lO#Q!pO#R!pO#S!pO#T!pO#U!pO#X5fO#Y!zO(P!lO(QTO(TUO(`!mO(j!sO~O!Z5eO~P%6ZOk5kO![1aO%f5jO~Oh%WOk5kO![1aO%f5jO~Ob5rO(O#nO(QTO(TUO!Y'oX!Z'oX~O!Y1lO!Z)Ra~O(QTO(TUO(`5tO~O`5xO~O#s5{O&W5|O~PMlO!h5}O~P%[Oa6PO~Oa6PO~P%[Ob2SO!Z6UO&f2RO~P`O!d6WO~O!d6YOh(ei!Y(ei!Z(ei!d(ei!i(ei~O!Y#ei!Z#ei~P#D_O#]6ZO!Y#ei!Z#ei~O!Y!^i!Z!^i~P#D_Oa%lO#]6dO'u%lO~Oa%lO!d#vO#]6dO'u%lO~O!Y(oq!h(oqa(oq'u(oq~P!9mO!Y(fO!h(nq~O!P%fO![%gO#g6kO(O%eO~O![']O%f6nO~Ok6rO![']O%f6nO~O#h'eaP'eaR'ea['eaa'eao'ea!i'ea!m'ea#O'ea#k'ea#l'ea#m'ea#n'ea#o'ea#p'ea#q'ea#r'ea#s'ea#u'ea#w'ea#y'ea#z'ea'u'ea(['ea(m'ea!h'ea!V'ea's'eas'ea!['ea%f'ea!d'ea~P%+]O#h'gaP'gaR'ga['gaa'gao'ga!i'ga!m'ga#O'ga#k'ga#l'ga#m'ga#n'ga#o'ga#p'ga#q'ga#r'ga#s'ga#u'ga#w'ga#y'ga#z'ga'u'ga(['ga(m'ga!h'ga!V'ga's'gas'ga!['ga%f'ga!d'ga~P%,OO#h$ziP$ziR$zi[$zia$zio$zi!Y$zi!i$zi!m$zi#O$zi#k$zi#l$zi#m$zi#n$zi#o$zi#p$zi#q$zi#r$zi#s$zi#u$zi#w$zi#y$zi#z$zi'u$zi([$zi(m$zi!h$zi!V$zi's$zi#]$zis$zi![$zi%f$zi!d$zi~P#.aO#h%^iP%^iR%^i[%^ia%^io%^i!i%^i!m%^i#O%^i#k%^i#l%^i#m%^i#n%^i#o%^i#p%^i#q%^i#r%^i#s%^i#u%^i#w%^i#y%^i#z%^i'u%^i([%^i(m%^i!h%^i!V%^i's%^is%^i![%^i%f%^i!d%^i~P%0^O#h%`iP%`iR%`i[%`ia%`io%`i!i%`i!m%`i#O%`i#k%`i#l%`i#m%`i#n%`i#o%`i#p%`i#q%`i#r%`i#s%`i#u%`i#w%`i#y%`i#z%`i'u%`i([%`i(m%`i!h%`i!V%`i's%`is%`i![%`i%f%`i!d%`i~P%1PO!Y'Ua!h'Ua~P!9mO!Y.lO!h(fi~O#}#`i!Y#`i!Z#`i~P#D_OP$]OR#zO}#yO!P#{O!i#xO!m$]O([VO[#jio#ji#O#ji#l#ji#m#ji#n#ji#o#ji#p#ji#q#ji#r#ji#s#ji#u#ji#w#ji#y#ji#z#ji#}#ji(m#ji(t#ji(u#ji!Y#ji!Z#ji~O#k#ji~P%HpO#k:tO~P%HpOP$]OR#zO}#yO!P#{O!i#xO!m$]O#k:tO#l:uO#m:uO#n:uO([VO[#ji#O#ji#o#ji#p#ji#q#ji#r#ji#s#ji#u#ji#w#ji#y#ji#z#ji#}#ji(m#ji(t#ji(u#ji!Y#ji!Z#ji~Oo#ji~P%JxOo:vO~P%JxOP$]OR#zOo:vO}#yO!P#{O!i#xO!m$]O#k:tO#l:uO#m:uO#n:uO#o:wO([VO#u#ji#w#ji#y#ji#z#ji#}#ji(m#ji(t#ji(u#ji!Y#ji!Z#ji~O[#ji#O#ji#p#ji#q#ji#r#ji#s#ji~P%MQO[;SO#O:xO#p:xO#q:xO#r;RO#s:xO~P%MQOP$]OR#zO[;SOo:vO}#yO!P#{O!i#xO!m$]O#O:xO#k:tO#l:uO#m:uO#n:uO#o:wO#p:xO#q:xO#r;RO#s:xO#u:yO([VO(u#}O#y#ji#z#ji#}#ji(m#ji(t#ji!Y#ji!Z#ji~O#w:{O~P& iO#w#ji~P& iOP$]OR#zO[;SOo:vO}#yO!P#{O!i#xO!m$]O#O:xO#k:tO#l:uO#m:uO#n:uO#o:wO#p:xO#q:xO#r;RO#s:xO#u:yO([VO#y#ji#z#ji#}#ji(m#ji!Y#ji!Z#ji~O#w#ji(t#ji(u#ji~P&#qO#w:{O(t#|O(u#}O~P&#qOP$]OR#zO[;SOo:vO}#yO!P#{O!i#xO!m$]O#O:xO#k:tO#l:uO#m:uO#n:uO#o:wO#p:xO#q:xO#r;RO#s:xO#u:yO#w:{O#y:}O([VO(t#|O(u#}O~O#z#ji#}#ji(m#ji!Y#ji!Z#ji~P&&POa#{y!Y#{y'u#{y's#{y!V#{y!h#{ys#{y![#{y%f#{y!d#{y~P!9mOk<qO}){O!P)|O(t%OO(u%QO~OP#jiR#ji[#jio#ji!i#ji!m#ji#O#ji#k#ji#l#ji#m#ji#n#ji#o#ji#p#ji#q#ji#r#ji#s#ji#u#ji#w#ji#y#ji#z#ji#}#ji([#ji(m#ji!Y#ji!Z#ji~P&(tO#P$dOP(ZXR(ZX[(ZXk(ZXo(ZX}(ZX!P(ZX!i(ZX!m(ZX#O(ZX#k(ZX#l(ZX#m(ZX#n(ZX#o(ZX#p(ZX#q(ZX#r(ZX#s(ZX#u(ZX#w(ZX#y(ZX#z(ZX#}(ZX([(ZX(m(ZX(t(ZX(u(ZX!Y(ZX!Z(ZX~O#}$Oi!Y$Oi!Z$Oi~P#D_O#}!oi!Z!oi~P$*TOg'Xa!Y'Xa~P!0pO!Z7UO~O!Y'`a!Z'`a~P#D_OP]XR]X[]Xo]X}]X!P]X!V]X!Y]X!i]X!m]X#O]X#P]X#]]X#hfX#k]X#l]X#m]X#n]X#o]X#p]X#q]X#r]X#s]X#u]X#w]X#y]X#z]X$P]X([]X(m]X(t]X(u]X~O!d%WX#s%WX~P&-}O!d#vO(m'mO!Y'aa!h'aa~O!Y/hO!h(zi~O!Y/hO!d#vO!h(zi~Og$zq!Y$zq#]$zq#}$zq~P!0pO!V'ca!Y'ca~P#.aO!d7]O~O!Y/pO!V({i~P#.aO!Y/pO!V({i~O!V7aO~O!d#vO#s7fO~Oo7gO!d#vO(m'mO~O}){O!P)|O(u%QOk'fa(t'fa!Y'fa#]'fa~Og'fa#}'fa~P&2mO}){O!P)|Ok'ha(t'ha(u'ha!Y'ha#]'ha~Og'ha#}'ha~P&3`O!V7iO~Og$|q!Y$|q#]$|q#}$|q~P!0pOa$my!Y$my'u$my's$my!V$my!h$mys$my![$my%f$my!d$my~P!9mO!d6YO~O!Y4tO![(|a~O![']OP$SaR$Sa[$Sao$Sa}$Sa!P$Sa!Y$Sa!i$Sa!m$Sa#O$Sa#k$Sa#l$Sa#m$Sa#n$Sa#o$Sa#p$Sa#q$Sa#r$Sa#s$Sa#u$Sa#w$Sa#y$Sa#z$Sa([$Sa(m$Sa(t$Sa(u$Sa~O%f6nO~P&5iOa#`y!Y#`y'u#`y's#`y!V#`y!h#`ys#`y![#`y%f#`y!d#`y~P!9mO[7nO~Ob7pO(O+kO(QTO(TUO~O!Y0wO!Z)Ti~O`7tO~O(`(xO!Y'lX!Z'lX~O!Y5]O!Z)Qa~O!Z7}O~P%6ZOp!nO!P8OO(QTO(TUO(`!mO(j!sO~O![1aO~O![1aO%f8QO~Ok8TO![1aO%f8QO~O[8YO!Y'oa!Z'oa~O!Y1lO!Z)Ri~O!h8^O~O!h8_O~O!h8bO~O!h8bO~P%[Oa8dO~O!d8eO~O!h8fO~O!Y(ri!Z(ri~P#D_Oa%lO#]8nO'u%lO~O!Y(oy!h(oya(oy'u(oy~P!9mO!Y(fO!h(ny~O%f8qO~P&5iO![']O%f8qO~O#h$zqP$zqR$zq[$zqa$zqo$zq!Y$zq!i$zq!m$zq#O$zq#k$zq#l$zq#m$zq#n$zq#o$zq#p$zq#q$zq#r$zq#s$zq#u$zq#w$zq#y$zq#z$zq'u$zq([$zq(m$zq!h$zq!V$zq's$zq#]$zqs$zq![$zq%f$zq!d$zq~P#.aO#h'faP'faR'fa['faa'fao'fa!i'fa!m'fa#O'fa#k'fa#l'fa#m'fa#n'fa#o'fa#p'fa#q'fa#r'fa#s'fa#u'fa#w'fa#y'fa#z'fa'u'fa(['fa(m'fa!h'fa!V'fa's'fas'fa!['fa%f'fa!d'fa~P&2mO#h'haP'haR'ha['haa'hao'ha!i'ha!m'ha#O'ha#k'ha#l'ha#m'ha#n'ha#o'ha#p'ha#q'ha#r'ha#s'ha#u'ha#w'ha#y'ha#z'ha'u'ha(['ha(m'ha!h'ha!V'ha's'has'ha!['ha%f'ha!d'ha~P&3`O#h$|qP$|qR$|q[$|qa$|qo$|q!Y$|q!i$|q!m$|q#O$|q#k$|q#l$|q#m$|q#n$|q#o$|q#p$|q#q$|q#r$|q#s$|q#u$|q#w$|q#y$|q#z$|q'u$|q([$|q(m$|q!h$|q!V$|q's$|q#]$|qs$|q![$|q%f$|q!d$|q~P#.aO!Y'Ui!h'Ui~P!9mO#}#`q!Y#`q!Z#`q~P#D_O(t%OOP%^aR%^a[%^ao%^a!i%^a!m%^a#O%^a#k%^a#l%^a#m%^a#n%^a#o%^a#p%^a#q%^a#r%^a#s%^a#u%^a#w%^a#y%^a#z%^a#}%^a([%^a(m%^a!Y%^a!Z%^a~Ok%^a}%^a!P%^a(u%^a~P&FgO(u%QOP%`aR%`a[%`ao%`a!i%`a!m%`a#O%`a#k%`a#l%`a#m%`a#n%`a#o%`a#p%`a#q%`a#r%`a#s%`a#u%`a#w%`a#y%`a#z%`a#}%`a([%`a(m%`a!Y%`a!Z%`a~Ok%`a}%`a!P%`a(t%`a~P&HkOk<qO}){O!P)|O(u%QO~P&FgOk<qO}){O!P)|O(t%OO~P&HkOR0`O}0`O!P0aO#P$dOPza[zakzaoza!iza!mza#Oza#kza#lza#mza#nza#oza#pza#qza#rza#sza#uza#wza#yza#zza#}za([za(mza(tza(uza!Yza!Zza~O}){O!P)|OP$qaR$qa[$qak$qao$qa!i$qa!m$qa#O$qa#k$qa#l$qa#m$qa#n$qa#o$qa#p$qa#q$qa#r$qa#s$qa#u$qa#w$qa#y$qa#z$qa#}$qa([$qa(m$qa(t$qa(u$qa!Y$qa!Z$qa~O}){O!P)|OP$saR$sa[$sak$sao$sa!i$sa!m$sa#O$sa#k$sa#l$sa#m$sa#n$sa#o$sa#p$sa#q$sa#r$sa#s$sa#u$sa#w$sa#y$sa#z$sa#}$sa([$sa(m$sa(t$sa(u$sa!Y$sa!Z$sa~OP%RaR%Ra[%Rao%Ra!i%Ra!m%Ra#O%Ra#k%Ra#l%Ra#m%Ra#n%Ra#o%Ra#p%Ra#q%Ra#r%Ra#s%Ra#u%Ra#w%Ra#y%Ra#z%Ra#}%Ra([%Ra(m%Ra!Y%Ra!Z%Ra~P&(tO#}$lq!Y$lq!Z$lq~P#D_O#}$mq!Y$mq!Z$mq~P#D_O!Z9OO~O#}9PO~P!0pO!d#vO!Y'ai!h'ai~O!d#vO(m'mO!Y'ai!h'ai~O!Y/hO!h(zq~O!V'ci!Y'ci~P#.aO!Y/pO!V({q~O!V9VO~P#.aO!V9VO~Og(Yy!Y(Yy~P!0pO!Y'ja!['ja~P#.aOa%Yq![%Yq'u%Yq!Y%Yq~P#.aO[9[O~O!Y0wO!Z)Tq~O#]9`O!Y'la!Z'la~O!Y5]O!Z)Qi~P#D_O![1aO%f9dO~O(QTO(TUO(`9iO~O!Y1lO!Z)Rq~O!h9lO~O!h9mO~O!h9nO~O!h9nO~P%[O#]9qO!Y#ey!Z#ey~O!Y#ey!Z#ey~P#D_O%f9vO~P&5iO![']O%f9vO~O#}#{y!Y#{y!Z#{y~P#D_OP$ziR$zi[$zio$zi!i$zi!m$zi#O$zi#k$zi#l$zi#m$zi#n$zi#o$zi#p$zi#q$zi#r$zi#s$zi#u$zi#w$zi#y$zi#z$zi#}$zi([$zi(m$zi!Y$zi!Z$zi~P&(tO}){O!P)|O(u%QOP'eaR'ea['eak'eao'ea!i'ea!m'ea#O'ea#k'ea#l'ea#m'ea#n'ea#o'ea#p'ea#q'ea#r'ea#s'ea#u'ea#w'ea#y'ea#z'ea#}'ea(['ea(m'ea(t'ea!Y'ea!Z'ea~O}){O!P)|OP'gaR'ga['gak'gao'ga!i'ga!m'ga#O'ga#k'ga#l'ga#m'ga#n'ga#o'ga#p'ga#q'ga#r'ga#s'ga#u'ga#w'ga#y'ga#z'ga#}'ga(['ga(m'ga(t'ga(u'ga!Y'ga!Z'ga~O(t%OOP%^iR%^i[%^ik%^io%^i}%^i!P%^i!i%^i!m%^i#O%^i#k%^i#l%^i#m%^i#n%^i#o%^i#p%^i#q%^i#r%^i#s%^i#u%^i#w%^i#y%^i#z%^i#}%^i([%^i(m%^i(u%^i!Y%^i!Z%^i~O(u%QOP%`iR%`i[%`ik%`io%`i}%`i!P%`i!i%`i!m%`i#O%`i#k%`i#l%`i#m%`i#n%`i#o%`i#p%`i#q%`i#r%`i#s%`i#u%`i#w%`i#y%`i#z%`i#}%`i([%`i(m%`i(t%`i!Y%`i!Z%`i~O#}$my!Y$my!Z$my~P#D_O#}#`y!Y#`y!Z#`y~P#D_O!d#vO!Y'aq!h'aq~O!Y/hO!h(zy~O!V'cq!Y'cq~P#.aO!V:PO~P#.aO!Y0wO!Z)Ty~O!Y5]O!Z)Qq~O![1aO%f:WO~O!h:ZO~O%f:`O~P&5iOP$zqR$zq[$zqo$zq!i$zq!m$zq#O$zq#k$zq#l$zq#m$zq#n$zq#o$zq#p$zq#q$zq#r$zq#s$zq#u$zq#w$zq#y$zq#z$zq#}$zq([$zq(m$zq!Y$zq!Z$zq~P&(tO}){O!P)|O(u%QOP'faR'fa['fak'fao'fa!i'fa!m'fa#O'fa#k'fa#l'fa#m'fa#n'fa#o'fa#p'fa#q'fa#r'fa#s'fa#u'fa#w'fa#y'fa#z'fa#}'fa(['fa(m'fa(t'fa!Y'fa!Z'fa~O}){O!P)|OP'haR'ha['hak'hao'ha!i'ha!m'ha#O'ha#k'ha#l'ha#m'ha#n'ha#o'ha#p'ha#q'ha#r'ha#s'ha#u'ha#w'ha#y'ha#z'ha#}'ha(['ha(m'ha(t'ha(u'ha!Y'ha!Z'ha~OP$|qR$|q[$|qo$|q!i$|q!m$|q#O$|q#k$|q#l$|q#m$|q#n$|q#o$|q#p$|q#q$|q#r$|q#s$|q#u$|q#w$|q#y$|q#z$|q#}$|q([$|q(m$|q!Y$|q!Z$|q~P&(tOg%b!Z!Y%b!Z#]%b!Z#}%b!Z~P!0pO!Y'lq!Z'lq~P#D_O!Y#e!Z!Z#e!Z~P#D_O#h%b!ZP%b!ZR%b!Z[%b!Za%b!Zo%b!Z!Y%b!Z!i%b!Z!m%b!Z#O%b!Z#k%b!Z#l%b!Z#m%b!Z#n%b!Z#o%b!Z#p%b!Z#q%b!Z#r%b!Z#s%b!Z#u%b!Z#w%b!Z#y%b!Z#z%b!Z'u%b!Z([%b!Z(m%b!Z!h%b!Z!V%b!Z's%b!Z#]%b!Zs%b!Z![%b!Z%f%b!Z!d%b!Z~P#.aOP%b!ZR%b!Z[%b!Zo%b!Z!i%b!Z!m%b!Z#O%b!Z#k%b!Z#l%b!Z#m%b!Z#n%b!Z#o%b!Z#p%b!Z#q%b!Z#r%b!Z#s%b!Z#u%b!Z#w%b!Z#y%b!Z#z%b!Z#}%b!Z([%b!Z(m%b!Z!Y%b!Z!Z%b!Z~P&(tOs(aX~P1qO}%pO~P!(oO(P!lO~P!(oO!VfX!YfX#]fX~P&-}OP]XR]X[]Xo]X}]X!P]X!Y]X!YfX!i]X!m]X#O]X#P]X#]]X#]fX#hfX#k]X#l]X#m]X#n]X#o]X#p]X#q]X#r]X#s]X#u]X#w]X#y]X#z]X$P]X([]X(m]X(t]X(u]X~O!dfX!h]X!hfX(mfX~P'CvOP:kOQ:kOSfOd<fOe!iOmkOo:kOpkOqkOwkOy:kO{:kO!PWO!TkO!UkO![XO!f:nO!iZO!l:kO!m:kO!n:kO!p:oO!r:rO!u!hO$V!kO(O)YO(QTO(TUO([VO(j[O(y<dO~O!Y;PO!Z$oa~Oh%WOm%XOo$uOp$tOq$tOw%YOy%ZO{;ZO!P$|O![$}O!f<kO!i$yO#g;aO$V%_O$r;]O$t;_O$w%`O(O(rO(QTO(TUO([$vO(t%OO(u%QO~O#t)`O~P'HlOo!bX(m!bX~P# ZO!Z]X!ZfX~P'CvO!VfX!V$xX!YfX!Y$xX#]fX~P!/gO#h:sO~O!d#vO#h:sO~O#];TO~O#s:xO~O#];dO!Y(rX!Z(rX~O#];TO!Y(pX!Z(pX~O#h;eO~Og;gO~P!0pO#h;mO~O#h;nO~O!d#vO#h;oO~O!d#vO#h;eO~O#};pO~P#D_O#h;qO~O#h;rO~O#h;wO~O#h;xO~O#h;yO~O#h;zO~O#};{O~P!0pO#};|O~P!0pO#P#Q#R#T#U#X#f#g#r(y$r$t$w%Z%e%f%g%n%p%s%t%v%x~'yT#l!U'w(P#mp#k#no}'x$['x(O$^(`~",
-  goto: "$2y)XPPPPPP)YPP)]P)nP+O/PPPPP5wPP6_PP<U?kP@OP@OPPP@OPBOP@OP@OP@OPBSPBXPBvPGoPPPGsPPPPGsJuPPPJ{KwPGsPGsPPNVGsPPPGsPGsP!!^GsP!%s!&x!'RP!'u!'y!'u!+VPPPPPPP!+v!&xPP!,W!-QP!/tGsGs!/y!3U!7l!7l!;jPPP!;rGsPPPPPPPPPPP!?QP!@_PPGs!ApPGsPGsGsGsGsGsPGs!CSP!F]P!IbP!If!Ip!It!ItP!FYP!Ix!IxP!L}P!MRGsGs!MX#!]BS@OP@OP@O@OP##i@O@O#%s@O#(c@O#*g@O@O#+V#-c#-c#-h#-q#-c#-zP#-cP@O#.d@O#2T@O@O5wPPP#5zPPP#6e#6eP#6eP#6{#6ePP#7RP#6xP#6x#7f#6x#8Q#8W5t)]#8Z)]P#8b#8b#8bP)]P)]P)]P)]PP)]P#8h#8kP#8k)]P#8oP#8rP)]P)]P)]P)]P)]P)])]PP#8x#9O#9Z#9a#9g#9m#9s#:R#:X#:c#:i#:s#:y#;Z#;a#<R#<e#<k#<q#=P#=f#?T#?c#?j#AO#A^#Bx#CW#C^#Cd#Cj#Ct#Cz#DQ#D[#Dn#DtPPPPPPPPPP#DzPPPPPPP#Eo#Hv#JV#J^#JfPPP$ lP$ u$$m$+V$+Y$+]$+x$+{$,S$,[P$,b$,eP$-R$-V$-}$/]$/b$/xPP$/}$0T$0XP$0[$0`$0d$1Y$1q$2Y$2^$2a$2d$2j$2m$2q$2uR!|RoqOXst!Z#d%k&o&q&r&t,k,p1|2PY!vQ']-]1a5dQ%rvQ%zyQ&R|Q&g!VS'T!e-TQ'c!iS'i!r!yU*f$}*W*kQ+i%{Q+v&TQ,[&aQ-Z'[Q-e'dQ-m'jQ0R*mQ1k,]R;b:o%QdOPWXYZstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$`$e%k%r&P&h&k&o&q&r&t&x'Q'_'o(P(R(X(`(t(v(z)z+R+V,h,k,p-a-i-w-}.l.s/f0a0g0v1d1t1u1w1y1|2P2R2r2x3^5a5k5{5|6P6d8O8T8d8nS#q]:l!r)[$[$n'U)o,|-P.}2b3u5_6Z9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gU*y%[;Y;ZQ+n%}Q,^&dQ,e&lQ0m+aQ0q+cQ0|+oQ1s,cQ3Q._Q4}0wQ5r1lQ6p3UQ7p5OR8t6r'OkOPWXYZstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$[$`$e$n%k%r&P&h&k&l&o&q&r&t&x'Q'U'_'o(P(R(X(`(t(v(z)o)z+R+V+a,h,k,p,|-P-a-i-w-}._.l.s.}/f0a0g0v1d1t1u1w1y1|2P2R2b2r2x3U3^3u5_5a5k5{5|6P6Z6d6r8O8T8d8n9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gt!nQ!r!v!y!z'T'[']'i'j'k-T-Z-]-m1a5d5f$z$ti#v$b$c$d$y$|%P%R%]%^%b)v)|*O*Q*S*V*]*c*s*t+`+c+z+}.^.w/]/e/o/p/r0V0X0d1W1Z1c3T3}4Y4b4l4t4w5j6n7]7f8Q8q9P9d9v:W:`;R;S;U;V;W;X;[;];^;_;`;a;h;i;j;k;m;n;q;r;s;t;u;v;w;x;{;|<d<l<m<p<qQ&U|Q'R!eU'X%g*W-WQ+n%}Q,^&dQ0c*|Q0|+oQ1R+uQ1r,bQ1s,cQ4}0wQ5W1TQ5r1lQ5u1nQ5v1qQ7p5OQ7s5TQ8]5xQ9_7tR9j8YrnOXst!V!Z#d%k&f&o&q&r&t,k,p1|2PR,`&h&x^OPXYstuvwz!Z!`!g!j!o#S#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$[$`$e$n%k%r&P&h&k&l&o&q&r&t&x'Q'_'o(R(X(`(t(v(z)o)z+R+V+a,h,k,p,|-P-a-i-w-}._.l.s.}/f0a0g0v1d1t1u1w1y1|2P2R2b2r2x3U3^3u5_5a5k5{5|6P6Z6d6r8O8T8d8n9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<f<g[#]WZ#W#Z'U(P!b%hm#h#i#l$y%c%f(Y(d(e(f*V*Z*^+T+U+W,g,}-{.R.S.T.V/e/h2U2|2}4Q6Y6kQ%uxQ%yyS&O|&TQ&[!TQ'`!hQ'b!iQ(m#sS+h%z%{Q+l%}Q,V&_Q,Z&aS-d'c'dQ.a(nQ0u+iQ0{+oQ0}+pQ1Q+tQ1f,WS1j,[,]Q2n-eQ4|0wQ5Q0zQ5V1SQ5q1kQ7o5OQ7r5SQ9Z7nR:R9[!O${i$d%P%R%]%^%b*O*Q*]*s*t.w/o0V0X0d3}4l9P<d<l<m!S%wy!i!u%y%z%{'S'b'c'd'h'r*e+h+i-Q-d-e-l/y0u2g2n2u4dQ+b%uQ+{&XQ,O&YQ,Y&aQ.`(mQ1e,VU1i,Z,[,]Q3V.aQ5l1fS5p1j1kQ8X5q#[<h#v$b$c$y$|)v)|*S*V*c+`+c+z+}.^/]/e/p/r1W1Z1c3T4Y4b4t4w5j6n7]7f8Q8q9d9v:W:`;U;W;[;^;`;h;j;m;q;s;u;w;{<p<qo<i;R;S;V;X;];_;a;i;k;n;r;t;v;x;|W%Ui%W*u<dS&X!Q&fQ&Y!RQ&Z!SR+y&V${%Ti#v$b$c$d$y$|%P%R%]%^%b)v)|*O*Q*S*V*]*c*s*t+`+c+z+}.^.w/]/e/o/p/r0V0X0d1W1Z1c3T3}4Y4b4l4t4w5j6n7]7f8Q8q9P9d9v:W:`;R;S;U;V;W;X;[;];^;_;`;a;h;i;j;k;m;n;q;r;s;t;u;v;w;x;{;|<d<l<m<p<qT)w$v)xV*y%[;Y;ZW'X!e%g*W-WS(y#y#zQ+]%pQ+s&QS.Y(i(jQ1[,PQ4m0`R7x5]'OkOPWXYZstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$[$`$e$n%k%r&P&h&k&l&o&q&r&t&x'Q'U'_'o(P(R(X(`(t(v(z)o)z+R+V+a,h,k,p,|-P-a-i-w-}._.l.s.}/f0a0g0v1d1t1u1w1y1|2P2R2b2r2x3U3^3u5_5a5k5{5|6P6Z6d6r8O8T8d8n9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<g$i$_c#Y#e%o%q%s(O(U(p(u(})O)P)Q)R)S)T)U)V)W)X)Z)])c)m+^+r-R-p-u-z-|.k.n.r.t.u.v/X0e2]2`2p2w3]3b3c3d3e3f3g3h3i3j3k3l3m3n3q3r3y4q4z6]6c6h6w6x7R7S7z8h8l8v8|8}9s:T:[:m<ZT#TV#U'PkOPWXYZstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$[$`$e$n%k%r&P&h&k&l&o&q&r&t&x'Q'U'_'o(P(R(X(`(t(v(z)o)z+R+V+a,h,k,p,|-P-a-i-w-}._.l.s.}/f0a0g0v1d1t1u1w1y1|2P2R2b2r2x3U3^3u5_5a5k5{5|6P6Z6d6r8O8T8d8n9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gQ'V!eR2c-Tv!nQ!e!r!v!y!z'T'[']'i'j'k-T-Z-]-m1a5d5fU*e$}*W*kS/y*f*mQ0S*nQ1^,RQ4d0RR4g0UnqOXst!Z#d%k&o&q&r&t,k,p1|2PQ&v!^Q's!xS(o#u:sQ+f%xQ,T&[Q,U&^Q-b'aQ-o'lS.j(t;eS0f+R;oQ0s+gQ1`,SQ2T,rQ2V,sQ2_-OQ2l-cQ2o-gS4r0g;yQ4x0tS4{0v;zQ6[2aQ6`2mQ6e2tQ7m4yQ8i6^Q8j6aQ8m6fR9p8f$d$^c#Y#e%q%s(O(U(p(u(})O)P)Q)R)S)T)U)V)W)X)Z)])c)m+^+r-R-p-u-z-|.k.n.r.u.v/X0e2]2`2p2w3]3b3c3d3e3f3g3h3i3j3k3l3m3n3q3r3y4q4z6]6c6h6w6x7R7S7z8h8l8v8|8}9s:T:[:m<ZS(k#p'fQ({#zS+[%o.tS.Z(j(lR3O.['OkOPWXYZstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$[$`$e$n%k%r&P&h&k&l&o&q&r&t&x'Q'U'_'o(P(R(X(`(t(v(z)o)z+R+V+a,h,k,p,|-P-a-i-w-}._.l.s.}/f0a0g0v1d1t1u1w1y1|2P2R2b2r2x3U3^3u5_5a5k5{5|6P6Z6d6r8O8T8d8n9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gS#q]:lQ&q!XQ&r!YQ&t![Q&u!]R1{,nQ'^!hQ+_%uQ-`'`S.](m+bQ2j-_W3S.`.a0l0nQ6_2kW6l3P3R3V4vU8p6m6o6qU9u8r8s8uS:^9t9wQ:f:_R:i:gU!wQ']-]T5b1a5d!Q_OXZ`st!V!Z#d#h%c%k&f&h&o&q&r&t(f,k,p.S1|2P]!pQ!r']-]1a5dT#q]:l%[{OPWXYZstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$`$e%k%r&P&h&k&l&o&q&r&t&x'Q'_'o(P(R(X(`(t(v(z)z+R+V+a,h,k,p-a-i-w-}._.l.s/f0a0g0v1d1t1u1w1y1|2P2R2r2x3U3^5a5k5{5|6P6d6r8O8T8d8nS(y#y#zS.Y(i(j!s<Q$[$n'U)o,|-P.}2b3u5_6Z9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gU$fd)[,eS(l#p'fU*r%S(s3pU0b*x.f6}Q4v0mQ6m3QQ8s6pR9w8tm!tQ!r!v!y!z']'i'j'k-]-m1a5d5fQ'q!uS(b#g1vS-k'h'tQ/k*YQ/w*eQ2v-nQ4U/lS4_/x0SQ7X4PS7d4e4gQ9R7YR9Y7gQ#wbQ'p!uS(a#g1vS(c#m+QQ+S%dQ+d%vQ+j%|U-j'h'q'tQ.O(bQ/j*YQ/v*eQ/|*hQ0r+eQ1g,XS2s-k-nQ2{.WS4T/k/lS4^/w0SQ4a/{Q4c/}Q5n1hQ6g2vQ7W4PQ7[4US7`4_4gQ7e4fQ8V5oS9Q7X7YQ9U7aQ9W7dQ9g8WQ9}9RQ:O9VQ:Q9YQ:Y9hQ:b:PQ<T<OQ<`<XR<a<YV!wQ']-]%[aOPWXYZstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$`$e%k%r&P&h&k&l&o&q&r&t&x'Q'_'o(P(R(X(`(t(v(z)z+R+V+a,h,k,p-a-i-w-}._.l.s/f0a0g0v1d1t1u1w1y1|2P2R2r2x3U3^5a5k5{5|6P6d6r8O8T8d8nS#wz!j!r;}$[$n'U)o,|-P.}2b3u5_6Z9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gR<T<f%[bOPWXYZstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$`$e%k%r&P&h&k&l&o&q&r&t&x'Q'_'o(P(R(X(`(t(v(z)z+R+V+a,h,k,p-a-i-w-}._.l.s/f0a0g0v1d1t1u1w1y1|2P2R2r2x3U3^5a5k5{5|6P6d6r8O8T8d8nQ%dj!S%vy!i!u%y%z%{'S'b'c'd'h'r*e+h+i-Q-d-e-l/y0u2g2n2u4dS%|z!jQ+e%wQ,X&aW1h,Y,Z,[,]U5o1i1j1kS8W5p5qQ9h8X!r<O$[$n'U)o,|-P.}2b3u5_6Z9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gQ<X<eR<Y<f%OeOPXYstuvw!Z!`!g!o#S#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$`$e%k%r&P&h&k&o&q&r&t&x'Q'_'o(R(X(`(t(v(z)z+R+V+a,h,k,p-a-i-w-}._.l.s/f0a0g0v1d1t1u1w1y1|2P2R2r2x3U3^5a5k5{5|6P6d6r8O8T8d8nY#bWZ#W#Z(P!b%hm#h#i#l$y%c%f(Y(d(e(f*V*Z*^+T+U+W,g,}-{.R.S.T.V/e/h2U2|2}4Q6Y6kQ,f&l!p<P$[$n)o,|-P.}2b3u5_6Z9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gR<S'UU'Y!e%g*WR2e-W%QdOPWXYZstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$`$e%k%r&P&h&k&o&q&r&t&x'Q'_'o(P(R(X(`(t(v(z)z+R+V,h,k,p-a-i-w-}.l.s/f0a0g0v1d1t1u1w1y1|2P2R2r2x3^5a5k5{5|6P6d8O8T8d8n!r)[$[$n'U)o,|-P.}2b3u5_6Z9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gQ,e&lQ0m+aQ3Q._Q6p3UR8t6r!b$Uc#Y%o(O(U(p(u)W)X)])c+r-p-u-z-|.k.n/X0e2p2w3]3n4q4z6c6h6w8l9s:m!P:z)Z)m-R.t2]2`3b3l3m3q3y6]6x7R7S7z8h8v8|8}:T:[<Z!f$Wc#Y%o(O(U(p(u)T)U)W)X)])c+r-p-u-z-|.k.n/X0e2p2w3]3n4q4z6c6h6w8l9s:m!T:|)Z)m-R.t2]2`3b3i3j3l3m3q3y6]6x7R7S7z8h8v8|8}:T:[<Z!^$[c#Y%o(O(U(p(u)])c+r-p-u-z-|.k.n/X0e2p2w3]3n4q4z6c6h6w8l9s:mQ3}/cz<g)Z)m-R.t2]2`3b3q3y6]6x7R7S7z8h8v8|8}:T:[<ZQ<l<nR<m<o'OkOPWXYZstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$[$`$e$n%k%r&P&h&k&l&o&q&r&t&x'Q'U'_'o(P(R(X(`(t(v(z)o)z+R+V+a,h,k,p,|-P-a-i-w-}._.l.s.}/f0a0g0v1d1t1u1w1y1|2P2R2b2r2x3U3^3u5_5a5k5{5|6P6Z6d6r8O8T8d8n9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gS$oh$pR3v.|'VgOPWXYZhstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$[$`$e$n$p%k%r&P&h&k&l&o&q&r&t&x'Q'U'_'o(P(R(X(`(t(v(z)o)z+R+V+a,h,k,p,|-P-a-i-w-}._.l.s.|.}/f0a0g0v1d1t1u1w1y1|2P2R2b2r2x3U3^3u5_5a5k5{5|6P6Z6d6r8O8T8d8n9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gT$kf$qQ$ifS)f$l)jR)r$qT$jf$qT)h$l)j'VhOPWXYZhstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$[$`$e$n$p%k%r&P&h&k&l&o&q&r&t&x'Q'U'_'o(P(R(X(`(t(v(z)o)z+R+V+a,h,k,p,|-P-a-i-w-}._.l.s.|.}/f0a0g0v1d1t1u1w1y1|2P2R2b2r2x3U3^3u5_5a5k5{5|6P6Z6d6r8O8T8d8n9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<gT$oh$pQ$rhR)q$p%[jOPWXYZstuvw!Z!`!g!o#S#W#Z#d#o#u#x#{$O$P$Q$R$S$T$U$V$W$X$Y$`$e%k%r&P&h&k&l&o&q&r&t&x'Q'_'o(P(R(X(`(t(v(z)z+R+V+a,h,k,p-a-i-w-}._.l.s/f0a0g0v1d1t1u1w1y1|2P2R2r2x3U3^5a5k5{5|6P6d6r8O8T8d8n!s<e$[$n'U)o,|-P.}2b3u5_6Z9`9q:k:n:o:r:s:t:u:v:w:x:y:z:{:|:};O;P;T;b;d;e;g;o;p;y;z<g#elOPXZst!Z!`!o#S#d#o#{$n%k&h&k&l&o&q&r&t&x'Q'_(z)o+V+a,h,k,p-a._.}/f0a1d1t1u1w1y1|2P2R3U3u5a5k5{5|6P6r8O8T8d!O%Si$d%P%R%]%^%b*O*Q*]*s*t.w/o0V0X0d3}4l9P<d<l<m#[(s#v$b$c$y$|)v)|*S*V*c+`+c+z+}.^/]/e/p/r1W1Z1c3T4Y4b4t4w5j6n7]7f8Q8q9d9v:W:`;U;W;[;^;`;h;j;m;q;s;u;w;{<p<qQ*}%`Q/Y){o3p;R;S;V;X;];_;a;i;k;n;r;t;v;x;|!O$zi$d%P%R%]%^%b*O*Q*]*s*t.w/o0V0X0d3}4l9P<d<l<mQ*_${U*h$}*W*kQ+O%aQ/}*i#[<V#v$b$c$y$|)v)|*S*V*c+`+c+z+}.^/]/e/p/r1W1Z1c3T4Y4b4t4w5j6n7]7f8Q8q9d9v:W:`;U;W;[;^;`;h;j;m;q;s;u;w;{<p<qn<W;R;S;V;X;];_;a;i;k;n;r;t;v;x;|Q<[<hQ<]<iQ<^<jR<_<k!O%Si$d%P%R%]%^%b*O*Q*]*s*t.w/o0V0X0d3}4l9P<d<l<m#[(s#v$b$c$y$|)v)|*S*V*c+`+c+z+}.^/]/e/p/r1W1Z1c3T4Y4b4t4w5j6n7]7f8Q8q9d9v:W:`;U;W;[;^;`;h;j;m;q;s;u;w;{<p<qo3p;R;S;V;X;];_;a;i;k;n;r;t;v;x;|noOXst!Z#d%k&o&q&r&t,k,p1|2PS*b$|*VQ,y&{Q,z&}R4X/p$z%Ti#v$b$c$d$y$|%P%R%]%^%b)v)|*O*Q*S*V*]*c*s*t+`+c+z+}.^.w/]/e/o/p/r0V0X0d1W1Z1c3T3}4Y4b4l4t4w5j6n7]7f8Q8q9P9d9v:W:`;R;S;U;V;W;X;[;];^;_;`;a;h;i;j;k;m;n;q;r;s;t;u;v;w;x;{;|<d<l<m<p<qQ+|&YQ1Y,OQ5Z1XR7w5[V*j$}*W*kU*j$}*W*kT5c1a5dU/{*g/f5aT4f0T8OQ+d%vQ/|*hQ0r+eQ1g,XQ5n1hQ8V5oQ9g8WR:Y9h!O%Pi$d%P%R%]%^%b*O*Q*]*s*t.w/o0V0X0d3}4l9P<d<l<mr*O$w)a*P*q+P/n0Z0[3s4V4p7V7h9|<U<b<cS0V*p0W#[;U#v$b$c$y$|)v)|*S*V*c+`+c+z+}.^/]/e/p/r1W1Z1c3T4Y4b4t4w5j6n7]7f8Q8q9d9v:W:`;U;W;[;^;`;h;j;m;q;s;u;w;{<p<qn;V;R;S;V;X;];_;a;i;k;n;r;t;v;x;|!^;h(q)_*X*a.b.e.i/U/Z/c/s0k1V1X3Y4W4[5Y5[6s6v7^7b7j7l9T9X:a<n<o`;i3o6y6|7Q8w9x9{:jS;s.d3ZT;t6{8z!O%Ri$d%P%R%]%^%b*O*Q*]*s*t.w/o0V0X0d3}4l9P<d<l<mv*Q$w)a*R*p+P/_/n0Z0[3s4V4h4p7V7h9|<U<b<cS0X*q0Y#[;W#v$b$c$y$|)v)|*S*V*c+`+c+z+}.^/]/e/p/r1W1Z1c3T4Y4b4t4w5j6n7]7f8Q8q9d9v:W:`;U;W;[;^;`;h;j;m;q;s;u;w;{<p<qn;X;R;S;V;X;];_;a;i;k;n;r;t;v;x;|!b;j(q)_*X*a.c.d.i/U/Z/c/s0k1V1X3W3Y4W4[5Y5[6s6t6v7^7b7j7l9T9X:a<n<od;k3o6z6{7Q8w8x9x9y9{:jS;u.e3[T;v6|8{rnOXst!V!Z#d%k&f&o&q&r&t,k,p1|2PQ&c!UR,h&lrnOXst!V!Z#d%k&f&o&q&r&t,k,p1|2PR&c!UQ,Q&ZR1U+ysnOXst!V!Z#d%k&f&o&q&r&t,k,p1|2PQ1b,VS5i1e1fU8P5g5h5lS9c8R8SS:U9b9eQ:c:VR:h:dQ&j!VR,a&fR5u1nS&O|&TR0}+pQ&o!WR,k&pR,q&uT1},p2PR,u&vQ,t&vR2W,uQ'v!{R-q'vSsOtQ#dXT%ns#dQ#OTR'x#OQ#RUR'z#RQ)x$vR/V)xQ#UVR'|#UQ#XWU(S#X(T-xQ(T#YR-x(UQ-U'VR2d-UQ.m(uS3_.m3`R3`.nQ-]']R2h-]Y!rQ']-]1a5dR'g!rQ.x)aR3t.xU#_W%f*VU(Z#_([-yQ([#`R-y(VQ-X'YR2f-Xt`OXst!V!Z#d%k&f&h&o&q&r&t,k,p1|2PS#hZ%cU#r`#h.SR.S(fQ(g#jQ.P(cW.X(g.P2y6iQ2y.QR6i2zQ)j$lR/O)jQ$phR)p$pQ$acU)^$a-t;QQ-t:mR;Q)mQ/i*YW4R/i4S7Z9SU4S/j/k/lS7Z4T4UR9S7[$X)}$w(q)_)a*X*a*p*q*z*{+P.d.e.g.h.i/U/Z/_/a/c/n/s0Z0[0k1V1X3W3X3Y3o3s4V4W4[4h4j4p5Y5[6s6t6u6v6{6|7O7P7Q7V7^7b7h7j7l8w8x8y9T9X9x9y9z9{9|:a:j<U<b<c<n<oQ/q*aU4Z/q4]7_Q4]/sR7_4[S*k$}*WR0P*kr*P$w)a*p*q+P/n0Z0[3s4V4p7V7h9|<U<b<c!^.b(q)_*X*a.d.e.i/U/Z/c/s0k1V1X3Y4W4[5Y5[6s6v7^7b7j7l9T9X:a<n<oU/`*P.b6ya6y3o6{6|7Q8w9x9{:jQ0W*pQ3Z.dU4i0W3Z8zR8z6{v*R$w)a*p*q+P/_/n0Z0[3s4V4h4p7V7h9|<U<b<c!b.c(q)_*X*a.d.e.i/U/Z/c/s0k1V1X3W3Y4W4[5Y5[6s6t6v7^7b7j7l9T9X:a<n<oU/b*R.c6ze6z3o6{6|7Q8w8x9x9y9{:jQ0Y*qQ3[.eU4k0Y3[8{R8{6|Q*v%VR0^*vQ4u0kR7k4uQ+X%iR0j+XQ5^1[S7y5^9aR9a7zQ,S&[R1_,SQ5d1aR7|5dQ1m,^S5s1m8ZR8Z5uQ0x+lW5P0x5R7q9]Q5R0{Q7q5QR9]7rQ+q&OR1O+qQ2P,pR6T2PYrOXst#dQ&s!ZQ+Z%kQ,j&oQ,l&qQ,m&rQ,o&tQ1z,kS1},p2PR6S1|Q%mpQ&w!_Q&z!aQ&|!bQ'O!cQ'n!uQ+Y%jQ+f%xQ+x&UQ,`&jQ,w&yW-h'h'p'q'tQ-o'lQ0O*jQ0s+gS1p,a,dQ2X,vQ2Y,yQ2Z,zQ2o-gW2q-j-k-n-pQ4x0tQ5U1RQ5X1VQ5m1gQ5w1rQ6R1{U6b2p2s2vQ6e2tQ7m4yQ7u5WQ7v5YQ7{5cQ8U5nQ8[5vS8k6c6gQ8m6fQ9^7sQ9f8VQ9k8]Q9r8lQ:S9_Q:X9gQ:]9sR:e:YQ%xyQ'a!iQ'l!uU+g%y%z%{Q-O'SU-c'b'c'dS-g'h'rQ/u*eS0t+h+iQ2a-QS2m-d-eQ2t-lQ4`/yQ4y0uQ6^2gQ6a2nQ6f2uR7c4dS$xi<dR*w%WU%Vi%W<dR0]*uQ$wiS(q#v+cS)_$b$cQ)a$dQ*X$yS*a$|*VQ*p%PQ*q%RQ*z%]Q*{%^Q+P%bQ.d;UQ.e;WQ.g;[Q.h;^Q.i;`Q/U)vS/Z)|/]Q/_*OQ/a*QQ/c*SQ/n*]S/s*c/eQ0Z*sQ0[*th0k+`.^1c3T5j6n8Q8q9d9v:W:`Q1V+zQ1X+}Q3W;hQ3X;jQ3Y;mS3o;R;SQ3s.wQ4V/oQ4W/pQ4[/rQ4h0VQ4j0XQ4p0dQ5Y1WQ5[1ZQ6s;qQ6t;sQ6u;uQ6v;wQ6{;VQ6|;XQ7O;]Q7P;_Q7Q;aQ7V3}Q7^4YQ7b4bQ7h4lQ7j4tQ7l4wQ8w;nQ8x;iQ8y;kQ9T7]Q9X7fQ9x;rQ9y;tQ9z;vQ9{;xQ9|9PQ:a;{Q:j;|Q<U<dQ<b<lQ<c<mQ<n<pR<o<qQ*x%[Q.f;YR6};ZnpOXst!Z#d%k&o&q&r&t,k,p1|2PQ!fPS#fZ#oQ&y!`U'e!o5a8OQ'{#SQ(|#{Q)n$nS,d&h&kQ,i&lQ,v&xQ,{'QQ-_'_Q.p(zQ/S)oS0h+V/fQ0n+aQ1x,hQ2k-aQ3R._Q3x.}Q4n0aQ5h1dQ5y1tQ5z1uQ6O1wQ6Q1yQ6V2RQ6q3UQ7T3uQ8S5kQ8`5{Q8a5|Q8c6PQ8u6rQ9e8TR9o8d#YcOPXZst!Z!`!o#d#o#{%k&h&k&l&o&q&r&t&x'Q'_(z+V+a,h,k,p-a._/f0a1d1t1u1w1y1|2P2R3U5a5k5{5|6P6r8O8T8dQ#YWQ#eYQ%ouQ%qvS%sw!gS(O#W(RQ(U#ZQ(p#uQ(u#xQ(}$OQ)O$PQ)P$QQ)Q$RQ)R$SQ)S$TQ)T$UQ)U$VQ)V$WQ)W$XQ)X$YQ)Z$[Q)]$`Q)c$eW)m$n)o.}3uQ+^%rQ+r&PS-R'U2bQ-p'oS-u(P-wQ-z(XQ-|(`Q.k(tQ.n(vQ.r:kQ.t:nQ.u:oQ.v:rQ/X)zQ0e+RQ2],|Q2`-PQ2p-iQ2w-}Q3].lQ3b:sQ3c:tQ3d:uQ3e:vQ3f:wQ3g:xQ3h:yQ3i:zQ3j:{Q3k:|Q3l:}Q3m;OQ3n.sQ3q;TQ3r;bQ3y;PQ4q0gQ4z0vQ6];dQ6c2rQ6h2xQ6w3^Q6x;eQ7R;gQ7S;oQ7z5_Q8h6ZQ8l6dQ8v;pQ8|;yQ8};zQ9s8nQ:T9`Q:[9qQ:m#SR<Z<gR#[WR'W!el!tQ!r!v!y!z']'i'j'k-]-m1a5d5fS'S!e-TS-Q'T'[R2g-ZR(w#xQ!fQT-[']-]]!qQ!r']-]1a5dQ#p]R'f:lR)b$dY!uQ']-]1a5dQ'h!rS'r!v!yS't!z5fS-l'i'jQ-n'kR2u-mT#kZ%cS#jZ%cS%im,gU(c#h#i#lS.Q(d(eQ.U(fQ0i+WQ2z.RU2{.S.T.VS6j2|2}R8o6kd#^W#W#Z%f(P(Y*V+T-{/er#gZm#h#i#l%c(d(e(f+W.R.S.T.V2|2}6kS*Y$y*^Q/l*ZQ1v,gQ2^,}Q4P/hQ6X2UQ7Y4QQ8g6YT<R'U+UV#aW%f*VU#`W%f*VS(Q#W(YU(V#Z+T/eS-S'U+UT-v(P-{V'Z!e%g*WQ$lfR)t$qT)i$l)jR3w.|T*[$y*^T*d$|*VQ0l+`Q3P.^Q5g1cQ6o3TQ8R5jQ8r6nQ9b8QQ9t8qQ:V9dQ:_9vQ:d:WR:g:`nqOXst!Z#d%k&o&q&r&t,k,p1|2PQ&i!VR,`&ftmOXst!U!V!Z#d%k&f&o&q&r&t,k,p1|2PR,g&lT%jm,gR1],PR,_&dQ&S|R+w&TR+m%}T&m!W&pT&n!W&pT2O,p2P",
-  nodeNames: "⚠ ArithOp ArithOp ?. JSXStartTag LineComment BlockComment Script Hashbang ExportDeclaration export Star as VariableName String Escape from ; default FunctionDeclaration async function VariableDefinition > < TypeParamList TypeDefinition extends ThisType this LiteralType ArithOp Number BooleanLiteral TemplateType InterpolationEnd Interpolation InterpolationStart NullType null VoidType void TypeofType typeof MemberExpression . PropertyName [ TemplateString Escape Interpolation super RegExp ] ArrayExpression Spread , } { ObjectExpression Property async get set PropertyDefinition Block : NewTarget new NewExpression ) ( ArgList UnaryExpression delete LogicOp BitOp YieldExpression yield AwaitExpression await ParenthesizedExpression ClassExpression class ClassBody MethodDeclaration Decorator @ MemberExpression PrivatePropertyName CallExpression TypeArgList CompareOp < declare Privacy static abstract override PrivatePropertyDefinition PropertyDeclaration readonly accessor Optional TypeAnnotation Equals StaticBlock FunctionExpression ArrowFunction ParamList ParamList ArrayPattern ObjectPattern PatternProperty Privacy readonly Arrow MemberExpression BinaryExpression ArithOp ArithOp ArithOp ArithOp BitOp CompareOp instanceof satisfies in const CompareOp BitOp BitOp BitOp LogicOp LogicOp ConditionalExpression LogicOp LogicOp AssignmentExpression UpdateOp PostfixExpression CallExpression InstantiationExpression TaggedTemplateExpression DynamicImport import ImportMeta JSXElement JSXSelfCloseEndTag JSXSelfClosingTag JSXIdentifier JSXBuiltin JSXIdentifier JSXNamespacedName JSXMemberExpression JSXSpreadAttribute JSXAttribute JSXAttributeValue JSXEscape JSXEndTag JSXOpenTag JSXFragmentTag JSXText JSXEscape JSXStartCloseTag JSXCloseTag PrefixCast ArrowFunction TypeParamList SequenceExpression InstantiationExpression KeyofType keyof UniqueType unique ImportType InferredType infer TypeName ParenthesizedType FunctionSignature ParamList NewSignature IndexedType TupleType Label ArrayType ReadonlyType ObjectType MethodType PropertyType IndexSignature PropertyDefinition CallSignature TypePredicate is NewSignature new UnionType LogicOp IntersectionType LogicOp ConditionalType ParameterizedType ClassDeclaration abstract implements type VariableDeclaration let var using TypeAliasDeclaration InterfaceDeclaration interface EnumDeclaration enum EnumBody NamespaceDeclaration namespace module AmbientDeclaration declare GlobalDeclaration global ClassDeclaration ClassBody AmbientFunctionDeclaration ExportGroup VariableName VariableName ImportDeclaration ImportGroup ForStatement for ForSpec ForInSpec ForOfSpec of WhileStatement while WithStatement with DoStatement do IfStatement if else SwitchStatement switch SwitchBody CaseLabel case DefaultLabel TryStatement try CatchClause catch FinallyClause finally ReturnStatement return ThrowStatement throw BreakStatement break ContinueStatement continue DebuggerStatement debugger LabeledStatement ExpressionStatement SingleExpression SingleClassItem",
-  maxTerm: 376,
-  context: trackNewline,
-  nodeProps: [
-    ["isolate", -8,5,6,14,34,36,48,50,52,""],
-    ["group", -26,9,17,19,65,204,208,212,213,215,218,221,231,233,239,241,243,245,248,254,260,262,264,266,268,270,271,"Statement",-34,13,14,29,32,33,39,48,51,52,54,59,67,69,73,77,79,81,82,107,108,117,118,135,138,140,141,142,143,144,146,147,166,167,169,"Expression",-23,28,30,34,38,40,42,171,173,175,176,178,179,180,182,183,184,186,187,188,198,200,202,203,"Type",-3,85,100,106,"ClassItem"],
-    ["openedBy", 23,"<",35,"InterpolationStart",53,"[",57,"{",70,"(",159,"JSXStartCloseTag"],
-    ["closedBy", 24,">",37,"InterpolationEnd",47,"]",58,"}",71,")",164,"JSXEndTag"]
-  ],
-  propSources: [jsHighlight],
-  skippedNodes: [0,5,6,274],
-  repeatNodeCount: 37,
-  tokenData: "$Fq07[R!bOX%ZXY+gYZ-yZ[+g[]%Z]^.c^p%Zpq+gqr/mrs3cst:_tuEruvJSvwLkwx! Yxy!'iyz!(sz{!)}{|!,q|}!.O}!O!,q!O!P!/Y!P!Q!9j!Q!R#:O!R![#<_![!]#I_!]!^#Jk!^!_#Ku!_!`$![!`!a$$v!a!b$*T!b!c$,r!c!}Er!}#O$-|#O#P$/W#P#Q$4o#Q#R$5y#R#SEr#S#T$7W#T#o$8b#o#p$<r#p#q$=h#q#r$>x#r#s$@U#s$f%Z$f$g+g$g#BYEr#BY#BZ$A`#BZ$ISEr$IS$I_$A`$I_$I|Er$I|$I}$Dk$I}$JO$Dk$JO$JTEr$JT$JU$A`$JU$KVEr$KV$KW$A`$KW&FUEr&FU&FV$A`&FV;'SEr;'S;=`I|<%l?HTEr?HT?HU$A`?HUOEr(n%d_$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z&j&hT$h&jO!^&c!_#o&c#p;'S&c;'S;=`&w<%lO&c&j&zP;=`<%l&c'|'U]$h&j(U!bOY&}YZ&cZw&}wx&cx!^&}!^!_'}!_#O&}#O#P&c#P#o&}#o#p'}#p;'S&};'S;=`(l<%lO&}!b(SU(U!bOY'}Zw'}x#O'}#P;'S'};'S;=`(f<%lO'}!b(iP;=`<%l'}'|(oP;=`<%l&}'[(y]$h&j(RpOY(rYZ&cZr(rrs&cs!^(r!^!_)r!_#O(r#O#P&c#P#o(r#o#p)r#p;'S(r;'S;=`*a<%lO(rp)wU(RpOY)rZr)rs#O)r#P;'S)r;'S;=`*Z<%lO)rp*^P;=`<%l)r'[*dP;=`<%l(r#S*nX(Rp(U!bOY*gZr*grs'}sw*gwx)rx#O*g#P;'S*g;'S;=`+Z<%lO*g#S+^P;=`<%l*g(n+dP;=`<%l%Z07[+rq$h&j(Rp(U!b'w0/lOX%ZXY+gYZ&cZ[+g[p%Zpq+gqr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p$f%Z$f$g+g$g#BY%Z#BY#BZ+g#BZ$IS%Z$IS$I_+g$I_$JT%Z$JT$JU+g$JU$KV%Z$KV$KW+g$KW&FU%Z&FU&FV+g&FV;'S%Z;'S;=`+a<%l?HT%Z?HT?HU+g?HUO%Z07[.ST(S#S$h&j'x0/lO!^&c!_#o&c#p;'S&c;'S;=`&w<%lO&c07[.n_$h&j(Rp(U!b'x0/lOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z)3p/x`$h&j!m),Q(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`0z!`#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(KW1V`#u(Ch$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`2X!`#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(KW2d_#u(Ch$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'At3l_(Q':f$h&j(U!bOY4kYZ5qZr4krs7nsw4kwx5qx!^4k!^!_8p!_#O4k#O#P5q#P#o4k#o#p8p#p;'S4k;'S;=`:X<%lO4k(^4r_$h&j(U!bOY4kYZ5qZr4krs7nsw4kwx5qx!^4k!^!_8p!_#O4k#O#P5q#P#o4k#o#p8p#p;'S4k;'S;=`:X<%lO4k&z5vX$h&jOr5qrs6cs!^5q!^!_6y!_#o5q#o#p6y#p;'S5q;'S;=`7h<%lO5q&z6jT$c`$h&jO!^&c!_#o&c#p;'S&c;'S;=`&w<%lO&c`6|TOr6yrs7]s;'S6y;'S;=`7b<%lO6y`7bO$c``7eP;=`<%l6y&z7kP;=`<%l5q(^7w]$c`$h&j(U!bOY&}YZ&cZw&}wx&cx!^&}!^!_'}!_#O&}#O#P&c#P#o&}#o#p'}#p;'S&};'S;=`(l<%lO&}!r8uZ(U!bOY8pYZ6yZr8prs9hsw8pwx6yx#O8p#O#P6y#P;'S8p;'S;=`:R<%lO8p!r9oU$c`(U!bOY'}Zw'}x#O'}#P;'S'};'S;=`(f<%lO'}!r:UP;=`<%l8p(^:[P;=`<%l4k%9[:hh$h&j(Rp(U!bOY%ZYZ&cZq%Zqr<Srs&}st%ZtuCruw%Zwx(rx!^%Z!^!_*g!_!c%Z!c!}Cr!}#O%Z#O#P&c#P#R%Z#R#SCr#S#T%Z#T#oCr#o#p*g#p$g%Z$g;'SCr;'S;=`El<%lOCr(r<__WS$h&j(Rp(U!bOY<SYZ&cZr<Srs=^sw<Swx@nx!^<S!^!_Bm!_#O<S#O#P>`#P#o<S#o#pBm#p;'S<S;'S;=`Cl<%lO<S(Q=g]WS$h&j(U!bOY=^YZ&cZw=^wx>`x!^=^!^!_?q!_#O=^#O#P>`#P#o=^#o#p?q#p;'S=^;'S;=`@h<%lO=^&n>gXWS$h&jOY>`YZ&cZ!^>`!^!_?S!_#o>`#o#p?S#p;'S>`;'S;=`?k<%lO>`S?XSWSOY?SZ;'S?S;'S;=`?e<%lO?SS?hP;=`<%l?S&n?nP;=`<%l>`!f?xWWS(U!bOY?qZw?qwx?Sx#O?q#O#P?S#P;'S?q;'S;=`@b<%lO?q!f@eP;=`<%l?q(Q@kP;=`<%l=^'`@w]WS$h&j(RpOY@nYZ&cZr@nrs>`s!^@n!^!_Ap!_#O@n#O#P>`#P#o@n#o#pAp#p;'S@n;'S;=`Bg<%lO@ntAwWWS(RpOYApZrAprs?Ss#OAp#O#P?S#P;'SAp;'S;=`Ba<%lOAptBdP;=`<%lAp'`BjP;=`<%l@n#WBvYWS(Rp(U!bOYBmZrBmrs?qswBmwxApx#OBm#O#P?S#P;'SBm;'S;=`Cf<%lOBm#WCiP;=`<%lBm(rCoP;=`<%l<S%9[C}i$h&j(j%1l(Rp(U!bOY%ZYZ&cZr%Zrs&}st%ZtuCruw%Zwx(rx!Q%Z!Q![Cr![!^%Z!^!_*g!_!c%Z!c!}Cr!}#O%Z#O#P&c#P#R%Z#R#SCr#S#T%Z#T#oCr#o#p*g#p$g%Z$g;'SCr;'S;=`El<%lOCr%9[EoP;=`<%lCr07[FRk$h&j(Rp(U!b$[#t(O,2j(`$I[OY%ZYZ&cZr%Zrs&}st%ZtuEruw%Zwx(rx}%Z}!OGv!O!Q%Z!Q![Er![!^%Z!^!_*g!_!c%Z!c!}Er!}#O%Z#O#P&c#P#R%Z#R#SEr#S#T%Z#T#oEr#o#p*g#p$g%Z$g;'SEr;'S;=`I|<%lOEr+dHRk$h&j(Rp(U!b$[#tOY%ZYZ&cZr%Zrs&}st%ZtuGvuw%Zwx(rx}%Z}!OGv!O!Q%Z!Q![Gv![!^%Z!^!_*g!_!c%Z!c!}Gv!}#O%Z#O#P&c#P#R%Z#R#SGv#S#T%Z#T#oGv#o#p*g#p$g%Z$g;'SGv;'S;=`Iv<%lOGv+dIyP;=`<%lGv07[JPP;=`<%lEr(KWJ_`$h&j(Rp(U!b#m(ChOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`Ka!`#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(KWKl_$h&j$P(Ch(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z,#xLva(u+JY$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sv%ZvwM{wx(rx!^%Z!^!_*g!_!`Ka!`#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(KWNW`$h&j#y(Ch(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`Ka!`#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'At! c_(T';W$h&j(RpOY!!bYZ!#hZr!!brs!#hsw!!bwx!$xx!^!!b!^!_!%z!_#O!!b#O#P!#h#P#o!!b#o#p!%z#p;'S!!b;'S;=`!'c<%lO!!b'l!!i_$h&j(RpOY!!bYZ!#hZr!!brs!#hsw!!bwx!$xx!^!!b!^!_!%z!_#O!!b#O#P!#h#P#o!!b#o#p!%z#p;'S!!b;'S;=`!'c<%lO!!b&z!#mX$h&jOw!#hwx6cx!^!#h!^!_!$Y!_#o!#h#o#p!$Y#p;'S!#h;'S;=`!$r<%lO!#h`!$]TOw!$Ywx7]x;'S!$Y;'S;=`!$l<%lO!$Y`!$oP;=`<%l!$Y&z!$uP;=`<%l!#h'l!%R]$c`$h&j(RpOY(rYZ&cZr(rrs&cs!^(r!^!_)r!_#O(r#O#P&c#P#o(r#o#p)r#p;'S(r;'S;=`*a<%lO(r!Q!&PZ(RpOY!%zYZ!$YZr!%zrs!$Ysw!%zwx!&rx#O!%z#O#P!$Y#P;'S!%z;'S;=`!']<%lO!%z!Q!&yU$c`(RpOY)rZr)rs#O)r#P;'S)r;'S;=`*Z<%lO)r!Q!'`P;=`<%l!%z'l!'fP;=`<%l!!b/5|!'t_!i/.^$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z#&U!)O_!h!Lf$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z-!n!*[b$h&j(Rp(U!b(P%&f#n(ChOY%ZYZ&cZr%Zrs&}sw%Zwx(rxz%Zz{!+d{!^%Z!^!_*g!_!`Ka!`#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(KW!+o`$h&j(Rp(U!b#k(ChOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`Ka!`#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z+;x!,|`$h&j(Rp(U!bo+4YOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`Ka!`#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z,$U!.Z_!Y+Jf$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z07[!/ec$h&j(Rp(U!b}.2^OY%ZYZ&cZr%Zrs&}sw%Zwx(rx!O%Z!O!P!0p!P!Q%Z!Q![!3Y![!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z#%|!0ya$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!O%Z!O!P!2O!P!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z#%|!2Z_!X!L^$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad!3eg$h&j(Rp(U!bp'9tOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!Q%Z!Q![!3Y![!^%Z!^!_*g!_!g%Z!g!h!4|!h#O%Z#O#P&c#P#R%Z#R#S!3Y#S#X%Z#X#Y!4|#Y#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad!5Vg$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx{%Z{|!6n|}%Z}!O!6n!O!Q%Z!Q![!8S![!^%Z!^!_*g!_#O%Z#O#P&c#P#R%Z#R#S!8S#S#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad!6wc$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!Q%Z!Q![!8S![!^%Z!^!_*g!_#O%Z#O#P&c#P#R%Z#R#S!8S#S#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad!8_c$h&j(Rp(U!bp'9tOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!Q%Z!Q![!8S![!^%Z!^!_*g!_#O%Z#O#P&c#P#R%Z#R#S!8S#S#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z07[!9uf$h&j(Rp(U!b#l(ChOY!;ZYZ&cZr!;Zrs!<nsw!;Zwx!Lcxz!;Zz{#-}{!P!;Z!P!Q#/d!Q!^!;Z!^!_#(i!_!`#7S!`!a#8i!a!}!;Z!}#O#,f#O#P!Dy#P#o!;Z#o#p#(i#p;'S!;Z;'S;=`#-w<%lO!;Z?O!;fb$h&j(Rp(U!b!U7`OY!;ZYZ&cZr!;Zrs!<nsw!;Zwx!Lcx!P!;Z!P!Q#&`!Q!^!;Z!^!_#(i!_!}!;Z!}#O#,f#O#P!Dy#P#o!;Z#o#p#(i#p;'S!;Z;'S;=`#-w<%lO!;Z>^!<w`$h&j(U!b!U7`OY!<nYZ&cZw!<nwx!=yx!P!<n!P!Q!Eq!Q!^!<n!^!_!Gr!_!}!<n!}#O!KS#O#P!Dy#P#o!<n#o#p!Gr#p;'S!<n;'S;=`!L]<%lO!<n<z!>Q^$h&j!U7`OY!=yYZ&cZ!P!=y!P!Q!>|!Q!^!=y!^!_!@c!_!}!=y!}#O!CW#O#P!Dy#P#o!=y#o#p!@c#p;'S!=y;'S;=`!Ek<%lO!=y<z!?Td$h&j!U7`O!^&c!_#W&c#W#X!>|#X#Z&c#Z#[!>|#[#]&c#]#^!>|#^#a&c#a#b!>|#b#g&c#g#h!>|#h#i&c#i#j!>|#j#k!>|#k#m&c#m#n!>|#n#o&c#p;'S&c;'S;=`&w<%lO&c7`!@hX!U7`OY!@cZ!P!@c!P!Q!AT!Q!}!@c!}#O!Ar#O#P!Bq#P;'S!@c;'S;=`!CQ<%lO!@c7`!AYW!U7`#W#X!AT#Z#[!AT#]#^!AT#a#b!AT#g#h!AT#i#j!AT#j#k!AT#m#n!AT7`!AuVOY!ArZ#O!Ar#O#P!B[#P#Q!@c#Q;'S!Ar;'S;=`!Bk<%lO!Ar7`!B_SOY!ArZ;'S!Ar;'S;=`!Bk<%lO!Ar7`!BnP;=`<%l!Ar7`!BtSOY!@cZ;'S!@c;'S;=`!CQ<%lO!@c7`!CTP;=`<%l!@c<z!C][$h&jOY!CWYZ&cZ!^!CW!^!_!Ar!_#O!CW#O#P!DR#P#Q!=y#Q#o!CW#o#p!Ar#p;'S!CW;'S;=`!Ds<%lO!CW<z!DWX$h&jOY!CWYZ&cZ!^!CW!^!_!Ar!_#o!CW#o#p!Ar#p;'S!CW;'S;=`!Ds<%lO!CW<z!DvP;=`<%l!CW<z!EOX$h&jOY!=yYZ&cZ!^!=y!^!_!@c!_#o!=y#o#p!@c#p;'S!=y;'S;=`!Ek<%lO!=y<z!EnP;=`<%l!=y>^!Ezl$h&j(U!b!U7`OY&}YZ&cZw&}wx&cx!^&}!^!_'}!_#O&}#O#P&c#P#W&}#W#X!Eq#X#Z&}#Z#[!Eq#[#]&}#]#^!Eq#^#a&}#a#b!Eq#b#g&}#g#h!Eq#h#i&}#i#j!Eq#j#k!Eq#k#m&}#m#n!Eq#n#o&}#o#p'}#p;'S&};'S;=`(l<%lO&}8r!GyZ(U!b!U7`OY!GrZw!Grwx!@cx!P!Gr!P!Q!Hl!Q!}!Gr!}#O!JU#O#P!Bq#P;'S!Gr;'S;=`!J|<%lO!Gr8r!Hse(U!b!U7`OY'}Zw'}x#O'}#P#W'}#W#X!Hl#X#Z'}#Z#[!Hl#[#]'}#]#^!Hl#^#a'}#a#b!Hl#b#g'}#g#h!Hl#h#i'}#i#j!Hl#j#k!Hl#k#m'}#m#n!Hl#n;'S'};'S;=`(f<%lO'}8r!JZX(U!bOY!JUZw!JUwx!Arx#O!JU#O#P!B[#P#Q!Gr#Q;'S!JU;'S;=`!Jv<%lO!JU8r!JyP;=`<%l!JU8r!KPP;=`<%l!Gr>^!KZ^$h&j(U!bOY!KSYZ&cZw!KSwx!CWx!^!KS!^!_!JU!_#O!KS#O#P!DR#P#Q!<n#Q#o!KS#o#p!JU#p;'S!KS;'S;=`!LV<%lO!KS>^!LYP;=`<%l!KS>^!L`P;=`<%l!<n=l!Ll`$h&j(Rp!U7`OY!LcYZ&cZr!Lcrs!=ys!P!Lc!P!Q!Mn!Q!^!Lc!^!_# o!_!}!Lc!}#O#%P#O#P!Dy#P#o!Lc#o#p# o#p;'S!Lc;'S;=`#&Y<%lO!Lc=l!Mwl$h&j(Rp!U7`OY(rYZ&cZr(rrs&cs!^(r!^!_)r!_#O(r#O#P&c#P#W(r#W#X!Mn#X#Z(r#Z#[!Mn#[#](r#]#^!Mn#^#a(r#a#b!Mn#b#g(r#g#h!Mn#h#i(r#i#j!Mn#j#k!Mn#k#m(r#m#n!Mn#n#o(r#o#p)r#p;'S(r;'S;=`*a<%lO(r8Q# vZ(Rp!U7`OY# oZr# ors!@cs!P# o!P!Q#!i!Q!}# o!}#O#$R#O#P!Bq#P;'S# o;'S;=`#$y<%lO# o8Q#!pe(Rp!U7`OY)rZr)rs#O)r#P#W)r#W#X#!i#X#Z)r#Z#[#!i#[#])r#]#^#!i#^#a)r#a#b#!i#b#g)r#g#h#!i#h#i)r#i#j#!i#j#k#!i#k#m)r#m#n#!i#n;'S)r;'S;=`*Z<%lO)r8Q#$WX(RpOY#$RZr#$Rrs!Ars#O#$R#O#P!B[#P#Q# o#Q;'S#$R;'S;=`#$s<%lO#$R8Q#$vP;=`<%l#$R8Q#$|P;=`<%l# o=l#%W^$h&j(RpOY#%PYZ&cZr#%Prs!CWs!^#%P!^!_#$R!_#O#%P#O#P!DR#P#Q!Lc#Q#o#%P#o#p#$R#p;'S#%P;'S;=`#&S<%lO#%P=l#&VP;=`<%l#%P=l#&]P;=`<%l!Lc?O#&kn$h&j(Rp(U!b!U7`OY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#W%Z#W#X#&`#X#Z%Z#Z#[#&`#[#]%Z#]#^#&`#^#a%Z#a#b#&`#b#g%Z#g#h#&`#h#i%Z#i#j#&`#j#k#&`#k#m%Z#m#n#&`#n#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z9d#(r](Rp(U!b!U7`OY#(iZr#(irs!Grsw#(iwx# ox!P#(i!P!Q#)k!Q!}#(i!}#O#+`#O#P!Bq#P;'S#(i;'S;=`#,`<%lO#(i9d#)th(Rp(U!b!U7`OY*gZr*grs'}sw*gwx)rx#O*g#P#W*g#W#X#)k#X#Z*g#Z#[#)k#[#]*g#]#^#)k#^#a*g#a#b#)k#b#g*g#g#h#)k#h#i*g#i#j#)k#j#k#)k#k#m*g#m#n#)k#n;'S*g;'S;=`+Z<%lO*g9d#+gZ(Rp(U!bOY#+`Zr#+`rs!JUsw#+`wx#$Rx#O#+`#O#P!B[#P#Q#(i#Q;'S#+`;'S;=`#,Y<%lO#+`9d#,]P;=`<%l#+`9d#,cP;=`<%l#(i?O#,o`$h&j(Rp(U!bOY#,fYZ&cZr#,frs!KSsw#,fwx#%Px!^#,f!^!_#+`!_#O#,f#O#P!DR#P#Q!;Z#Q#o#,f#o#p#+`#p;'S#,f;'S;=`#-q<%lO#,f?O#-tP;=`<%l#,f?O#-zP;=`<%l!;Z07[#.[b$h&j(Rp(U!b'y0/l!U7`OY!;ZYZ&cZr!;Zrs!<nsw!;Zwx!Lcx!P!;Z!P!Q#&`!Q!^!;Z!^!_#(i!_!}!;Z!}#O#,f#O#P!Dy#P#o!;Z#o#p#(i#p;'S!;Z;'S;=`#-w<%lO!;Z07[#/o_$h&j(Rp(U!bT0/lOY#/dYZ&cZr#/drs#0nsw#/dwx#4Ox!^#/d!^!_#5}!_#O#/d#O#P#1p#P#o#/d#o#p#5}#p;'S#/d;'S;=`#6|<%lO#/d06j#0w]$h&j(U!bT0/lOY#0nYZ&cZw#0nwx#1px!^#0n!^!_#3R!_#O#0n#O#P#1p#P#o#0n#o#p#3R#p;'S#0n;'S;=`#3x<%lO#0n05W#1wX$h&jT0/lOY#1pYZ&cZ!^#1p!^!_#2d!_#o#1p#o#p#2d#p;'S#1p;'S;=`#2{<%lO#1p0/l#2iST0/lOY#2dZ;'S#2d;'S;=`#2u<%lO#2d0/l#2xP;=`<%l#2d05W#3OP;=`<%l#1p01O#3YW(U!bT0/lOY#3RZw#3Rwx#2dx#O#3R#O#P#2d#P;'S#3R;'S;=`#3r<%lO#3R01O#3uP;=`<%l#3R06j#3{P;=`<%l#0n05x#4X]$h&j(RpT0/lOY#4OYZ&cZr#4Ors#1ps!^#4O!^!_#5Q!_#O#4O#O#P#1p#P#o#4O#o#p#5Q#p;'S#4O;'S;=`#5w<%lO#4O00^#5XW(RpT0/lOY#5QZr#5Qrs#2ds#O#5Q#O#P#2d#P;'S#5Q;'S;=`#5q<%lO#5Q00^#5tP;=`<%l#5Q05x#5zP;=`<%l#4O01p#6WY(Rp(U!bT0/lOY#5}Zr#5}rs#3Rsw#5}wx#5Qx#O#5}#O#P#2d#P;'S#5};'S;=`#6v<%lO#5}01p#6yP;=`<%l#5}07[#7PP;=`<%l#/d)3h#7ab$h&j$P(Ch(Rp(U!b!U7`OY!;ZYZ&cZr!;Zrs!<nsw!;Zwx!Lcx!P!;Z!P!Q#&`!Q!^!;Z!^!_#(i!_!}!;Z!}#O#,f#O#P!Dy#P#o!;Z#o#p#(i#p;'S!;Z;'S;=`#-w<%lO!;ZAt#8vb$Y#t$h&j(Rp(U!b!U7`OY!;ZYZ&cZr!;Zrs!<nsw!;Zwx!Lcx!P!;Z!P!Q#&`!Q!^!;Z!^!_#(i!_!}!;Z!}#O#,f#O#P!Dy#P#o!;Z#o#p#(i#p;'S!;Z;'S;=`#-w<%lO!;Z'Ad#:Zp$h&j(Rp(U!bp'9tOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!O%Z!O!P!3Y!P!Q%Z!Q![#<_![!^%Z!^!_*g!_!g%Z!g!h!4|!h#O%Z#O#P&c#P#R%Z#R#S#<_#S#U%Z#U#V#?i#V#X%Z#X#Y!4|#Y#b%Z#b#c#>_#c#d#Bq#d#l%Z#l#m#Es#m#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad#<jk$h&j(Rp(U!bp'9tOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!O%Z!O!P!3Y!P!Q%Z!Q![#<_![!^%Z!^!_*g!_!g%Z!g!h!4|!h#O%Z#O#P&c#P#R%Z#R#S#<_#S#X%Z#X#Y!4|#Y#b%Z#b#c#>_#c#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad#>j_$h&j(Rp(U!bp'9tOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad#?rd$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!Q%Z!Q!R#AQ!R!S#AQ!S!^%Z!^!_*g!_#O%Z#O#P&c#P#R%Z#R#S#AQ#S#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad#A]f$h&j(Rp(U!bp'9tOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!Q%Z!Q!R#AQ!R!S#AQ!S!^%Z!^!_*g!_#O%Z#O#P&c#P#R%Z#R#S#AQ#S#b%Z#b#c#>_#c#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad#Bzc$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!Q%Z!Q!Y#DV!Y!^%Z!^!_*g!_#O%Z#O#P&c#P#R%Z#R#S#DV#S#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad#Dbe$h&j(Rp(U!bp'9tOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!Q%Z!Q!Y#DV!Y!^%Z!^!_*g!_#O%Z#O#P&c#P#R%Z#R#S#DV#S#b%Z#b#c#>_#c#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad#E|g$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!Q%Z!Q![#Ge![!^%Z!^!_*g!_!c%Z!c!i#Ge!i#O%Z#O#P&c#P#R%Z#R#S#Ge#S#T%Z#T#Z#Ge#Z#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z'Ad#Gpi$h&j(Rp(U!bp'9tOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!Q%Z!Q![#Ge![!^%Z!^!_*g!_!c%Z!c!i#Ge!i#O%Z#O#P&c#P#R%Z#R#S#Ge#S#T%Z#T#Z#Ge#Z#b%Z#b#c#>_#c#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z*)x#Il_!d$b$h&j#})Lv(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z)[#Jv_al$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z04f#LS^h#)`#O-<U(Rp(U!b(y7`OY*gZr*grs'}sw*gwx)rx!P*g!P!Q#MO!Q!^*g!^!_#Mt!_!`$ f!`#O*g#P;'S*g;'S;=`+Z<%lO*g(n#MXX$j&j(Rp(U!bOY*gZr*grs'}sw*gwx)rx#O*g#P;'S*g;'S;=`+Z<%lO*g(El#M}Z#o(Ch(Rp(U!bOY*gZr*grs'}sw*gwx)rx!_*g!_!`#Np!`#O*g#P;'S*g;'S;=`+Z<%lO*g(El#NyX$P(Ch(Rp(U!bOY*gZr*grs'}sw*gwx)rx#O*g#P;'S*g;'S;=`+Z<%lO*g(El$ oX#p(Ch(Rp(U!bOY*gZr*grs'}sw*gwx)rx#O*g#P;'S*g;'S;=`+Z<%lO*g*)x$!ga#]*!Y$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`0z!`!a$#l!a#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(K[$#w_#h(Cl$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z*)x$%Vag!*r#p(Ch$e#|$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`$&[!`!a$'f!a#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(KW$&g_#p(Ch$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(KW$'qa#o(Ch$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`Ka!`!a$(v!a#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(KW$)R`#o(Ch$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`Ka!`#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(Kd$*`a(m(Ct$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!a%Z!a!b$+e!b#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(KW$+p`$h&j#z(Ch(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`Ka!`#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z%#`$,}_!y$Ip$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z04f$.X_!P0,v$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(n$/]Z$h&jO!^$0O!^!_$0f!_#i$0O#i#j$0k#j#l$0O#l#m$2^#m#o$0O#o#p$0f#p;'S$0O;'S;=`$4i<%lO$0O(n$0VT_#S$h&jO!^&c!_#o&c#p;'S&c;'S;=`&w<%lO&c#S$0kO_#S(n$0p[$h&jO!Q&c!Q![$1f![!^&c!_!c&c!c!i$1f!i#T&c#T#Z$1f#Z#o&c#o#p$3|#p;'S&c;'S;=`&w<%lO&c(n$1kZ$h&jO!Q&c!Q![$2^![!^&c!_!c&c!c!i$2^!i#T&c#T#Z$2^#Z#o&c#p;'S&c;'S;=`&w<%lO&c(n$2cZ$h&jO!Q&c!Q![$3U![!^&c!_!c&c!c!i$3U!i#T&c#T#Z$3U#Z#o&c#p;'S&c;'S;=`&w<%lO&c(n$3ZZ$h&jO!Q&c!Q![$0O![!^&c!_!c&c!c!i$0O!i#T&c#T#Z$0O#Z#o&c#p;'S&c;'S;=`&w<%lO&c#S$4PR!Q![$4Y!c!i$4Y#T#Z$4Y#S$4]S!Q![$4Y!c!i$4Y#T#Z$4Y#q#r$0f(n$4lP;=`<%l$0O#1[$4z_!V#)l$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z(KW$6U`#w(Ch$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`Ka!`#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z+;p$7c_$h&j(Rp(U!b([+4QOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z07[$8qk$h&j(Rp(U!b(O,2j$^#t(`$I[OY%ZYZ&cZr%Zrs&}st%Ztu$8buw%Zwx(rx}%Z}!O$:f!O!Q%Z!Q![$8b![!^%Z!^!_*g!_!c%Z!c!}$8b!}#O%Z#O#P&c#P#R%Z#R#S$8b#S#T%Z#T#o$8b#o#p*g#p$g%Z$g;'S$8b;'S;=`$<l<%lO$8b+d$:qk$h&j(Rp(U!b$^#tOY%ZYZ&cZr%Zrs&}st%Ztu$:fuw%Zwx(rx}%Z}!O$:f!O!Q%Z!Q![$:f![!^%Z!^!_*g!_!c%Z!c!}$:f!}#O%Z#O#P&c#P#R%Z#R#S$:f#S#T%Z#T#o$:f#o#p*g#p$g%Z$g;'S$:f;'S;=`$<f<%lO$:f+d$<iP;=`<%l$:f07[$<oP;=`<%l$8b#Jf$<{X![#Hb(Rp(U!bOY*gZr*grs'}sw*gwx)rx#O*g#P;'S*g;'S;=`+Z<%lO*g,#x$=sa(t+JY$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_!`Ka!`#O%Z#O#P&c#P#o%Z#o#p*g#p#q$+e#q;'S%Z;'S;=`+a<%lO%Z(Kd$?V_!Z(Cds`$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z?O$@a_!n7`$h&j(Rp(U!bOY%ZYZ&cZr%Zrs&}sw%Zwx(rx!^%Z!^!_*g!_#O%Z#O#P&c#P#o%Z#o#p*g#p;'S%Z;'S;=`+a<%lO%Z07[$Aq|$h&j(Rp(U!b'w0/l$[#t(O,2j(`$I[OX%ZXY+gYZ&cZ[+g[p%Zpq+gqr%Zrs&}st%ZtuEruw%Zwx(rx}%Z}!OGv!O!Q%Z!Q![Er![!^%Z!^!_*g!_!c%Z!c!}Er!}#O%Z#O#P&c#P#R%Z#R#SEr#S#T%Z#T#oEr#o#p*g#p$f%Z$f$g+g$g#BYEr#BY#BZ$A`#BZ$ISEr$IS$I_$A`$I_$JTEr$JT$JU$A`$JU$KVEr$KV$KW$A`$KW&FUEr&FU&FV$A`&FV;'SEr;'S;=`I|<%l?HTEr?HT?HU$A`?HUOEr07[$D|k$h&j(Rp(U!b'x0/l$[#t(O,2j(`$I[OY%ZYZ&cZr%Zrs&}st%ZtuEruw%Zwx(rx}%Z}!OGv!O!Q%Z!Q![Er![!^%Z!^!_*g!_!c%Z!c!}Er!}#O%Z#O#P&c#P#R%Z#R#SEr#S#T%Z#T#oEr#o#p*g#p$g%Z$g;'SEr;'S;=`I|<%lOEr",
-  tokenizers: [noSemicolon, operatorToken, jsx, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, insertSemicolon, new LocalTokenGroup("$S~RRtu[#O#Pg#S#T#|~_P#o#pb~gOu~~jVO#i!P#i#j!U#j#l!P#l#m!q#m;'S!P;'S;=`#v<%lO!P~!UO!R~~!XS!Q![!e!c!i!e#T#Z!e#o#p#Z~!hR!Q![!q!c!i!q#T#Z!q~!tR!Q![!}!c!i!}#T#Z!}~#QR!Q![!P!c!i!P#T#Z!P~#^R!Q![#g!c!i#g#T#Z#g~#jS!Q![#g!c!i#g#T#Z#g#q#r!P~#yP;=`<%l!P~$RO(^~~", 141, 335), new LocalTokenGroup("j~RQYZXz{^~^O'{~~aP!P!Qd~iO'|~~", 25, 318)],
-  topRules: {"Script":[0,7],"SingleExpression":[1,272],"SingleClassItem":[2,273]},
-  dialects: {jsx: 0, ts: 14769},
-  dynamicPrecedences: {"77":1,"79":1,"91":1,"167":1,"196":1},
-  specialized: [{term: 322, get: (value) => spec_identifier[value] || -1},{term: 338, get: (value) => spec_word[value] || -1},{term: 92, get: (value) => spec_LessThan[value] || -1}],
-  tokenPrec: 14793
-});
-
-/**
-A collection of JavaScript-related
-[snippets](https://codemirror.net/6/docs/ref/#autocomplete.snippet).
-*/
-const snippets = [
-    /*@__PURE__*/snippetCompletion("function ${name}(${params}) {\n\t${}\n}", {
-        label: "function",
-        detail: "definition",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("for (let ${index} = 0; ${index} < ${bound}; ${index}++) {\n\t${}\n}", {
-        label: "for",
-        detail: "loop",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("for (let ${name} of ${collection}) {\n\t${}\n}", {
-        label: "for",
-        detail: "of loop",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("do {\n\t${}\n} while (${})", {
-        label: "do",
-        detail: "loop",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("while (${}) {\n\t${}\n}", {
-        label: "while",
-        detail: "loop",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("try {\n\t${}\n} catch (${error}) {\n\t${}\n}", {
-        label: "try",
-        detail: "/ catch block",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("if (${}) {\n\t${}\n}", {
-        label: "if",
-        detail: "block",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("if (${}) {\n\t${}\n} else {\n\t${}\n}", {
-        label: "if",
-        detail: "/ else block",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("class ${name} {\n\tconstructor(${params}) {\n\t\t${}\n\t}\n}", {
-        label: "class",
-        detail: "definition",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("import {${names}} from \"${module}\"\n${}", {
-        label: "import",
-        detail: "named",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("import ${name} from \"${module}\"\n${}", {
-        label: "import",
-        detail: "default",
-        type: "keyword"
-    })
-];
-/**
-A collection of snippet completions for TypeScript. Includes the
-JavaScript [snippets](https://codemirror.net/6/docs/ref/#lang-javascript.snippets).
-*/
-const typescriptSnippets = /*@__PURE__*/snippets.concat([
-    /*@__PURE__*/snippetCompletion("interface ${name} {\n\t${}\n}", {
-        label: "interface",
-        detail: "definition",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("type ${name} = ${type}", {
-        label: "type",
-        detail: "definition",
-        type: "keyword"
-    }),
-    /*@__PURE__*/snippetCompletion("enum ${name} {\n\t${}\n}", {
-        label: "enum",
-        detail: "definition",
-        type: "keyword"
-    })
-]);
-
-const cache = /*@__PURE__*/new NodeWeakMap();
-const ScopeNodes = /*@__PURE__*/new Set([
-    "Script", "Block",
-    "FunctionExpression", "FunctionDeclaration", "ArrowFunction", "MethodDeclaration",
-    "ForStatement"
-]);
-function defID(type) {
-    return (node, def) => {
-        let id = node.node.getChild("VariableDefinition");
-        if (id)
-            def(id, type);
-        return true;
-    };
-}
-const functionContext = ["FunctionDeclaration"];
-const gatherCompletions = {
-    FunctionDeclaration: /*@__PURE__*/defID("function"),
-    ClassDeclaration: /*@__PURE__*/defID("class"),
-    ClassExpression: () => true,
-    EnumDeclaration: /*@__PURE__*/defID("constant"),
-    TypeAliasDeclaration: /*@__PURE__*/defID("type"),
-    NamespaceDeclaration: /*@__PURE__*/defID("namespace"),
-    VariableDefinition(node, def) { if (!node.matchContext(functionContext))
-        def(node, "variable"); },
-    TypeDefinition(node, def) { def(node, "type"); },
-    __proto__: null
-};
-function getScope(doc, node) {
-    let cached = cache.get(node);
-    if (cached)
-        return cached;
-    let completions = [], top = true;
-    function def(node, type) {
-        let name = doc.sliceString(node.from, node.to);
-        completions.push({ label: name, type });
-    }
-    node.cursor(IterMode.IncludeAnonymous).iterate(node => {
-        if (top) {
-            top = false;
-        }
-        else if (node.name) {
-            let gather = gatherCompletions[node.name];
-            if (gather && gather(node, def) || ScopeNodes.has(node.name))
-                return false;
-        }
-        else if (node.to - node.from > 8192) {
-            // Allow caching for bigger internal nodes
-            for (let c of getScope(doc, node.node))
-                completions.push(c);
-            return false;
-        }
-    });
-    cache.set(node, completions);
-    return completions;
-}
-const Identifier = /^[\w$\xa1-\uffff][\w$\d\xa1-\uffff]*$/;
-const dontComplete = [
-    "TemplateString", "String", "RegExp",
-    "LineComment", "BlockComment",
-    "VariableDefinition", "TypeDefinition", "Label",
-    "PropertyDefinition", "PropertyName",
-    "PrivatePropertyDefinition", "PrivatePropertyName",
-    ".", "?."
-];
-/**
-Completion source that looks up locally defined names in
-JavaScript code.
-*/
-function localCompletionSource(context) {
-    let inner = syntaxTree(context.state).resolveInner(context.pos, -1);
-    if (dontComplete.indexOf(inner.name) > -1)
-        return null;
-    let isWord = inner.name == "VariableName" ||
-        inner.to - inner.from < 20 && Identifier.test(context.state.sliceDoc(inner.from, inner.to));
-    if (!isWord && !context.explicit)
-        return null;
-    let options = [];
-    for (let pos = inner; pos; pos = pos.parent) {
-        if (ScopeNodes.has(pos.name))
-            options = options.concat(getScope(context.state.doc, pos));
-    }
-    return {
-        options,
-        from: isWord ? inner.from : context.pos,
-        validFor: Identifier
-    };
-}
-
-/**
-A language provider based on the [Lezer JavaScript
-parser](https://github.com/lezer-parser/javascript), extended with
-highlighting and indentation information.
-*/
-const javascriptLanguage = /*@__PURE__*/LRLanguage.define({
-    name: "javascript",
-    parser: /*@__PURE__*/parser.configure({
-        props: [
-            /*@__PURE__*/indentNodeProp.add({
-                IfStatement: /*@__PURE__*/continuedIndent({ except: /^\s*({|else\b)/ }),
-                TryStatement: /*@__PURE__*/continuedIndent({ except: /^\s*({|catch\b|finally\b)/ }),
-                LabeledStatement: flatIndent,
-                SwitchBody: context => {
-                    let after = context.textAfter, closed = /^\s*\}/.test(after), isCase = /^\s*(case|default)\b/.test(after);
-                    return context.baseIndent + (closed ? 0 : isCase ? 1 : 2) * context.unit;
-                },
-                Block: /*@__PURE__*/delimitedIndent({ closing: "}" }),
-                ArrowFunction: cx => cx.baseIndent + cx.unit,
-                "TemplateString BlockComment": () => null,
-                "Statement Property": /*@__PURE__*/continuedIndent({ except: /^{/ }),
-                JSXElement(context) {
-                    let closed = /^\s*<\//.test(context.textAfter);
-                    return context.lineIndent(context.node.from) + (closed ? 0 : context.unit);
-                },
-                JSXEscape(context) {
-                    let closed = /\s*\}/.test(context.textAfter);
-                    return context.lineIndent(context.node.from) + (closed ? 0 : context.unit);
-                },
-                "JSXOpenTag JSXSelfClosingTag"(context) {
-                    return context.column(context.node.from) + context.unit;
-                }
-            }),
-            /*@__PURE__*/foldNodeProp.add({
-                "Block ClassBody SwitchBody EnumBody ObjectExpression ArrayExpression ObjectType": foldInside,
-                BlockComment(tree) { return { from: tree.from + 2, to: tree.to - 2 }; }
-            })
-        ]
-    }),
-    languageData: {
-        closeBrackets: { brackets: ["(", "[", "{", "'", '"', "`"] },
-        commentTokens: { line: "//", block: { open: "/*", close: "*/" } },
-        indentOnInput: /^\s*(?:case |default:|\{|\}|<\/)$/,
-        wordChars: "$"
-    }
-});
-const jsxSublanguage = {
-    test: node => /^JSX/.test(node.name),
-    facet: /*@__PURE__*/defineLanguageFacet({ commentTokens: { block: { open: "{/*", close: "*/}" } } })
-};
-/**
-A language provider for TypeScript.
-*/
-const typescriptLanguage = /*@__PURE__*/javascriptLanguage.configure({ dialect: "ts" }, "typescript");
-/**
-Language provider for JSX.
-*/
-const jsxLanguage = /*@__PURE__*/javascriptLanguage.configure({
-    dialect: "jsx",
-    props: [/*@__PURE__*/sublanguageProp.add(n => n.isTop ? [jsxSublanguage] : undefined)]
-});
-/**
-Language provider for JSX + TypeScript.
-*/
-const tsxLanguage = /*@__PURE__*/javascriptLanguage.configure({
-    dialect: "jsx ts",
-    props: [/*@__PURE__*/sublanguageProp.add(n => n.isTop ? [jsxSublanguage] : undefined)]
-}, "typescript");
-let kwCompletion = (name) => ({ label: name, type: "keyword" });
-const keywords = /*@__PURE__*/"break case const continue default delete export extends false finally in instanceof let new return static super switch this throw true typeof var yield".split(" ").map(kwCompletion);
-const typescriptKeywords = /*@__PURE__*/keywords.concat(/*@__PURE__*/["declare", "implements", "private", "protected", "public"].map(kwCompletion));
-/**
-JavaScript support. Includes [snippet](https://codemirror.net/6/docs/ref/#lang-javascript.snippets)
-and local variable completion.
-*/
-function javascript(config = {}) {
-    let lang = config.jsx ? (config.typescript ? tsxLanguage : jsxLanguage)
-        : config.typescript ? typescriptLanguage : javascriptLanguage;
-    let completions = config.typescript ? typescriptSnippets.concat(typescriptKeywords) : snippets.concat(keywords);
-    return new LanguageSupport(lang, [
-        javascriptLanguage.data.of({
-            autocomplete: ifNotIn(dontComplete, completeFromList(completions))
-        }),
-        javascriptLanguage.data.of({
-            autocomplete: localCompletionSource
-        }),
-        config.jsx ? autoCloseTags : [],
-    ]);
-}
-function findOpenTag(node) {
-    for (;;) {
-        if (node.name == "JSXOpenTag" || node.name == "JSXSelfClosingTag" || node.name == "JSXFragmentTag")
-            return node;
-        if (node.name == "JSXEscape" || !node.parent)
-            return null;
-        node = node.parent;
-    }
-}
-function elementName(doc, tree, max = doc.length) {
-    for (let ch = tree === null || tree === void 0 ? void 0 : tree.firstChild; ch; ch = ch.nextSibling) {
-        if (ch.name == "JSXIdentifier" || ch.name == "JSXBuiltin" || ch.name == "JSXNamespacedName" ||
-            ch.name == "JSXMemberExpression")
-            return doc.sliceString(ch.from, Math.min(ch.to, max));
-    }
-    return "";
-}
-const android = typeof navigator == "object" && /*@__PURE__*//Android\b/.test(navigator.userAgent);
-/**
-Extension that will automatically insert JSX close tags when a `>` or
-`/` is typed.
-*/
-const autoCloseTags = /*@__PURE__*/EditorView.inputHandler.of((view, from, to, text, defaultInsert) => {
-    if ((android ? view.composing : view.compositionStarted) || view.state.readOnly ||
-        from != to || (text != ">" && text != "/") ||
-        !javascriptLanguage.isActiveAt(view.state, from, -1))
-        return false;
-    let base = defaultInsert(), { state } = base;
-    let closeTags = state.changeByRange(range => {
-        var _a;
-        let { head } = range, around = syntaxTree(state).resolveInner(head - 1, -1), name;
-        if (around.name == "JSXStartTag")
-            around = around.parent;
-        if (state.doc.sliceString(head - 1, head) != text || around.name == "JSXAttributeValue" && around.to > head) ;
-        else if (text == ">" && around.name == "JSXFragmentTag") {
-            return { range, changes: { from: head, insert: `</>` } };
-        }
-        else if (text == "/" && around.name == "JSXStartCloseTag") {
-            let empty = around.parent, base = empty.parent;
-            if (base && empty.from == head - 2 &&
-                ((name = elementName(state.doc, base.firstChild, head)) || ((_a = base.firstChild) === null || _a === void 0 ? void 0 : _a.name) == "JSXFragmentTag")) {
-                let insert = `${name}>`;
-                return { range: EditorSelection.cursor(head + insert.length, -1), changes: { from: head, insert } };
-            }
-        }
-        else if (text == ">") {
-            let openTag = findOpenTag(around);
-            if (openTag && openTag.name == "JSXOpenTag" &&
-                !/^\/?>|^<\//.test(state.doc.sliceString(head, head + 2)) &&
-                (name = elementName(state.doc, openTag, head)))
-                return { range, changes: { from: head, insert: `</${name}>` } };
-        }
-        return { range };
-    });
-    if (closeTags.changes.empty)
-        return false;
-    view.dispatch([
-        base,
-        state.update(closeTags, { userEvent: "input.complete", scrollIntoView: true })
-    ]);
-    return true;
-});
 
 const base00 = '#2E3235', base01 = '#DDDDDD', base02 = '#B9D2FF', base03 = '#b0b0b0', base05 = '#e0e0e0', base06 = '#808080', base07 = '#000000', base08 = '#A54543', base09 = '#fc6d24', base0A = '#fda331', base0B = '#8abeb7', base0C = '#b5bd68', base0D = '#6fb3d2', base0E = '#cc99cc', base0F = '#6987AF';
 const invalid = base09, darkBackground = '#292d30', highlightBackground = base02 + '30', background = base00, tooltipBackground = base01, selection = '#202325', cursor = base01;
@@ -27067,6 +19287,653 @@ const basicDark = [
     /*@__PURE__*/syntaxHighlighting(basicDarkHighlightStyle)
 ];
 
+function Context(indented, column, type, info, align, prev) {
+  this.indented = indented;
+  this.column = column;
+  this.type = type;
+  this.info = info;
+  this.align = align;
+  this.prev = prev;
+}
+function pushContext(state, col, type, info) {
+  var indent = state.indented;
+  if (state.context && state.context.type == "statement" && type != "statement")
+    indent = state.context.indented;
+  return state.context = new Context(indent, col, type, info, null, state.context);
+}
+function popContext(state) {
+  var t = state.context.type;
+  if (t == ")" || t == "]" || t == "}")
+    state.indented = state.context.indented;
+  return state.context = state.context.prev;
+}
+
+function typeBefore(stream, state, pos) {
+  if (state.prevToken == "variable" || state.prevToken == "type") return true;
+  if (/\S(?:[^- ]>|[*\]])\s*$|\*$/.test(stream.string.slice(0, pos))) return true;
+  if (state.typeAtEndOfLine && stream.column() == stream.indentation()) return true;
+}
+
+function isTopScope(context) {
+  for (;;) {
+    if (!context || context.type == "top") return true;
+    if (context.type == "}" && context.prev.info != "namespace") return false;
+    context = context.prev;
+  }
+}
+
+function clike(parserConfig) {
+  var statementIndentUnit = parserConfig.statementIndentUnit,
+      dontAlignCalls = parserConfig.dontAlignCalls,
+      keywords = parserConfig.keywords || {},
+      types = parserConfig.types || {},
+      builtin = parserConfig.builtin || {},
+      blockKeywords = parserConfig.blockKeywords || {},
+      defKeywords = parserConfig.defKeywords || {},
+      atoms = parserConfig.atoms || {},
+      hooks = parserConfig.hooks || {},
+      multiLineStrings = parserConfig.multiLineStrings,
+      indentStatements = parserConfig.indentStatements !== false,
+      indentSwitch = parserConfig.indentSwitch !== false,
+      namespaceSeparator = parserConfig.namespaceSeparator,
+      isPunctuationChar = parserConfig.isPunctuationChar || /[\[\]{}\(\),;\:\.]/,
+      numberStart = parserConfig.numberStart || /[\d\.]/,
+      number = parserConfig.number || /^(?:0x[a-f\d]+|0b[01]+|(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)(u|ll?|l|f)?/i,
+      // modified to include ' @
+      isOperatorChar = parserConfig.isOperatorChar || /[+\-*\'\@\#&%=<>!?|\/]/,
+      isIdentifierChar = parserConfig.isIdentifierChar || /[\w\$_\xa1-\uffff]/,
+      // An optional function that takes a {string} token and returns true if it
+      // should be treated as a builtin.
+      isReservedIdentifier = parserConfig.isReservedIdentifier || false;
+
+  var curPunc, isDefKeyword;
+
+  function tokenBase(stream, state) {
+    var ch = stream.next();
+    if (hooks[ch]) {
+      var result = hooks[ch](stream, state);
+      if (result !== false) return result;
+    }
+    // XXX modified to not use single character strings
+    if (ch == '"' ) {
+      state.tokenize = tokenString(ch);
+      return state.tokenize(stream, state);
+    }
+    if (numberStart.test(ch)) {
+      stream.backUp(1);
+      if (stream.match(number)) return "number"
+      stream.next();
+    }
+    if (isPunctuationChar.test(ch)) {
+      curPunc = ch;
+      return null;
+    }
+    if (ch == "/") {
+      if (stream.eat("*")) {
+        state.tokenize = tokenComment;
+        return tokenComment(stream, state);
+      }
+      if (stream.eat("/")) {
+        stream.skipToEnd();
+        return "comment";
+      }
+    }
+    if (isOperatorChar.test(ch)) {
+      while (!stream.match(/^\/[\/*]/, false) && stream.eat(isOperatorChar)) {}
+      return "operator";
+    }
+    stream.eatWhile(isIdentifierChar);
+    if (namespaceSeparator) while (stream.match(namespaceSeparator))
+      stream.eatWhile(isIdentifierChar);
+
+    var cur = stream.current();
+    if (contains(keywords, cur)) {
+      if (contains(blockKeywords, cur)) curPunc = "newstatement";
+      if (contains(defKeywords, cur)) isDefKeyword = true;
+      return "keyword";
+    }
+    if (contains(types, cur)) return "type";
+    if (contains(builtin, cur)
+        || (isReservedIdentifier && isReservedIdentifier(cur))) {
+      if (contains(blockKeywords, cur)) curPunc = "newstatement";
+      return "builtin";
+    }
+    if (contains(atoms, cur)) return "atom";
+    return "variable";
+  }
+
+  function tokenString(quote) {
+    return function(stream, state) {
+      var escaped = false, next, end = false;
+      while ((next = stream.next()) != null) {
+        if (next == quote && !escaped) {end = true; break;}
+        escaped = !escaped && next == "\\";
+      }
+      if (end || !(escaped || multiLineStrings))
+        state.tokenize = null;
+      return "string";
+    };
+  }
+
+  function tokenComment(stream, state) {
+    var maybeEnd = false, ch;
+    while (ch = stream.next()) {
+      if (ch == "/" && maybeEnd) {
+        state.tokenize = null;
+        break;
+      }
+      maybeEnd = (ch == "*");
+    }
+    return "comment";
+  }
+
+  function maybeEOL(stream, state) {
+    if (parserConfig.typeFirstDefinitions && stream.eol() && isTopScope(state.context))
+      state.typeAtEndOfLine = typeBefore(stream, state, stream.pos);
+  }
+
+  // Interface
+
+  return {
+    name: parserConfig.name,
+    startState: function(indentUnit) {
+      return {
+        tokenize: null,
+        context: new Context(-indentUnit, 0, "top", null, false),
+        indented: 0,
+        startOfLine: true,
+        prevToken: null
+      };
+    },
+
+    token: function(stream, state) {
+      var ctx = state.context;
+      if (stream.sol()) {
+        if (ctx.align == null) ctx.align = false;
+        state.indented = stream.indentation();
+        state.startOfLine = true;
+      }
+      if (stream.eatSpace()) { maybeEOL(stream, state); return null; }
+      curPunc = isDefKeyword = null;
+      var style = (state.tokenize || tokenBase)(stream, state);
+      if (style == "comment" || style == "meta") return style;
+      if (ctx.align == null) ctx.align = true;
+
+      if (curPunc == ";" || curPunc == ":" || (curPunc == "," && stream.match(/^\s*(?:\/\/.*)?$/, false)))
+        while (state.context.type == "statement") popContext(state);
+      else if (curPunc == "{") pushContext(state, stream.column(), "}");
+      else if (curPunc == "[") pushContext(state, stream.column(), "]");
+      else if (curPunc == "(") pushContext(state, stream.column(), ")");
+      else if (curPunc == "}") {
+        while (ctx.type == "statement") ctx = popContext(state);
+        if (ctx.type == "}") ctx = popContext(state);
+        while (ctx.type == "statement") ctx = popContext(state);
+      }
+      else if (curPunc == ctx.type) popContext(state);
+      else if (indentStatements &&
+               (((ctx.type == "}" || ctx.type == "top") && curPunc != ";") ||
+                (ctx.type == "statement" && curPunc == "newstatement"))) {
+        pushContext(state, stream.column(), "statement", stream.current());
+      }
+
+      if (style == "variable" &&
+          ((state.prevToken == "def" ||
+            (parserConfig.typeFirstDefinitions && typeBefore(stream, state, stream.start) &&
+             isTopScope(state.context) && stream.match(/^\s*\(/, false)))))
+        style = "def";
+
+      if (hooks.token) {
+        var result = hooks.token(stream, state, style);
+        if (result !== undefined) style = result;
+      }
+
+      if (style == "def" && parserConfig.styleDefs === false) style = "variable";
+
+      state.startOfLine = false;
+      state.prevToken = isDefKeyword ? "def" : style || curPunc;
+      maybeEOL(stream, state);
+      return style;
+    },
+
+    indent: function(state, textAfter, context) {
+      if (state.tokenize != tokenBase && state.tokenize != null || state.typeAtEndOfLine && isTopScope(state.context))
+        return null;
+      var ctx = state.context, firstChar = textAfter && textAfter.charAt(0);
+      var closing = firstChar == ctx.type;
+      if (ctx.type == "statement" && firstChar == "}") ctx = ctx.prev;
+      if (parserConfig.dontIndentStatements)
+        while (ctx.type == "statement" && parserConfig.dontIndentStatements.test(ctx.info))
+          ctx = ctx.prev;
+      if (hooks.indent) {
+        var hook = hooks.indent(state, ctx, textAfter, context.unit);
+        if (typeof hook == "number") return hook
+      }
+      var switchBlock = ctx.prev && ctx.prev.info == "switch";
+      if (parserConfig.allmanIndentation && /[{(]/.test(firstChar)) {
+        while (ctx.type != "top" && ctx.type != "}") ctx = ctx.prev;
+        return ctx.indented
+      }
+      if (ctx.type == "statement")
+        return ctx.indented + (firstChar == "{" ? 0 : statementIndentUnit || context.unit);
+      if (ctx.align && (!dontAlignCalls || ctx.type != ")"))
+        return ctx.column + (closing ? 0 : 1);
+      if (ctx.type == ")" && !closing)
+        return ctx.indented + (statementIndentUnit || context.unit);
+
+      return ctx.indented + (closing ? 0 : context.unit) +
+        (!closing && switchBlock && !/^(?:case|default)\b/.test(textAfter) ? context.unit : 0);
+    },
+
+    languageData: {
+      indentOnInput: indentSwitch ? /^\s*(?:case .*?:|default:|\{\}?|\})$/ : /^\s*[{}]$/,
+      commentTokens: {line: "//", block: {open: "/*", close: "*/"}},
+      autocomplete: Object.keys(keywords).concat(Object.keys(types)).concat(Object.keys(builtin)).concat(Object.keys(atoms)),
+      ...parserConfig.languageData
+    }
+  };
+}
+function words(str) {
+  var obj = {}, words = str.split(" ");
+  for (var i = 0; i < words.length; ++i) obj[words[i]] = true;
+  return obj;
+}
+function contains(words, word) {
+  if (typeof words === "function") {
+    return words(word);
+  } else {
+    return words.propertyIsEnumerable(word);
+  }
+}
+
+const screamer_def = clike({
+  name: "screamer",
+  keywords: words("fog background render post"),
+  atoms: words("time mousex mousey i low mid high"),
+  blockKeywords: words("case catch class else for foreach if switch try while"),
+  typeFirstDefinitions: true,
+  atoms: words("true false null"),
+});
+
+const globals = {};
+
+const mods = {
+  '\'':  'scale',
+  '\'\'': 'scaleBy', 
+  '#':  'Repeat',
+  '##': 'PolarRepeat',
+  ':':  'material',
+  '::': 'texture',
+  '>':  'translate',
+  '>>': 'moveBy',
+  '@':  'rotate',
+  '@@': 'rotateBy',
+  '|':  'Mirror',
+};
+ 
+const mouse = { x:0, y:0 };
+
+const vecMembers = ['x','y','z','w'];
+
+const screamer = {
+  __i:0,
+  config : {
+    render: 'med',
+    fog: [0,0,0,0],
+    background:[0,0,0],
+    post: []
+      
+  },
+
+  init() {
+    window.onmousemove = function(e) {
+      mouse.x = e.clientX / window.innerWidth;
+      mouse.y = e.clientY / window.innerHeight;
+    };
+
+    return this
+  },
+
+  mathwalk( obj ) {
+    let out = 1;
+    if( Array.isArray( obj ) ) { 
+      if( obj.length > 1 ) {
+        const a = screamer.mathwalk( obj[2] );
+        const b = obj[3] !== undefined ? screamer.mathwalk( obj[3] ) : null;
+
+        const op = obj[1];                  
+        switch( op ) {
+          case '+': 
+            out = t => a( t ) + b( t ); 
+            break
+          case '-':
+            out = t => a( t ) - b( t ); 
+            break
+          case '*':
+            out = t => a( t ) * b( t ); 
+            break
+          case '/':
+            out = t => a( t ) / b( t ); 
+            break
+          case '%':
+            out = t => a( t ) % b( t ); 
+            break
+          case 'sin':
+            out = t => Math.sin( a( t ) );
+            break
+          case 'cos':
+            out = t => Math.cos( a( t ) );
+            break
+          case 'round':
+            out = t => Math.round( a( t ) );
+            break
+          case 'random':
+            out = t => Math.random();
+            break
+          case 'floor':
+            out = t => Math.floor( a( t ) );
+            break
+          case 'ceil':
+            out = t => Math.ceil( a( t ) );
+            break
+          case 'abs':
+            out = t => Math.abs( a( t ) );
+            break
+        }
+      }else {
+        out = screamer.mathwalk( obj[0] );
+      }
+    }else if( typeof obj === 'string' ) {       
+      switch( obj ) {
+        case 'i' : 
+          const i = screamer.__i;
+          out = t => i;
+          break
+        case 'time': out = t => t; break;
+        case 'mousex': out = t => mouse.x; break;
+        case 'mousey': out = t => mouse.y; break;
+        case 'low':
+          // .start() is a null operation if audio
+          // has already been initialized
+          Marching.FFT.start();
+          out = t => Marching.FFT.low;
+          break
+        case 'mid':
+          Marching.FFT.start();
+          out = t => Marching.FFT.mid;
+          break
+        case 'high':
+          Marching.FFT.start();
+          out = t => Marching.FFT.high;
+          break
+      }
+    }else {
+      const val = parseFloat( obj );
+      out = t => val; 
+    }
+
+    return out
+  },
+
+  processMod( obj, mod ) {
+    let out;
+    const name = mods[ mod[0] ];
+
+    if( name === 'scale' || name === 'translate' || name === 'rotate' || name === 'scaleBy'  ) {
+      let args, isList = false;
+
+      if( mod[1].name === 'list' ) {
+        isList = true;
+        args = mod[1].values.map( screamer.mathwalk );
+
+        Marching.postrendercallbacks.push( time => {
+          const __args = args.map( v => v( time ));
+          obj[ name ]( ...__args );
+        });
+      }else {
+        args = screamer.mathwalk( mod[1] )();  
+      }
+
+      if( isList ) { 
+        out = obj[ name ]( ...args  );
+        
+      }else {
+        out = obj[ name ]( args );
+      }
+    }else if( name === 'material' || name === 'texture' ) {
+      out = obj[ name ]( mod[1] );
+    }else {
+      out = mod[1].name === 'list'
+            ? window[ name ]( obj, ...mod[1].values.map( screamer.mathwalk ) )
+            : window[ name ]( obj, screamer.mathwalk( mod[1] ) );
+    }
+    
+    return out
+  },
+
+  walkers: {
+    assignment( obj ) {
+      if( obj[1].indexOf('.') === -1 ) {
+        globals[ obj[1] ] = screamer.walk( obj[2] );
+        out = globals[ obj[1] ];
+      }else {
+        const split = obj[1].split('.');
+        let value = screamer.walk( obj[2] ),
+          __obj = globals[ split[0] ];
+
+        if( typeof value === 'function' ) {
+          let __value = value;
+
+          Marching.postrendercallbacks.push( t => {
+            __obj[ split[1] ] = __value( t );
+          });
+
+          value = value(0);
+        }else if( Array.isArray( value ) ) {
+          const vec = window[ `Vec${value.length}` ](0);
+
+          for( let i = 0; i < value.length; i++ ) {
+            const v = screamer.mathwalk( value[ i ] );
+            if( typeof v === 'function' ) {
+              const fnc = time => {
+                vec[ vecMembers[ i ] ] = v( time );
+                __obj[ split[1] ] = vec;
+              };
+              Marching.postrendercallbacks.push( fnc );
+
+              vec[ vecMembers[i] ] = v(0);
+            }else {
+              vec[ vecMembers[i] ] = v;
+            }
+          }
+          __obj[ split[1] ] = vec;
+        }
+
+        out = false;
+      }
+    },
+
+    combinator( obj ) {
+      const constructor = window[ obj[1] ];
+      const args = [];
+      for( let i = 2; i < obj.length; i++ ) {
+        const isList = Array.isArray( obj[ i ] ) && obj[i].length !== 0; 
+        if( isList ) {
+          if( i === 4 ) {
+            obj[i].forEach( v => {
+              args.push( Array.isArray(v) ? screamer.walk(v) : v );
+            });
+          }else {
+            args.push( screamer.walk( obj[ i ] ) );
+          }
+        }else {
+          if( !Array.isArray( obj[i] ) ) {
+            if( obj[i] !== null && obj[i] !== undefined )
+              args.push( obj[ i ] );
+          }else {
+            args.push( ...obj[i] );
+          }
+        }
+      }
+      return constructor( ...args )
+    },
+
+    comment() { return false },
+
+    config( obj ) {
+      if( obj[1] === 'post' ) {
+        // correct for lists
+        if( !Array.isArray( obj[2] )) { obj[2] = obj[2].values; }
+
+        obj[2] = obj[2].map( v => {
+          const func = window[ v[0][0].toUpperCase() + v[0].slice(1) ];
+          const out = v[1] !== null
+            ? func( ...v[1] )
+            : func();
+
+          return out
+        });
+      }
+
+      // test for string in case of render preset
+      const isPreset = Array.isArray( obj[2] ) || typeof obj[2] === 'string'; 
+      screamer.config[ obj[1] ] = isPreset ? obj[2] : obj[2].values;
+      
+      return false
+    },
+
+    geometry( obj ) {
+      const constructor = window[ obj[1] ];
+      const args = [];
+      for( let i = 2; i < obj.length; i++ ) {
+        const isArgList = Array.isArray( obj[ i ] ) && obj[i].length !== 0; 
+        if( isArgList ) {
+          args.push( ...obj[ i ].map( screamer.walk ));
+        }else {
+          if( !Array.isArray( obj[i] ) ) {
+            if( obj[i] !== null && obj[i] !== undefined )
+              args.push( obj[ i ] );
+          }else {
+            // hmmm what is this?
+            args.push( ...obj[i] );
+          }
+        }
+      }
+
+      return constructor( ...args )
+    },
+
+    loop( obj ) {
+      let out = screamer.walk( obj[1] );
+      const mods = obj[3];
+      const count = obj[2];
+      for( let i = 0; i < count; i++ ) {
+        screamer.__i = i;
+        out = screamer.walkers.mod( mods, out );
+      }
+
+      return out
+    },
+
+    math( obj ) { return screamer.mathwalk( obj ) },
+
+    mod( obj, __geo = null ) {
+      let out;
+      
+      const geo = __geo === null 
+        ? screamer.walk( obj[1] )
+        : __geo;
+      
+      // "normal" call vs call in loop
+      const __mods = __geo === null
+        ? obj[2]
+        : obj;
+
+      for( let mod of __mods  ) {
+        const name = mods[ mod[0] ];
+
+        if( name === 'scale' 
+          || name === 'translate' 
+          || name === 'rotate'
+          || name === 'rotateBy'
+          || name === 'scaleBy' 
+          || name === 'moveBy' ) {
+          let args, isList = false;
+
+          if( mod[1].name === 'list' ) {
+            isList = true;
+            
+            args = mod[1].values.map( screamer.mathwalk );
+
+            Marching.postrendercallbacks.push( time => {
+              const __args = args.map( v => v( time ));
+              geo[ name ]( ...__args );
+            });
+          }else {
+            args = screamer.mathwalk( mod[1] );  
+          }
+
+          if( isList ) { 
+            out = geo[ name ]( ...args  );
+          }else {
+            out = geo[ name ]( args );
+          }
+        }else if( name === 'material' || name === 'texture' ) {
+          out = geo[ name ]( mod[1] );
+        }else {
+          // mirror / repeat / polarrepeat etc.
+          out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
+            ? window[ name ]( geo, ...mod[1].values.map( screamer.mathwalk ) )
+            : window[ name ]( geo, screamer.mathwalk( mod[1] ) );
+        }
+      }
+
+      return out
+    },
+
+    string( obj ) { return screamer.mathwalk( obj ) },
+
+  },
+
+  walk( obj ) {
+    let out = obj;
+    const isFnc = obj[0] in screamer.walkers;
+
+    if( !isFnc ) {
+      if( typeof obj[0] === 'string' ) out = screamer.mathwalk( obj );
+    }else {
+      out = screamer.walkers[ obj[0] ]( obj );
+    }
+
+    return out
+  },
+
+  run( code ) {
+    try {
+      console.log( 'code:', code );
+      const tree = walking.parse( code );
+      let out;
+
+      for( let s of tree ) {
+        out = screamer.walk(s);
+      }
+
+      const config = screamer.config;
+      if( out !== false ) {
+        march( out )
+          .fog( 
+            config.fog.length > 0 ? config.fog[0] : 0, 
+            config.fog.length > 0 ? config.fog.slice( 1 ) : [0,0,0]
+          )
+          .background( Vec3(...config.background ) )
+          .post(   ...config.post )
+          .render( config.render );
+      }
+    } catch (e) {
+      console.log( e );
+    }
+  }
+};
+
 const init = async function() {
   screamer.init();
   const canvas = setupMarching();
@@ -27179,14 +20046,20 @@ const setupEditor = function() {
   //let src = localStorage.getItem("src")
   //src = src == null ? shaderDefault : src
 
+
+  const sd = StreamLanguage.define( screamer_def );
+
   window.editor = new EditorView({
     doc: getStarterCode(),
     extensions: [
-      basicSetup, 
-      javascript(),
+      minimalSetup, 
+      closeBrackets(),
+      sd,
       p,
       basicDark,
-      editableCompartment.of(EditorView.editable.of(true)),
+      editableCompartment.of( EditorView.editable.of( true ) ),
+      // only close ( and [
+      sd.data.of({closeBrackets: {brackets: ['(', '[']}})
     ],
     parent: document.body,
   });
@@ -27280,16 +20153,16 @@ sphere
 box
 
 // bigger sphere?
-sphere^1.5
+sphere'1.5
 
 // bigger cone?
-cone^5
+cone'5
 
 // repeated boxes?
-box | 3
+box # 3
 
 // smaller boxes, more repeats
-box^.1 | .4
+box'.1 # .4
 
 // we can specify better render settings for large repeats
 // run these lines one by one. alternatively you can run the 
@@ -27298,76 +20171,77 @@ box^.1 | .4
 // the quickest way to run most examples in this tutorial...
 // just click in a block and hit alt+enter.
 render = repeat.med
-box^.1 | .4
+box'.1 # .4
 
 // a little fog makes things purdy
 // first, the amount of fog, then, the color
 // screamer will also remember your last used
 // render settings (repeat.med)
 fog = (.25,0,0,0)
-sphere ^.1 | .4
+sphere '.1 # .4
 
 // play with your mouse
-sphere ^ mousex | mousey * 4
+sphere ' mousex # mousey * 4
 
 // animate with time
 fog = (0,0,0,0)
-sphere ^ 1 + sin(time)
+sphere ' 1 + sin(time)
 
 // combine two shapes
-sphere^1.3 ++ box
+sphere'1.3 ++ box
 
 // smoother
-sphere^1.3 +++ box
+sphere'1.3 +++ box
 
 // stepped
-sphere^1.3 ++++ box
+sphere'1.3 ++++ box
 
 // group with parenthesis and rotate
 // rotate (@) takes an amount in degrees, followed by an axis
-(sphere^1.3 ++++ box)@(time*20, sin(time), 1, 0)
+(sphere'1.3 ++++ box)@(time*20, sin(time), 1, 0)
 
 // get the difference of two shapes
 box -- julia
 
 // animate julia fractal folding and rotate
-((box -- julia( 4 + sin(time ))^1.3 ) @ (time*20,0,1,0)) ^ 1.35
+((box -- julia( 4 + sin(time ))'1.3 ) @ (time*20,0,1,0)) ' 1.35
 
 // color julia red,green,blue,cyan,magenta,yellow,black,white,grey
-julia(time)^2.5 : red
+julia(time)'2.5 : red
 
 // texture julia
 render = fractal.med
 fog = (.125,0,0,0)
-julia( 5+sin(time/3) ) ^2 : red :: stripes
+julia( 5+sin(time/3) ) '2 : red :: stripes
 
 // texture boxes
 render = repeat.med
 fog = (.25,0,0,0)
-(box@(time*25,0,1,0)::rainbow^.2 | .75)
+(box@(time*25,0,1,0)::rainbow'.2 # .75)
 
 // hit alt+c, then use WASD and the arrow keys to explore
 // hit alt+c again to resume editing
 
 // subtract a repeat
 fog = (0,0,0,0)
-(box:red -- box:green^.1|.3)@(time*5,0,1,1)
+(box:red -- box:green'.1#.3)@(time*5,0,1,1)
 
 // smooth out the jaggies with post-processing
 post = ( antialias(3) )
-(box:red -- box:green^.1|.3)@(time*5,0,1,1)
+(box:red -- box:green'.1#.3)@(time*5,0,1,1)
 
 // fun with postprocessing and mouse
 post = ( edge, invert(1) )
-(box:red -- box:green^mousey/4|.2+mousex/3)^1.6@(time*15,0,1,1)
+(box:red -- box:green'mousey/4#.2+mousex/3)'1.6@(time*15,0,1,1)
 
 // use low and high audio analysis to drive fractal
 // the first time you use the low,med,or high variables
 // your browser will request permission to access your
 // audio input. shushing into your mic works well for 
 // this demo :)
-render=fractal.med
-mandalay( high*5, low/4, 2 )^.75@(time*5,0,0,1)::rainbow
+post   = ()
+render = fractal.med
+mandalay( high*5, low/4, 2 )'.75@(time*5,0,0,1)::rainbow
 
 // for a more complete reference see
 // https://charlieroberts.github.io/screamer
