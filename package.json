@@ -1,6 +1,6 @@
 {
   "name": "screamer-lang",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A domain-specific language for live coding performances using ray marching",
   "main": "index.js",
   "scripts": {
