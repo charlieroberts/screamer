@@ -70,10 +70,12 @@ Combinators are operators that are used to combine geometries (or multiple combi
 ### Modifiers
 Modifiers are (mostly) single-character operators to modify the geometry, combinator, or modifier to their left.
 
-- `^`: Scale. A uniform scaling coefficient. Example: `julia^2`
+- `'`: Scale. A uniform scaling coefficient. Example: `julia'2`
 - `@`: Rotate. Rotate an argument number of degrees around an argument axis. Example: `box@(45,1,0,0)`
 - `>`: Translate. Move along three axes. Example: `sphere>(1,0,0)`
-- `|`: Repeat. Repeat on all three axes. Example: `sphere | 3`
+- `#`: Repeat. Repeat on all three axes. Example: `sphere # 3`
+- `##`: PolarRepeat. Repeat in a circle. Example (12 repeats, radius of 1): `(sphere(.2) ##(12,1)) @ (90,1,0,0)`
+- `|` : Mirror. Mirrors the geometry. Example: `julia(time)'2 |`
 - `:`: Color. Apply a color preset. Colors include `red`, `green`, `blue`, `cyan`, `magenta`, `yellow`, `white`, `black`, `grey`.
 - `::`: Texture. Apply texture preset. Textures include `rainbow`, `stripes`, `dots`, `truchet`, `noise`, `cellular`, `zigzag`, and `voronoi`. Example: `box::truchet`
 
@@ -85,6 +87,7 @@ Modifiers are (mostly) single-character operators to modify the geometry, combin
 - *low*: Low frequency analysis of audio input mapped to 0--1. Example: `sphere(low)`
 - *mid*: Mid frequency analysis of audio input mapped to 0--1. Example: `box(mid)`
 - *high*: High frequency analysis of audio input mapped to 0--1. Example: `box@(high*90, low, 0, mid)`
+- *i*: A special variable only used in loops that equals the current loop iteration number, starting at 0.
 
 ### Math
 Note: traditional parenthesis `()` do not currently work in math expressions, as they're currently used by the language to group combinators, geometries, and modifiers together... this is a todo to fix.
@@ -101,4 +104,8 @@ Note: traditional parenthesis `()` do not currently work in math expressions, as
 - *floor*: Rounds down a number.
 - *ceil*: Rounds up a number.
 - *abs*: Gets the absolute value for a number.
+
+### Misc
+- `[ initialGeometry numberOfIterations modifications ]` Loop. This lets you apply a chain of modifications
+to a geometry multiple times, which is useful to quickly create fractal-like shapes. You can use the special `i` variable in math expressions to represent the current loop iteration number. Example: `[octahedron(.125) 8 >(.25,.1,.05) @(45,cos(i+time/3),0,1) |0]`
 
