@@ -3,14 +3,15 @@ const globals = {}
 const mods = {
   '\'':  'scale',
   '\'\'': 'scaleBy', 
-  '|':  'Repeat',
-  '||': 'PolarRepeat',
+  '#':  'Repeat',
+  '##': 'PolarRepeat',
   ':':  'material',
   '::': 'texture',
   '>':  'translate',
   '>>': 'moveBy',
   '@':  'rotate',
-  '@@':  'rotateBy'
+  '@@': 'rotateBy',
+  '|':  'Mirror',
 }
  
 const mouse = { x:0, y:0 }
@@ -134,7 +135,7 @@ const screamer = {
           obj[ name ]( ...__args )
         })
       }else{
-        args = screamer.mathwalk( mod[1] )  
+        args = screamer.mathwalk( mod[1] )()  
       }
 
       if( isList ) { 
@@ -146,7 +147,7 @@ const screamer = {
     }else if( name === 'material' || name === 'texture' ) {
       out = obj[ name ]( mod[1] )
     }else{
-      out = typeof mod[1] === 'object' && mod[1].values !== undefined
+      out = mod[1].name === 'list'
             ? window[ name ]( obj, ...mod[1].values.map( screamer.mathwalk ) )
             : window[ name ]( obj, screamer.mathwalk( mod[1] ) )
     }
