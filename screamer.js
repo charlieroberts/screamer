@@ -155,107 +155,8 @@ const screamer = {
     return out
   },
 
-  walk( obj ) {
-    let out = null, isConfig = false
-
-    if( obj[0] === 'comment' ) {
-      out = false
-    } else if( obj[0] === 'loop' ) { 
-      out = screamer.walk( obj[1] )
-      const mods = obj[3]
-      for( let i = 0; i < obj[2]; i++ ) {
-        screamer.__i = i   
-        mods.forEach( mod => {
-          out = screamer.processMod( out, mod )
-        })
-        screamer.__i = 0
-      }
-    }else if( obj[0] === 'geometry' || obj[0] === 'combinator' ) {
-      const constructor = window[ obj[1] ]
-      const args = []
-      for( let i = 2; i < obj.length; i++ ) {
-        if( Array.isArray( obj[ i ] ) 
-          && obj[i].length !== 0 ) {
-
-          if( obj[0] === 'combinator' ){ 
-            if( i === 4 ) {
-              obj[i].forEach( v => {
-                args.push( Array.isArray(v) ? screamer.walk(v) : v )
-              })
-            }else{
-              args.push( screamer.walk( obj[ i ] ) )
-            }
-          }else{
-            args.push( ...obj[ i ].map( screamer.walk ))
-          }
-        }else{
-          if( !Array.isArray( obj[i] ) ) {
-            if( obj[i] !== null && obj[i] !== undefined )
-              args.push( obj[ i ] )
-          }else{
-            args.push( ...obj[i] )
-          }
-        }
-      }
-      out = constructor( ...args )
-    }else if( obj[0] === 'mod' ) {
-      const geo = screamer.walk( obj[1] )
-      for( let mod of obj[2] ) {
-        const name = mods[ mod[0] ]
-
-        if( name === 'scale' 
-          || name === 'translate' 
-          || name === 'rotate'
-          || name === 'rotateBy'
-          || name === 'scaleBy' 
-          || name === 'moveBy' ) {
-          let args, isList = false
-
-          if( mod[1].name === 'list' ) {
-            isList = true
-            const vec = []
-            args = mod[1].values.map( screamer.mathwalk )
-
-            Marching.postrendercallbacks.push( time => {
-              const __args = args.map( v => v( time ))
-              geo[ name ]( ...__args )
-            })
-          }else{
-            args = screamer.mathwalk( mod[1] )  
-          }
-
-          if( isList ) { 
-            out = geo[ name ]( ...args  )
-          }else{
-            out = geo[ name ]( args )
-          }
-        }else if( name === 'material' || name === 'texture' ) {
-          out = geo[ name ]( mod[1] )
-        }else{
-          out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
-            ? window[ name ]( geo, ...mod[1].values.map( screamer.mathwalk ) )
-            : window[ name ]( geo, screamer.mathwalk( mod[1] ) )
-        }
-      }
-    } else if( obj[0] === 'config' ) {
-      if( obj[1] === 'post' ) {
-        // correct for lists
-        if( !Array.isArray( obj[2] )) { obj[2] = obj[2].values }
-        obj[2] = obj[2].map( v => {
-          const func = window[ v[0][0].toUpperCase() + v[0].slice(1) ]
-          const out = v[1] !== null
-            ? func( ...v[1] )
-            : func()
-          return out
-        })
-      }
-
-      // test for string in case of render preset
-      const isPreset = Array.isArray( obj[2] ) || typeof obj[2] === 'string' 
-      screamer.config[ obj[1] ] = isPreset ? obj[2] : obj[2].values
-      out = false
-
-    } else if( obj[0] === 'assignment' ) {
+  walkers: {
+    assignment( obj ) {
       if( obj[1].indexOf('.') === -1 ) {
         globals[ obj[1] ] = screamer.walk( obj[2] )
         out = globals[ obj[1] ]
@@ -295,11 +196,158 @@ const screamer = {
 
         out = false
       }
+    },
 
-    } else if( obj[0] === 'math' || typeof obj[0] === 'string' ) {
-      out = screamer.mathwalk( obj )
-    } else {
-      out = obj
+    combinator( obj ) {
+      const constructor = window[ obj[1] ]
+      const args = []
+      for( let i = 2; i < obj.length; i++ ) {
+        const isList = Array.isArray( obj[ i ] ) && obj[i].length !== 0 
+        if( isList ) {
+          if( i === 4 ) {
+            obj[i].forEach( v => {
+              args.push( Array.isArray(v) ? screamer.walk(v) : v )
+            })
+          }else{
+            args.push( screamer.walk( obj[ i ] ) )
+          }
+        }else{
+          if( !Array.isArray( obj[i] ) ) {
+            if( obj[i] !== null && obj[i] !== undefined )
+              args.push( obj[ i ] )
+          }else{
+            args.push( ...obj[i] )
+          }
+        }
+      }
+      return constructor( ...args )
+    },
+
+    comment() { return false },
+
+    config( obj ) {
+      if( obj[1] === 'post' ) {
+        // correct for lists
+        if( !Array.isArray( obj[2] )) { obj[2] = obj[2].values }
+
+        obj[2] = obj[2].map( v => {
+          const func = window[ v[0][0].toUpperCase() + v[0].slice(1) ]
+          const out = v[1] !== null
+            ? func( ...v[1] )
+            : func()
+
+          return out
+        })
+      }
+
+      // test for string in case of render preset
+      const isPreset = Array.isArray( obj[2] ) || typeof obj[2] === 'string' 
+      screamer.config[ obj[1] ] = isPreset ? obj[2] : obj[2].values
+      
+      return false
+    },
+
+    geometry( obj ) {
+      const constructor = window[ obj[1] ]
+      const args = []
+      for( let i = 2; i < obj.length; i++ ) {
+        const isArgList = Array.isArray( obj[ i ] ) && obj[i].length !== 0 
+        if( isArgList ) {
+          args.push( ...obj[ i ].map( screamer.walk ))
+        }else{
+          if( !Array.isArray( obj[i] ) ) {
+            if( obj[i] !== null && obj[i] !== undefined )
+              args.push( obj[ i ] )
+          }else{
+            // hmmm what is this?
+            args.push( ...obj[i] )
+          }
+        }
+      }
+
+      return constructor( ...args )
+    },
+
+    loop( obj ) {
+      let out = screamer.walk( obj[1] )
+      const mods = obj[3]
+      const count = obj[2]
+      for( let i = 0; i < count; i++ ) {
+        screamer.__i = i
+        out = screamer.walkers.mod( mods, out )
+      }
+
+      return out
+    },
+
+    math( obj ) { return screamer.mathwalk( obj ) },
+
+    mod( obj, __geo = null ) {
+      let out
+      
+      const geo = __geo === null 
+        ? screamer.walk( obj[1] )
+        : __geo
+      
+      // "normal" call vs call in loop
+      const __mods = __geo === null
+        ? obj[2]
+        : obj
+
+      for( let mod of __mods  ) {
+        const name = mods[ mod[0] ]
+
+        if( name === 'scale' 
+          || name === 'translate' 
+          || name === 'rotate'
+          || name === 'rotateBy'
+          || name === 'scaleBy' 
+          || name === 'moveBy' ) {
+          let args, isList = false
+
+          if( mod[1].name === 'list' ) {
+            isList = true
+            
+            args = mod[1].values.map( screamer.mathwalk )
+
+            Marching.postrendercallbacks.push( time => {
+              const __args = args.map( v => v( time ))
+              geo[ name ]( ...__args )
+            })
+          }else{
+            args = screamer.mathwalk( mod[1] )  
+          }
+
+          if( isList ) { 
+            out = geo[ name ]( ...args  )
+          }else{
+            out = geo[ name ]( args )
+          }
+        }else if( name === 'material' || name === 'texture' ) {
+          out = geo[ name ]( mod[1] )
+        }else{
+          // mirror / repeat / polarrepeat etc.
+          out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
+            ? window[ name ]( geo, ...mod[1].values.map( screamer.mathwalk ) )
+            : window[ name ]( geo, screamer.mathwalk( mod[1] ) )
+        }
+      }
+
+      return out
+    },
+
+    string( obj ) { return screamer.mathwalk( obj ) },
+
+  },
+
+  walk( obj ) {
+    let out = obj
+    const isFnc = obj[0] in screamer.walkers
+
+    if( !isFnc ) {
+      if( typeof obj[0] === 'string' ) out = screamer.mathwalk( obj )
+    }else{
+      out = screamer.walkers[ obj[0] ]( obj )
     }
 
     return out
@@ -320,7 +368,7 @@ const screamer = {
         march( out )
           .fog( 
             config.fog.length > 0 ? config.fog[0] : 0, 
-            config.fog.length > 0 ? [ config.fog[1], config.fog[2], config.fog[3] ] : [0,0,0]
+            config.fog.length > 0 ? config.fog.slice( 1 ) : [0,0,0]
           )
           .background( Vec3(...config.background ) )
           .post(   ...config.post )
