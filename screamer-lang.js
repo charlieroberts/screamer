@@ -1948,6 +1948,9 @@ function peg$parse(input, options) {
       s1 = peg$parsegroup();
       if (s1 === peg$FAILED) {
         s1 = peg$parseloop();
+        if (s1 === peg$FAILED) {
+          s1 = peg$parseword();
+        }
       }
     }
     if (s1 !== peg$FAILED) {
@@ -2064,6 +2067,9 @@ function peg$parse(input, options) {
           s0 = peg$parseloop();
           if (s0 === peg$FAILED) {
             s0 = peg$parsefunction();
+            if (s0 === peg$FAILED) {
+              s0 = peg$parseword();
+            }
           }
         }
       }
