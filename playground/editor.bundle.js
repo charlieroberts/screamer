@@ -19712,6 +19712,7 @@ const screamer = {
 
   walkers: {
     assignment( obj ) {
+      let out = obj;
       if( obj[1].indexOf('.') === -1 ) {
         globals[ obj[1] ] = screamer.walk( obj[2] );
         out = globals[ obj[1] ];
@@ -19750,6 +19751,8 @@ const screamer = {
 
         out = false;
       }
+      
+      return out
     },
 
     combinator( obj ) {
@@ -19768,12 +19771,13 @@ const screamer = {
         }else {
           if( !Array.isArray( obj[i] ) ) {
             if( obj[i] !== null && obj[i] !== undefined )
-              args.push( obj[ i ] );
+              args.push( screamer.walk( obj[ i ] ) );
           }else {
             args.push( ...obj[i] );
           }
         }
       }
+      console.log( args );
       return constructor( ...args )
     },
 
@@ -19894,7 +19898,10 @@ const screamer = {
       return out
     },
 
-    string( obj ) { return screamer.mathwalk( obj ) },
+    string( obj ) { 
+      const isGlobal = globals[ obj ] !== undefined;
+      return isGlobal ? globals[ obj ] : screamer.mathwalk( obj ) 
+    },
 
   },
 
@@ -19903,7 +19910,9 @@ const screamer = {
     const isFnc = obj[0] in screamer.walkers;
 
     if( !isFnc ) {
-      if( typeof obj[0] === 'string' ) out = screamer.mathwalk( obj );
+      if( typeof obj[0] === 'string' ) {
+        out = screamer.walkers.string( obj );
+      }
     }else {
       out = screamer.walkers[ obj[0] ]( obj );
     }
