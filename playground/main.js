@@ -17,6 +17,7 @@ const init = async function() {
   setupEditor()
 
   canvas.onclick = () => editor.focus() 
+  Marching.materials.__clearOnEmit = false
 }
 
 const setupMarching = function() {
@@ -241,6 +242,12 @@ box # 3
 // smaller boxes, more repeats
 box'.1 # .4
 
+// repeat on one axis
+box'.2 #x .5
+
+// repeat on two axes
+box'.2 #xy .5
+
 // we can specify better render settings for large repeats
 // run these lines one by one. alternatively you can run the 
 // code block your cursor is inside of using Alt+Enter; the block
@@ -282,6 +289,12 @@ box -- julia
 
 // animate julia fractal folding and rotate
 ((box -- julia( 4 + sin(time ))'1.3 ) @ (time*20,0,1,0)) ' 1.35
+
+// in the above example, it might be a bit hard to read... we
+// can assign parts to variables to make it more readable
+myshape = box -- julia( 4 + sin( time ) ) ' 1.3
+myshape @ (time*20,0,1,0)
+myshape ' 1.35
 
 // color julia red,green,blue,cyan,magenta,yellow,black,white,grey
 julia(time)'2.5 : red
@@ -332,18 +345,28 @@ box |
 // don't see the effects of
 // mirroring. try translating
 // and then mirroring.
-box(.25) >(.35,0,0) |
+box(.25) >(.35,.5,0) |
 
-// more please
-(((octahedron(.2) >(.25,0,0) |) >(.6,.5,.4) @(time,0,sin(time),cos(time)) |) >(.5,.5,.5) |)'1.25
+// just repeat on one axis
+box(.25) >(.35,.5,0) |x
 
-// as you might imagine you can
-// chain a lot of mirrors together.
+// more mirrors please
+// run these lines one at a time
+oct = octahedron(.2):red >x.25 |
+oct = oct >(.6,.5,.4) |xy
+oct = oct @(time, 0, sin(time), cos(time/1.5) ) |xz
+oct = oct >.5 |
+oct = oct '1.25
+
+// it's fun to chain a bunch
+// of these mirrors together, but it
+// can get hard to read / think about.
 // as an alternative, screamer 
 // provides a loop [] operator.
 // here's 8 loops of translations,
-// rotations, and scalings.
-
+// rotations, and scalings. you can use
+// the variable i to refer to the current
+// loop number for calculations.
 render = high
 post = ( antialias, focus(.1,.025) )
 [octahedron(.125) 8 >(.25,.1,.05) @(45,cos(i+time/3),0,1) | ]
