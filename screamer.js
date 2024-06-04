@@ -345,7 +345,7 @@ const screamer = {
                 //args = screamer.mathwalk( mod[1] )
               }
 
-              const DNR = 123456 // do not repat 
+              const DNR = 123456 // do not repeat 
               if( usesDims ) {
                 if( dims.indexOf( 'x' ) !== -1 ) {
                   args[0] = isList ? args[0] : screamer.mathwalk( mod[1] )
