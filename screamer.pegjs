@@ -92,7 +92,13 @@ mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)* {
 }
 
 modchar = '\'\'' / '\'' / '::' / ':' / '@' / '>>' / '>' / '##' / '#' / '||' / '|'
-modoperation "modop" = a:(geometry/group/loop/word) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen)?)* {
+
+
+modspecial = modchar $moddims+
+moddims = [xyz]
+
+/*modchar = "'" / '::' / ':' / '@' / '>>' / '>' / '##' / '#' / '|'*/
+modoperation "modop" = a:(geometry/group/loop/word) _ b:((modspecial/modchar) _ (listparen/mathoperation/modoperation/material/texture)?)* {
   const isBNull = b === null
   if( !isBNull ) {
     const isFinalTerm = b !== null && b[0] === undefined
@@ -101,6 +107,16 @@ modoperation "modop" = a:(geometry/group/loop/word) _ b:(modchar _ (mathoperatio
     return a
   }
 }
+
+/*modoperation "modop" = a:(geometry/group/loop/word) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen)?)* {*/
+/*  const isBNull = b === null*/
+/*  if( !isBNull ) {*/
+/*    const isFinalTerm = b !== null && b[0] === undefined*/
+/*    return isFinalTerm ? a : ['mod', a, b.map(v=>[v[0],v[2]]) ] */
+/*  }else{*/
+/*    return a*/
+/*  }*/
+/*}*/
 
 operandargs = lp alist:list rp { return alist }
 operand  "operand" = modoperation / group / geometry / loop / function / word
