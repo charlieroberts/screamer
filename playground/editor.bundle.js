@@ -19667,49 +19667,14 @@ const screamer = {
           break
       }
     }else {
-      const val = parseFloat( obj );
+      const val = obj === null ? null : parseFloat( obj );
       out = t => val; 
     }
 
     return out
   },
 
-  processMod( obj, mod ) {
-    let out;
-    const name = mods[ mod[0] ];
-
-    if( name === 'scale' || name === 'translate' || name === 'rotate' || name === 'scaleBy'  ) {
-      let args, isList = false;
-
-      if( mod[1].name === 'list' ) {
-        isList = true;
-        args = mod[1].values.map( screamer.mathwalk );
-
-        Marching.postrendercallbacks.push( time => {
-          const __args = args.map( v => v( time ));
-          obj[ name ]( ...__args );
-        });
-      }else {
-        args = screamer.mathwalk( mod[1] )();  
-      }
-
-      if( isList ) { 
-        out = obj[ name ]( ...args  );
-        
-      }else {
-        out = obj[ name ]( args );
-      }
-    }else if( name === 'material' || name === 'texture' ) {
-      out = obj[ name ]( mod[1] );
-    }else {
-      out = mod[1].name === 'list'
-            ? window[ name ]( obj, ...mod[1].values.map( screamer.mathwalk ) )
-            : window[ name ]( obj, screamer.mathwalk( mod[1] ) );
-    }
-    
-    return out
-  },
-
+  
   walkers: {
     assignment( obj ) {
       let out = obj;
@@ -19853,7 +19818,17 @@ const screamer = {
         : obj;
 
       for( let mod of __mods  ) {
-        const name = mods[ mod[0] ];
+        let name = mod[0],
+            dims = null,
+            usesDims = false;
+ 
+        if( Array.isArray( name ) ) {
+          dims = name[ 1 ].split('');
+          name = mods[ name[0] ];
+          usesDims = true;
+        }else {
+          name = mods[ name ];
+        }
 
         if( name === 'scale' 
           || name === 'translate' 
@@ -19862,35 +19837,67 @@ const screamer = {
           || name === 'scaleBy' 
           || name === 'moveBy' ) {
           let args, isList = false;
-
+          
           if( mod[1].name === 'list' ) {
-            isList = true;
-            
             args = mod[1].values.map( screamer.mathwalk );
+            isList = true;
+          }else {
+            args = [];
+            //args = screamer.mathwalk( mod[1] )
+          }
 
+          if( usesDims ) {
+            if( dims.indexOf( 'x' ) !== -1 ) {
+              args[0] = isList ? args[0] : screamer.mathwalk( mod[1] );
+            }else {
+              args[0] = null;
+            }
+            if( dims.indexOf( 'y' ) !== -1 ) {
+              args[1] = isList ? args[1] : screamer.mathwalk( mod[1] ); 
+            }else {
+              args[1] = null;
+            }
+            if( dims.indexOf( 'z' ) !== -1 ) {
+              args[2] = isList ? args[2] : screamer.mathwalk( mod[1] ); 
+            }else {
+              args[2] = null;
+            }
+          }
+
+          if( isList ) {
             Marching.postrendercallbacks.push( time => {
-              const __args = args.map( v => v( time ));
+              const __args = args.map( v => typeof v === 'function' ? v( time ) : v );
+           
               geo[ name ]( ...__args );
             });
-          }else {
-            args = screamer.mathwalk( mod[1] );  
           }
 
           if( isList ) { 
             out = geo[ name ]( ...args  );
           }else {
-            out = geo[ name ]( args );
+            if( usesDims ) {
+              out = geo[ name ]( ...args );  
+            }else {
+              const v = screamer.mathwalk( mod[1] );
+              out = geo[ name ]( v,v,v ); 
+            }
           }
         }else if( name === 'material' || name === 'texture' ) {
           out = geo[ name ]( mod[1] );
         }else {
-          // mirror / repeat / polarrepeat etc.
+          // repeat / polarrepeat etc.
           if( mod[1] !== null ) {
             out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
               ? window[ name ]( geo, ...mod[1].values.map( screamer.mathwalk ) )
               : window[ name ]( geo, screamer.mathwalk( mod[1] ) );
           }else {
-            out = window[ name ]( geo );
+            // mirror
+            if( name === 'Mirror' ) {
+              dims = dims === null ? 'xyz': dims.join('');
+              out = window[ name ]( geo, dims );
+            }else {
+              out = window[ name ]( geo );
+            }
           }
         }
       }

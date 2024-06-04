@@ -34,7 +34,7 @@ group "group" = _ '(' body:expr ')' _ {
   return body 
 }
 
-expr "expr" = operation / group / loop /  geometry / operand / mathoperand
+expr "expr" = operation / group / loop  / geometry / operand / mathoperand
 
 operation = 
   stairsunion /
@@ -46,8 +46,7 @@ operation =
   stairsintersection /
   roundintersection /
   intersection /
-  modoperation /
-  mathoperation
+  modoperation
 
 // union
 union "union"   = a:operand _ '++' args:operandargs? _ b:expr* { 
@@ -91,14 +90,11 @@ mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)* {
   return isFinalTerm ? a : ['math',b[0][0], a,b[0][2] ] 
 }
 
-modchar = '\'\'' / '\'' / '::' / ':' / '@' / '>>' / '>' / '##' / '#' / '||' / '|'
-
-
 modspecial = modchar $moddims+
 moddims = [xyz]
 
-/*modchar = "'" / '::' / ':' / '@' / '>>' / '>' / '##' / '#' / '|'*/
-modoperation "modop" = a:(geometry/group/loop/word) _ b:((modspecial/modchar) _ (listparen/mathoperation/modoperation/material/texture)?)* {
+modchar = "'" / '::' / ':' / '@' / '>>' / '>' / '##' / '#' / '|'
+modoperation "modop" = a:(geometry/group/loop/word) _ b:((modspecial/modchar) _ (material/texture/listparen/mathoperation/modoperation)?)* {
   const isBNull = b === null
   if( !isBNull ) {
     const isFinalTerm = b !== null && b[0] === undefined
@@ -108,18 +104,8 @@ modoperation "modop" = a:(geometry/group/loop/word) _ b:((modspecial/modchar) _ 
   }
 }
 
-/*modoperation "modop" = a:(geometry/group/loop/word) _ b:(modchar _ (mathoperation/modoperation/material/texture/listparen)?)* {*/
-/*  const isBNull = b === null*/
-/*  if( !isBNull ) {*/
-/*    const isFinalTerm = b !== null && b[0] === undefined*/
-/*    return isFinalTerm ? a : ['mod', a, b.map(v=>[v[0],v[2]]) ] */
-/*  }else{*/
-/*    return a*/
-/*  }*/
-/*}*/
-
 operandargs = lp alist:list rp { return alist }
-operand  "operand" = modoperation / group / geometry / loop / function / word
+operand  "operand" = modoperation / group / geometry / loop / function
 
 mathoperand "mathoperand" = number / variable / function 
 variable = "time" / "low" / "mid" / "high" / "mousex" / "mousey" / "i"
@@ -146,7 +132,6 @@ math =
 
 geometry_name = _ name:(
   "box" /
-  "roundbox" /
   "capsule" /
   "cone" /
   "cylinder" /
@@ -159,9 +144,11 @@ geometry_name = _ name:(
   "octahedron" /
   "plane" /
   "quad" /
+  "roundbox" /
   "sphere" /
-  "torus82" /
   "torus" /
+  "torus88" /
+  "torus82" /
   "triangle"
   ) _ { return name }
 
