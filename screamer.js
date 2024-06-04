@@ -332,9 +332,65 @@ const screamer = {
         }else{
           // repeat / polarrepeat etc.
           if( mod[1] !== null ) {
-            out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
-              ? window[ name ]( geo, ...mod[1].values.map( screamer.mathwalk ) )
-              : window[ name ]( geo, screamer.mathwalk( mod[1] ) )
+
+            // process distance dimensions for Repeat
+            if( name === 'Repeat' ) {
+              const val = screamer.mathwalk( mod[1] )
+              let args, isList = false
+              if( mod[1].name === 'list' ) {
+                args = mod[1].values.map( screamer.mathwalk )
+                isList = true
+              }else{
+                args = []
+                //args = screamer.mathwalk( mod[1] )
+              }
+
+              const DNR = 123456 // do not repat 
+              if( usesDims ) {
+                if( dims.indexOf( 'x' ) !== -1 ) {
+                  args[0] = isList ? args[0] : screamer.mathwalk( mod[1] )
+                }else{
+                  args[0] = DNR
+                }
+                if( dims.indexOf( 'y' ) !== -1 ) {
+                  args[1] = isList ? args[1] : screamer.mathwalk( mod[1] ) 
+                }else{
+                  args[1] = DNR
+                }
+                if( dims.indexOf( 'z' ) !== -1 ) {
+                  args[2] = isList ? args[2] : screamer.mathwalk( mod[1] ) 
+                }else{
+                  args[2] = DNR
+                }
+
+                // are we repeating on all three axes?
+                const is3Dim = args.indexOf( DNR ) === -1
+
+                if( is3Dim ) {
+                  // use 3D repeat
+                  out = window[ name ]( geo, Vec3(...args) )
+                }else{
+                  // use individual repeats as needed
+                  out = geo
+                  if( args[0] !== DNR ) {
+                    out = window.RepeatX( out, args[0] )
+                  }
+                  if( args[1] !== DNR ) {
+                    out = window.RepeatY( out, args[1] )
+                  }
+                  if( args[2] !== DNR ) {
+                    out = window.RepeatZ( out, args[2] )
+                  }
+                }
+              }else{
+                args = isList ? args : screamer.mathwalk( mod[1] ) 
+                out = window[ name ]( geo, isList ? Vec3(...args) : args )
+              }
+            }else{
+              out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
+                ? window[ name ]( geo, ...mod[1].values.map( screamer.mathwalk ) )
+                : window[ name ]( geo, screamer.mathwalk( mod[1] ) )
+            }
           }else{
             // mirror
             if( name === 'Mirror' ) {
