@@ -9,8 +9,8 @@ const mods = {
   '::': 'texture',
   '>':  'translate',
   '>>': 'moveBy',
-  '@':  'rotate',
-  '@@': 'rotateBy',
+  '@':  'rotateDims',
+  '@@': 'rotate',
   '|':  'Mirror',
 }
  
@@ -187,7 +187,7 @@ const screamer = {
           }
         }
       }
-      console.log( args )
+
       return constructor( ...args )
     },
 
@@ -251,7 +251,7 @@ const screamer = {
     math( obj ) { return screamer.mathwalk( obj ) },
 
     mod( obj, __geo = null ) {
-      let out
+      let out = null
       
       const geo = __geo === null 
         ? screamer.walk( obj[1] )
@@ -277,8 +277,8 @@ const screamer = {
 
         if( name === 'scale' 
           || name === 'translate' 
+          || name === 'rotateDims'
           || name === 'rotate'
-          || name === 'rotateBy'
           || name === 'scaleBy' 
           || name === 'moveBy' ) {
           let args, isList = false
@@ -310,23 +310,53 @@ const screamer = {
           }
 
           if( isList ) {
+            if( name !== 'rotateDims' ) {
+              Marching.postrendercallbacks.push( time => {
+                const __args = args.map( v => typeof v === 'function' ? v( time ) : v )
+             
+                geo[ name ]( ...__args )
+              })
+            }
+          }else if( name === 'rotateDims' ) {
+            // used to disable absolute rotations with axis/angle
+            geo.transform.shouldRotate = false
+
+            const idx = geo.transform.__rotations.length
+            args[0] = screamer.mathwalk( mod[1] )
+
+            const x = usesDims ? +!(dims.indexOf('x') === -1) : 1
+            const y = usesDims ? +!(dims.indexOf('y') === -1) : 1
+            const z = usesDims ? +!(dims.indexOf('z') === -1) : 1
+            
             Marching.postrendercallbacks.push( time => {
-              const __args = args.map( v => typeof v === 'function' ? v( time ) : v )
-           
-              geo[ name ]( ...__args )
+              geo.transform.__rotations[ idx ] = Matrix.rotate( 
+                args[0]( time ), 
+                x,y,z
+              )              
             })
+
+            // needed to determine indexing
+            geo.transform.__rotations.length++
+
+
+            // I don't know why we have to call rotate here but
+            // no rotation occurs if we don't, so...
+            // out = geo.rotate(...args)
+            name = 'rotate'
           }
 
-          if( isList ) { 
-            out = geo[ name ]( ...args  )
-          }else{
-            if( usesDims ) {
-              out = geo[ name ]( ...args )  
+          //if( out === null ) {
+            if( isList ) { 
+              out = geo[ name ]( ...args  )
             }else{
-              const v = screamer.mathwalk( mod[1] )
-              out = geo[ name ]( v,v,v ) 
+              if( usesDims ) {
+                out = geo[ name ]( ...args )  
+              }else{
+                const v = screamer.mathwalk( mod[1] )
+                out = geo[ name ]( v,v,v ) 
+              }
             }
-          }
+          //}
         }else if( name === 'material' || name === 'texture' ) {
           out = geo[ name ]( mod[1] )
         }else{

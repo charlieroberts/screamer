@@ -19565,8 +19565,8 @@ const mods = {
   '::': 'texture',
   '>':  'translate',
   '>>': 'moveBy',
-  '@':  'rotate',
-  '@@': 'rotateBy',
+  '@':  'rotateDims',
+  '@@': 'rotate',
   '|':  'Mirror',
 };
  
@@ -19742,7 +19742,7 @@ const screamer = {
           }
         }
       }
-      console.log( args );
+
       return constructor( ...args )
     },
 
@@ -19806,7 +19806,7 @@ const screamer = {
     math( obj ) { return screamer.mathwalk( obj ) },
 
     mod( obj, __geo = null ) {
-      let out;
+      let out = null;
       
       const geo = __geo === null 
         ? screamer.walk( obj[1] )
@@ -19832,8 +19832,8 @@ const screamer = {
 
         if( name === 'scale' 
           || name === 'translate' 
+          || name === 'rotateDims'
           || name === 'rotate'
-          || name === 'rotateBy'
           || name === 'scaleBy' 
           || name === 'moveBy' ) {
           let args, isList = false;
@@ -19865,23 +19865,53 @@ const screamer = {
           }
 
           if( isList ) {
+            if( name !== 'rotateDims' ) {
+              Marching.postrendercallbacks.push( time => {
+                const __args = args.map( v => typeof v === 'function' ? v( time ) : v );
+             
+                geo[ name ]( ...__args );
+              });
+            }
+          }else if( name === 'rotateDims' ) {
+            // used to disable absolute rotations with axis/angle
+            geo.transform.shouldRotate = false;
+
+            const idx = geo.transform.__rotations.length;
+            args[0] = screamer.mathwalk( mod[1] );
+
+            const x = usesDims ? +!(dims.indexOf('x') === -1) : 1;
+            const y = usesDims ? +!(dims.indexOf('y') === -1) : 1;
+            const z = usesDims ? +!(dims.indexOf('z') === -1) : 1;
+            
             Marching.postrendercallbacks.push( time => {
-              const __args = args.map( v => typeof v === 'function' ? v( time ) : v );
-           
-              geo[ name ]( ...__args );
+              geo.transform.__rotations[ idx ] = Matrix.rotate( 
+                args[0]( time ), 
+                x,y,z
+              );              
             });
+
+            // needed to determine indexing
+            geo.transform.__rotations.length++;
+
+
+            // I don't know why we have to call rotate here but
+            // no rotation occurs if we don't, so...
+            // out = geo.rotate(...args)
+            name = 'rotate';
           }
 
-          if( isList ) { 
-            out = geo[ name ]( ...args  );
-          }else {
-            if( usesDims ) {
-              out = geo[ name ]( ...args );  
+          //if( out === null ) {
+            if( isList ) { 
+              out = geo[ name ]( ...args  );
             }else {
-              const v = screamer.mathwalk( mod[1] );
-              out = geo[ name ]( v,v,v ); 
+              if( usesDims ) {
+                out = geo[ name ]( ...args );  
+              }else {
+                const v = screamer.mathwalk( mod[1] );
+                out = geo[ name ]( v,v,v ); 
+              }
             }
-          }
+          //}
         }else if( name === 'material' || name === 'texture' ) {
           out = geo[ name ]( mod[1] );
         }else {
@@ -20279,20 +20309,27 @@ sphere'1.3 +++ box
 // stepped
 sphere'1.3 ++++ box
 
+// rotate on all axes
+sphere'1.3 ++++ box @ time * 30
+
+// rotate on y-axis
+sphere'1.3 ++++ box @y time * 30
+
 // group with parenthesis and rotate
-// rotate (@) takes an amount in degrees, followed by an axis
-(sphere'1.3 ++++ box)@(time*20, sin(time), 1, 0)
+// rotateAngleAxis (@@) takes an angle in degrees, 
+// followed by an xyz axis.
+(sphere'1.3 ++++ box) @@(time*20, sin(time), 1, 0)
 
 // get the difference of two shapes
 box -- julia
 
 // animate julia fractal folding and rotate
-((box -- julia( 4 + sin(time ))'1.3 ) @ (time*20,0,1,0)) ' 1.35
+(box -- julia( 4 + sin(time ))'1.3 ) @y time*20 '1.35
 
 // in the above example, it might be a bit hard to read... we
 // can assign parts to variables to make it more readable
 myshape = box -- julia( 4 + sin( time ) ) ' 1.3
-myshape @ (time*20,0,1,0)
+myshape @y time*20
 myshape ' 1.35
 
 // color julia red,green,blue,cyan,magenta,yellow,black,white,grey
@@ -20306,22 +20343,22 @@ julia( 5+sin(time/3) ) '2 : red :: stripes
 // texture boxes
 render = repeat.med
 fog = (.25,0,0,0)
-(box@(time*25,0,1,0)::rainbow'.2 # .75)
+box '.2 ::rainbow @y time*20 # .75
 
 // hit alt+c, then use WASD and the arrow keys to explore
 // hit alt+c again to resume editing
 
 // subtract a repeat
 fog = (0,0,0,0)
-(box:red -- box:green'.1#.3)@(time*5,0,1,1)
+box:red -- box:green '.125 #.3
 
 // smooth out the jaggies with post-processing
 post = ( antialias(3) )
-(box:red -- box:green'.1#.3)@(time*5,0,1,1)
+(box:red -- box:green'.1#.3) @yz time*5
 
 // fun with postprocessing and mouse
 post = ( edge, invert(1) )
-(box:red -- box:green'mousey/4#.2+mousex/3)'1.6@(time*15,0,1,1)
+(box:red -- box:green'mousey/4#.2+mousex/3)'1.6 @yz time*15
 
 // use low and high audio analysis to drive fractal
 // the first time you use the low,med,or high variables
@@ -20330,7 +20367,7 @@ post = ( edge, invert(1) )
 // this demo :)
 post   = ()
 render = fractal.med
-mandalay( high*5, low/4, 2 )'.75@(time*5,0,0,1)::rainbow
+mandalay( high*5, low/4, 2 )'.75 @z time*5 ::rainbow
 
 // mirror a julia
 julia(time)'2 |
@@ -20353,7 +20390,7 @@ box(.25) >(.35,.5,0) |x
 // run these lines one at a time
 oct = octahedron(.2):red >x.25 |
 oct = oct >(.6,.5,.4) |xy
-oct = oct @(time, 0, sin(time), cos(time/1.5) ) |xz
+oct = oct @@(time, 0, sin(time), cos(time/1.5) ) |xz
 oct = oct >.5 |
 oct = oct '1.25
 
@@ -20368,7 +20405,7 @@ oct = oct '1.25
 // loop number for calculations.
 render = high
 post = ( antialias, focus(.1,.025) )
-[octahedron(.125) 8 >(.25,.1,.05) @(45,cos(i+time/3),0,1) | ]
+[octahedron(.125) 8 >(.25,.1,.05) @@(45,cos(i+time/3),0,1) | ]
 
 // for a more complete reference see
 // https://charlieroberts.github.io/screamer
