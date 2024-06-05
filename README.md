@@ -68,10 +68,11 @@ Combinators are operators that are used to combine geometries (or multiple combi
 - `***`: StairsIntersection. Intersects two geometries and creates a stepped transition, with argument transition size and number of steps. Example:`box ****(.35,6) sphere(1.2)`
 
 ### Modifiers
-Modifiers are (mostly) single-character operators to modify the geometry, combinator, or modifier to their left.
+Modifiers are (mostly) single-character operators to modify the geometry, combinator, or modifier to their left. The `@`Rotate, `>`Translate, `#`Repeat, and `|`Mirror operators can be used with `xyz` *decorators* to specify which dimensions the operator will be applied to. For example, `box >x .5` will only translate on the x axis, while `sphere #yz 2` will repeat on the y and z axes. If no decorations are applied, the operation will be applied on all axes. 
 
 - `'`: Scale. A uniform scaling coefficient. Example: `julia'2`
-- `@`: Rotate. Rotate an argument number of degrees around an argument axis. Example: `box@(45,1,0,0)`
+- `@`: Rotate. Rotate on all three axes by an argument amount. Example: `box@time*15`
+- `@@`: Rotate (axis/angle). Rotate an argument number of degrees around an argument axis. Example: `box@(45,1,0,0)`
 - `>`: Translate. Move along three axes. Example: `sphere>(1,0,0)`
 - `#`: Repeat. Repeat on all three axes. Example: `sphere # 3`
 - `##`: PolarRepeat. Repeat in a circle. Example (12 repeats, radius of 1): `(sphere(.2) ##(12,1)) @ (90,1,0,0)`
