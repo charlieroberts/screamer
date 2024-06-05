@@ -191,12 +191,14 @@ post = _ name: (
   "blur"
 ) _ { return name }
 
+vec = lp a:arguments rp { return ['vec', a] }
+
 // argument list or empty
 arguments = list / _
 list = l:(argument ','? _ )+ {
   return l.map( v => v[0] )
 }
-argument = mathoperation / mathoperand
+argument = mathoperation / mathoperand / vec
 
 rp = _')'_ { return ')' }
 lp = _'('_ { return '(' }

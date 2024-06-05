@@ -19996,6 +19996,12 @@ const screamer = {
       return isGlobal ? globals[ obj ] : screamer.mathwalk( obj ) 
     },
 
+    vec( obj ) {
+      const len = obj[1].length;
+      const args = obj[1].map( screamer.mathwalk );
+
+      return window[ 'Vec'+len ]( ...args )
+    }
   },
 
   walk( obj ) {
