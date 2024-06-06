@@ -49,7 +49,7 @@ Most of the geometries available in screamer are very simple; the fun comes in r
 - *mandelbulb*: A mandelbulb fractal accepting a fold amount.
 - *mandalay*: A mandalay fractal.
 - *cone*
-- *cylinder*
+- *cylinder*: A cylinder accepts a size argument containing a radius and a height. For example, to create a long narrow cylinder: `cylinder((.1,2))`
 - *capsule*
 - *torus*
 - *torus82*
