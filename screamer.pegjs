@@ -11,7 +11,7 @@ config "config" = name:config_name _ '=' _ value:(word / pp / listparen / number
   return ['config', name, value ]
 }
 
-config_name = "render" / "fog" / "background" / "post"
+config_name = "render" / "fog" / "background" / "post" / "camera" / "fft" / "lights"
 
 pp = lp fx:(post (lp arguments rp)? ','?)+ rp { 
    return fx.map( f => [ f[0], f[1] === null ? null : f[1][1] ] ) 

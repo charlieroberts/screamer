@@ -24,8 +24,8 @@ const screamer = {
     render: 'med',
     fog: [0,0,0,0],
     background:[0,0,0],
-    post: []
-      
+    post: [],
+    camera: [0,0,5]
   },
 
   init() {
@@ -208,10 +208,36 @@ const screamer = {
         })
       }
 
+
       // test for string in case of render preset
+      
+      if( obj[1] === 'camera' ) {
+        const camerafncs = obj[2].values.map( screamer.mathwalk )
+        Marching.postrendercallbacks.push( time => {
+          camera.pos.x = camerafncs[0]( time )
+          camera.pos.y = camerafncs[1]( time )
+          camera.pos.z = camerafncs[2]( time )
+        })
+
+        obj[2].values = obj[2].values.map( fnc => screamer.mathwalk( fnc )(0) )
+      }
+
+      if( obj[1] === 'fog' ) {
+        const fogfncs = obj[2].values.map( screamer.mathwalk )
+        Marching.postrendercallbacks.push( time => {
+          const fog = Marching.__scene.postprocessing[0]
+          fog.amount   = fogfncs[0]( time )
+          fog.color.r  = fogfncs[1]( time )
+          fog.color.g  = fogfncs[2]( time )
+          fog.color.b  = fogfncs[3]( time )
+        })
+
+        obj[2].values = obj[2].values.map( fnc => screamer.mathwalk( fnc )(0) )
+      }
+
       const isPreset = Array.isArray( obj[2] ) || typeof obj[2] === 'string' 
       screamer.config[ obj[1] ] = isPreset ? obj[2] : obj[2].values
-      
+
       return false
     },
 
@@ -519,6 +545,7 @@ const screamer = {
           .background( Vec3(...config.background ) )
           .post(   ...config.post )
           .render( config.render )
+          .camera( ...config.camera )
       }
     } catch (e) {
       console.log( e )
