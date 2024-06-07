@@ -78,7 +78,7 @@ Modifiers are (mostly) single-character operators to modify the geometry, combin
 - `##`: PolarRepeat. Repeat in a circle. Example (12 repeats, radius of 1): `(sphere(.2) ##(12,1)) @ (90,1,0,0)`
 - `|` : Mirror. Mirrors the geometry. Example: `julia(time)'2 |`
 - `:`: Color. Apply a color preset. Colors include `red`, `green`, `blue`, `cyan`, `magenta`, `yellow`, `white`, `black`, `grey`.
-- `::`: Texture. Apply texture preset. Textures include `rainbow`, `stripes`, `dots`, `truchet`, `noise`, `cellular`, `zigzag`, and `voronoi`. Example: `box::truchet`
+- `::`: Texture. Apply texture preset. Textures include `rainbow`, `stripes`, `dots`, `truchet`, `noise`, `cellular`, `zigzag`, and `voronoi`. Example: `box::truchet`. All textures also have two optional parameters: *scale*, which determines the scaling of procedural textures, and *uv* which is a three-item list that specifies offsets to look up texture values. Example: `box::rainbow( 10, (sin(time),0,.5))`
 
 ### Variables
 
