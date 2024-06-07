@@ -19913,7 +19913,42 @@ const screamer = {
             }
           //}
         }else if( name === 'material' || name === 'texture' ) {
-          out = geo[ name ]( mod[1] );
+          if( Array.isArray( mod[1] ) ) {
+            const materialName = typeof mod[1][1] === 'string' ? mod[1][1] : mod[1][0];
+
+            if( mod[1][1] !== undefined && mod[1][1] !== null) {
+              const scalefnc = screamer.mathwalk( mod[1][1] );
+              let uvfncs = null;
+              if( mod[1][2] !== undefined ) {
+                uvfncs = mod[1][2][1].map( screamer.mathwalk );
+              }
+              
+              Marching.postrendercallbacks.push( time => {
+                geo.texture.scale = scalefnc( time );  
+                if( uvfncs !== null ) {
+                  const x = uvfncs[0]( time );
+                  const y = uvfncs[1]( time );
+                  const z = uvfncs[2]( time );
+
+                  geo.texture.uv.x = x;
+                  geo.texture.uv.y = y;
+                  geo.texture.uv.z = z;
+                }
+              });
+
+              out = geo[ name ]( 
+                materialName, 
+                { 
+                  scale: scalefnc( 0 ), 
+                  uv:    uvfncs !== null ? uvfncs.map( f => f( 0 ) ) : [0,0,0]
+                }
+              );
+            }else {
+              out = geo[ name ]( materialName );
+            }
+          }else {
+            out = geo[ name ]( mod[1] );
+          }
         }else {
           // repeat / polarrepeat etc.
           if( mod[1] !== null ) {

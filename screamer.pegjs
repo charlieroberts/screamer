@@ -169,7 +169,18 @@ material = _ name:(
   "normal"
 ) _ { return name }
 
-texture = _ name:(
+texture = _ name:texture_name args:(lp ((mathoperation/vec) ","?)* rp)? {
+  if( args === null ) {
+    return [ name, args ]
+  }else{
+    if( args[1].length === 0 ) {
+      return [name, null ]
+    }
+    return [name, ...(args[1].map( v => v[0] ))]
+  }
+}
+
+texture_name = _ name:(
   "rainbow"/
   "stripes"/
   "dots"/
