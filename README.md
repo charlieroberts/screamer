@@ -16,7 +16,7 @@ In music, a "screamer" is a sped-up march used in circuses to ["stir audiences i
 ## Reference
 The main programmatic elements of screamer are:
 
-- *Configuration*: Used to control global properties of the renderer, for example, post-processing effects and render quality
+- *Configuration*: Used to control global properties of the renderer, for example, post-processing effects and render quality. Applies to all subsequent renderings.
 - *Geometries*: mmmm enough said
 - *Combinators*: Operators used to combine geometries or to nest combinators.
 - *Modifcations*: Single-character operators to transform geometries and combinators in various ways.
@@ -28,15 +28,19 @@ The main programmatic elements of screamer are:
 `//` is the operator for a single-line comment.
 
 ### Configuration
-Configuration primarily consists of assigning numbers, keywords, or lists to global properties
+Configuration primarily consists of assigning numbers, keywords, or lists to global properties. Once a configuration is run, you can then freely create different scenes and they will all use the existing configuration without having to re-execute it.
 
-- *render*: assign a rendering preset to be used, the default is `med`. Options include `low`, `med`, `high`, `fractal.low`, `fractal.med`, `fractal.high`, `repeat.low`, `repeat.med`, `repeat.high`, `voxel.low`, `voxel.med`, and `voxel.high`. The `fractal` presets are best for viewing fractals close to the camera, white the `repeat` presets are best for geometries that are endlessly repeated over space. The `voxel` presets convert geometries to voxelized representations (think Minecraft).
+- *background*: assign a RGB list of floats representing a color for the rendering background, e.g. `(1,0,0)` for red or `(0,0,.5)` for dark blue. This configuration cannot be animated over time (although it's on the list!).
 
-- *background*: assign a RGB list of floats representing a color for the rendering background, e.g. `(1,0,0)` for red or `(0,0,.5)` for dark blue.
+- *camera*: The xyz coordinates of the camera. Example: `camera = (0,0,3)`. Geometries are placed at the `0,0,0` coordinate by default, so you usally want your camera to be a bit back on the z-axis to properly view them (a z value of 5 is the default. This configuation *can* be animated. For example, to constantly move your camera forward through a scene: `camera = (0,0,time*-1)`.
 
-- *fog*: A list containing four floats. The first is the amount of fog, while the last three present the RGB color of the fog. It often makes sense for the fog to be the same color as the `background`. Example: `fog = (.5, 0,0,0)` 
+- *fog*: A list containing four floats. The first is the amount of fog, while the last three present the RGB color of the fog. It often makes sense for the fog to be the same color as the `background`. Example: `fog = (.5, 0,0,0)`. This configuration *can* be animated over time, for example, to drive the fog with audio you could use: `fog = (high*2, .5*sin(low)*.5, 0, med )`. 
 
-- *post*: A list of post-processing effects to apply. Available effects include `antialias`, `focus`, `edge`, `invert`, `bloom`, `godrays`, and `blur`. Example: `post = ( antialias(2), edge, invert(1) )`
+- *fft*: This determines the size of the FFT window, which *must* be a power of two (e.g. 512, 1024, 2048, 4096 etc.) The default is 512. For smoother audio windows, consider using 4096 or 8192. This configuration cannot be animated. For example: `fft = 8192`
+
+- *post*: A list of post-processing effects to apply. Available effects include `antialias`, `focus`, `edge`, `invert`, `bloom`, `godrays`, and `blur`. Example: `post = ( antialias(2), edge, invert(1) )`. These effects cannot (currently) be animated over time.
+
+- *render*: assign a rendering preset to be used, the default is `med`. Options include `low`, `med`, `high`, `fractal.low`, `fractal.med`, `fractal.high`, `repeat.low`, `repeat.med`, `repeat.high`, `voxel.low`, `voxel.med`, and `voxel.high`. The `fractal` presets are best for viewing fractals close to the camera, white the `repeat` presets are best for geometries that are endlessly repeated over space. The `voxel` presets convert geometries to voxelized representations (think Minecraft). This configuration cannot be animated over time.
 
 ### Geometries
 Most of the geometries available in screamer are very simple; the fun comes in repeating, combining, and warping them in different ways. However, there is a also a selection of fractals that can create more complex scenes with very little code.
@@ -65,10 +69,10 @@ Combinators are operators that are used to combine geometries (or multiple combi
 - `----`: StairsDifference. Subtracts two geometries and creates a stepped transition, with argument transition size and number of steps. Example:`box ----(.35,6) sphere(1.2)`
 - `**`: Intersection. Creates the intersection of two geometries. Example: `box *** sphere(1.2)`
 - `***`: RoundIntersection. Intersects two geometries and creates a smooth transition between them, with an argument smoothing coefficient. Example:`box ***(.75) sphere(1.2)`.
-- `***`: StairsIntersection. Intersects two geometries and creates a stepped transition, with argument transition size and number of steps. Example:`box ****(.35,6) sphere(1.2)`
+- `****`: StairsIntersection. Intersects two geometries and creates a stepped transition, with argument transition size and number of steps. Example:`box ****(.35,6) sphere(1.2)`
 
 ### Modifiers
-Modifiers are (mostly) single-character operators to modify the geometry, combinator, or modifier to their left. The `@`Rotate, `>`Translate, `#`Repeat, and `|`Mirror operators can be used with `xyz` *decorators* to specify which dimensions the operator will be applied to. For example, `box >x .5` will only translate on the x axis, while `sphere #yz 2` will repeat on the y and z axes. If no decorations are applied, the operation will be applied on all axes. 
+Modifiers are (mostly) single-character operators to modify the geometry, combinator, or modifier to their left. The `@`Rotate, `>`Translate, `#`Repeat, and `|`Mirror operators can be used with `xyz` *decorators* to specify which dimensions the operator will be applied to. For example, `box >x .5` will only translate on the x axis, while `sphere #yz 2` will repeat on the y and z axes. If no decorations are applied, the operation will be applied on all axes by default. 
 
 - `'`: Scale. A uniform scaling coefficient. Example: `julia'2`
 - `@`: Rotate. Rotate on all three axes by an argument amount. Example: `box@time*15`
