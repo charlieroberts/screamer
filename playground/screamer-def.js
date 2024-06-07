@@ -259,7 +259,7 @@ function contains(words, word) {
 
 export const screamer_def = clike({
   name: "screamer",
-  keywords: words("fog background render post"),
+  keywords: words("fog background render post fft camera"),
   atoms: words("time mousex mousey i low mid high"),
   blockKeywords: words("case catch class else for foreach if switch try while"),
   typeFirstDefinitions: true,
