@@ -25,7 +25,8 @@ const screamer = {
     fog: [0,0,0,0],
     background:[0,0,0],
     post: [],
-    camera: [0,0,5]
+    camera: [0,0,5],
+    fft: 512
   },
 
   init() {
@@ -99,14 +100,17 @@ const screamer = {
           // .start() is a null operation if audio
           // has already been initialized
           Marching.FFT.start()
+          Marching.FFT.windowSize = screamer.config.fft
           out = t => Marching.FFT.low
           break
         case 'mid':
           Marching.FFT.start()
+          Marching.FFT.windowSize = screamer.config.fft
           out = t => Marching.FFT.mid
           break
         case 'high':
           Marching.FFT.start()
+          Marching.FFT.windowSize = screamer.config.fft
           out = t => Marching.FFT.high
           break
       }
@@ -224,18 +228,21 @@ const screamer = {
 
       if( obj[1] === 'fog' ) {
         const fogfncs = obj[2].values.map( screamer.mathwalk )
-        Marching.postrendercallbacks.push( time => {
+        const runfog = time => {
           const fog = Marching.__scene.postprocessing[0]
           fog.amount   = fogfncs[0]( time )
           fog.color.r  = fogfncs[1]( time )
           fog.color.g  = fogfncs[2]( time )
           fog.color.b  = fogfncs[3]( time )
-        })
+        }
+        Marching.postrendercallbacks.push( runfog )
 
-        obj[2].values = obj[2].values.map( fnc => screamer.mathwalk( fnc )(0) )
+        // don't bother setting initial fog just use the render callback
       }
 
-      const isPreset = Array.isArray( obj[2] ) || typeof obj[2] === 'string' 
+      const isPreset = Array.isArray( obj[2] ) 
+        || (typeof obj[2] === 'string' || typeof obj[2] === 'number' )
+
       screamer.config[ obj[1] ] = isPreset ? obj[2] : obj[2].values
 
       return false
