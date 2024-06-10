@@ -19,7 +19,11 @@ pp = lp fx:(post (lp arguments rp)? ','?)+ rp {
 
 listparen = lp _ values:arguments _ rp { return { name:'list', values } }
 
-loop "loop" = _ '[' _ obj:(operation / group / geometry) _ num:int _ mods:( modchar _ (mathoperation/listparen)?)* _ ']' _ {
+loop "loop" = _ '[' _ 
+  obj:(operation / group / geometry) _ 
+  num:int _ 
+  mods:( (modspecial/modchar) _ (mathoperation/listparen)?)* _ 
+']' _ {
   mods = mods.map( v => [ v[0], v[2] ] )
   return ['loop', obj, num, mods]
 }
@@ -81,7 +85,7 @@ stairsintersection "sintersection"  = a:operand _ '****' args:operandargs? _ b:e
   return ['combinator', 'StairsIntersection', a,b[0],args ] 
 }
 
-mathchar = '+' / '-' / '/' / '*'/ '%'
+mathchar = '+' / '-' / '/' / '*'/ '%' / '^'
 mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)* {
   // operations are represented as arrays. 
   // if b is instead a number, it is the final term
@@ -93,7 +97,9 @@ mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)* {
 modspecial = modchar $moddims+
 moddims = [xyz]
 
-modchar = "'" / '::' / ':' / '@@' / '@' / '>>' / '>' / '##' / '#' / '|'
+/*modchar = "'" / '::' / ':' / '@@' / '@' / '>>' / '>' / '###'/ '##' / '#' / '||' / '|'*/
+modchar = "'" / '::' / ':' / '@@' / '@' / '>>' / '>' / '##' / '#' / '||' / '|' / '~'
+
 modoperation "modop" = a:(geometry/group/loop/word) _ b:((modspecial/modchar) _ (material/texture/listparen/mathoperation/modoperation)?)* {
   const isBNull = b === null
   if( !isBNull ) {
@@ -122,9 +128,9 @@ geometry "geometries" = name:geometry_name a:(lp b:arguments rp)? {
 }
 
 math = 
-  "sin" /
+  "sinn" / "sin" /
   "round" /
-  "cos" /
+  "cosn" / "cos" /
   "abs" /
   "floor" /
   "random" /
