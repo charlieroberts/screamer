@@ -51,7 +51,7 @@ export function clike(parserConfig) {
       numberStart = parserConfig.numberStart || /[\d\.]/,
       number = parserConfig.number || /^(?:0x[a-f\d]+|0b[01]+|(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)(u|ll?|l|f)?/i,
       // modified to include ' @
-      isOperatorChar = parserConfig.isOperatorChar || /[+\-*\'\@\#&%=<>!?|\/]/,
+      isOperatorChar = parserConfig.isOperatorChar || /[+\-*\'\@\#&%=<>!?|\/\~]/,
       isIdentifierChar = parserConfig.isIdentifierChar || /[\w\$_\xa1-\uffff]/,
       // An optional function that takes a {string} token and returns true if it
       // should be treated as a builtin.
