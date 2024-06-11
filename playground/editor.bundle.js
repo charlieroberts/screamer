@@ -20137,7 +20137,7 @@ const screamer = {
     return out
   },
 
-  run( code ) {
+  run( code, dims=null ) {
     try {
       console.log( 'code:', code );
       const tree = walking.parse( code );
@@ -20149,15 +20149,18 @@ const screamer = {
 
       const config = screamer.config;
       if( out !== false ) {
-        march( out )
+        let m = march( out )
           .fog( 
             config.fog.length > 0 ? config.fog[0] : 0, 
             config.fog.length > 0 ? config.fog.slice( 1 ) : [0,0,0]
           )
           .background( Vec3(...config.background ) )
-          .post(   ...config.post )
-          .render( config.render )
-          .camera( ...config.camera );
+          .post(   ...config.post );
+
+        if( dims !== null ) m = m.setdim( dims[0]. dims[1] );
+
+        m.render( config.render )
+         .camera( ...config.camera );
       }
     } catch (e) {
       console.log( e );
