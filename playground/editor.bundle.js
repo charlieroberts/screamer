@@ -20157,7 +20157,7 @@ const screamer = {
           .background( Vec3(...config.background ) )
           .post(   ...config.post );
 
-        if( dims !== null ) m = m.setdim( dims[0]. dims[1] );
+        if( dims !== null ) m = m.setdim( dims[0], dims[1] );
 
         m.render( config.render )
          .camera( ...config.camera );
