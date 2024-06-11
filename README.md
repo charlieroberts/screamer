@@ -72,7 +72,7 @@ Combinators are operators that are used to combine geometries (or multiple combi
 - `****`: StairsIntersection. Intersects two geometries and creates a stepped transition, with argument transition size and number of steps. Example:`box ****(.35,6) sphere(1.2)`
 
 ### Modifiers
-Modifiers are (mostly) single-character operators to modify the geometry, combinator, or modifier to their left. The `@`Rotate, `>`Translate, `#`Repeat, and `|`Mirror operators can be used with `xyz` *decorators* to specify which dimensions the operator will be applied to. For example, `box >x .5` will only translate on the x axis, while `sphere #yz 2` will repeat on the y and z axes. If no decorations are applied, the operation will be applied on all axes by default. 
+Modifiers are (mostly) single-character operators to modify the geometry, combinator, or modifier to their left. The `@`Rotate, `>`Translate, `#`Repeat, `|`Mirror, and `||`SmoothMirror operators can be used with `xyz` *decorators* to specify which dimensions the operator will be applied to. For example, `box >x .5` will only translate on the x axis, while `sphere #yz 2` will repeat on the y and z axes. If no decorations are applied, the operation will be applied on all axes by default. 
 
 - `'`: Scale. A uniform scaling coefficient. Example: `julia'2`
 - `@`: Rotate. Rotate on all three axes by an argument amount. Example: `box@time*15`
@@ -80,9 +80,12 @@ Modifiers are (mostly) single-character operators to modify the geometry, combin
 - `>`: Translate. Move along three axes. Example: `sphere>(1,0,0)`
 - `#`: Repeat. Repeat on all three axes. Example: `sphere # 3`
 - `##`: PolarRepeat. Repeat in a circle. Example (12 repeats, radius of 1): `(sphere(.2) ##(12,1)) @ (90,1,0,0)`
+- `###`: TODO needs fixing. SmoothRepeat. Repeat on all three axes, and smooth transitions. Example: `sphere ## 3 .25`
 - `|` : Mirror. Mirrors the geometry. Example: `julia(time)'2 |`
+- `||` : SmoothMirror. Mirrors the geometry, but smooths the transition at the mirror axes by an argument smoothness amount. Example: `julia(time)'2 || .05` (compare this with the example for mirror). Note that smoothness amounts that are high in comparison to the size of the geometries being mirrored can cause geometries to disappear. Currently you can only specify a single smoothness amount to use for all three axes.
 - `:`: Color. Apply a color preset. Colors include `red`, `green`, `blue`, `cyan`, `magenta`, `yellow`, `white`, `black`, `grey`.
 - `::`: Texture. Apply texture preset. Textures include `rainbow`, `stripes`, `dots`, `truchet`, `noise`, `cellular`, `zigzag`, and `voronoi`. Example: `box::truchet`. All textures also have two optional parameters: *scale*, which determines the scaling of procedural textures, and *uv* which is a three-item list that specifies offsets to look up texture values. Example: `box::rainbow( 10, (sin(time),0,.5))`
+- `~` : Twist. Twists a geometry on all three axes by a single argument amount. WARNING: this operator is a bit buggy at the moment. It works best if you place it directly after a shape / combinator, before any other modifiers. 
 
 ### Variables
 
@@ -102,6 +105,7 @@ Note: traditional parenthesis `()` do not currently work in math expressions, as
 - `*` Multiply. Multiplies two numbers/variables together.
 - `/` Divide. Divide two numbers / variables.
 - `%` Modules. Calculates the remainder of dividing two numbers.
+- `^` Exponent. Raises the left value to the right power.
 - *sin*: Calculate the sin of the arugment. Example: `sphere( .5 + sin(time) * .35 )`
 - *cos*: Calculate the cosine of the arguments. Example: `box | 3 + sin(time)`
 - *random*: Generates a random number from 0--1. Example: `sphere( .5 + random() * .5)`
