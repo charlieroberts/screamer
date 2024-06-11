@@ -4,7 +4,8 @@ const mods = {
   '\'':  'scale',
   '\'\'': 'scaleBy', 
   '#':  'Repeat',
-  '##': 'PolarRepeat',
+  '###': 'PolarRepeat',
+  '##': 'SmoothRepetition',
   ':':  'material',
   '::': 'texture',
   '>':  'translate',
@@ -12,6 +13,8 @@ const mods = {
   '@':  'rotateDims',
   '@@': 'rotate',
   '|':  'Mirror',
+  '||': 'SmoothMirror',
+  '~':  'Twist'
 }
  
 const mouse = { x:0, y:0 }
@@ -62,11 +65,20 @@ const screamer = {
           case '%':
             out = t => a( t ) % b( t ) 
             break
+          case '^':
+            out = t => Math.pow(a( t ), b( t )) 
+            break
           case 'sin':
             out = t => Math.sin( a( t ) )
             break
+          case 'sinn':
+            out = t => .5 + Math.sin( a( t ) ) * .5
+            break
           case 'cos':
             out = t => Math.cos( a( t ) )
+            break
+          case 'cosn':
+            out = t => .5 + Math.cos( a( t ) ) * .5
             break
           case 'round':
             out = t => Math.round( a( t ) )
@@ -286,7 +298,7 @@ const screamer = {
     mod( obj, __geo = null ) {
       let out = null
       
-      const geo = __geo === null 
+      let geo = __geo === null 
         ? screamer.walk( obj[1] )
         : __geo
       
@@ -432,8 +444,7 @@ const screamer = {
           if( mod[1] !== null ) {
 
             // process distance dimensions for Repeat
-            if( name === 'Repeat' ) {
-              const val = screamer.mathwalk( mod[1] )
+            if( name === 'Repeat' || name === 'SmoothRepetition' || name === 'Twist' ) {
               let args, isList = false
               if( mod[1].name === 'list' ) {
                 args = mod[1].values.map( screamer.mathwalk )
@@ -482,18 +493,57 @@ const screamer = {
                 }
               }else{
                 args = isList ? args : screamer.mathwalk( mod[1] ) 
-                out = window[ name ]( geo, isList ? Vec3(...args) : args )
+
+                if( name === 'Twist' ) {
+                  const fnc   = Array.isArray( args ) ? args[0] : args
+                  const twist = window.Twist( geo, Vec2( fnc,0 ) )
+                  Marching.postrendercallbacks.push( t => twist.amount.x = fnc(t) )
+                  out = geo = twist
+                }else{
+                  out = window[ name ]( geo, isList ? Vec3(...args) : args )
+                }
               }
-            }else{
-              out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
-                ? window[ name ]( geo, ...mod[1].values.map( screamer.mathwalk ) )
-                : window[ name ]( geo, screamer.mathwalk( mod[1] ) )
+            }else{ 
+              if( name === 'SmoothMirror' ) {
+                let args, isList = mod[1].name === 'list' 
+  
+                dims = dims === null ? 'xyz': dims.join('')
+                const count = dims.length
+
+                //if( isList ) {
+                  
+                  // TODO: fix so smoothmirror can accept different
+                  // arguments on different axes (this is a marching.js fix)
+                 
+                  //const __args = mod[1].values.map( screamer.mathwalk )
+                  //console.log( 'args:', __args )
+                  //out = isList && count !== 1
+                  //  ? window[ name ]( geo, window['Vec'+count]( ...__args ), dims )
+                  //  : window[ name ]( geo, screamer.mathwalk( mod[1].values[0] ), dims )
+                //}else{
+                if( isList ) {
+                  const l = mod[1].values.length
+                  mod[1] = mod[1].values[0]
+                  if( l !==1 )
+                    console.warn( 'smoothmirror only accepts a single smoothness value for all axes.')
+                }
+                out = window[ name ]( geo, screamer.mathwalk( mod[1] ), dims )
+                //}
+              }else{
+                out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
+                  ? window[ name ]( geo, ...mod[1].values.map( screamer.mathwalk ) )
+                  : window[ name ]( geo, screamer.mathwalk( mod[1] ) )
+              }
             }
           }else{
             // mirror
-            if( name === 'Mirror' ) {
+            if( name === 'Mirror' || 'SmoothMirror' ) {
               dims = dims === null ? 'xyz': dims.join('')
-              out = window[ name ]( geo, dims )
+
+              if( name === 'Mirror' )
+                out = window[ name ]( geo, dims )
+              else
+                out = window[ name ]( geo, .03, dims ) 
             }else{
               out = window[ name ]( geo )
             }
