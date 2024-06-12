@@ -537,7 +537,7 @@ const screamer = {
             }
           }else{
             // mirror
-            if( name === 'Mirror' || 'SmoothMirror' ) {
+            if( name === 'Mirror' || name === 'SmoothMirror' ) {
               dims = dims === null ? 'xyz': dims.join('')
 
               if( name === 'Mirror' )
