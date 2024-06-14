@@ -17,18 +17,28 @@ pp = lp fx:(post (lp arguments rp)? ','?)+ rp {
    return fx.map( f => [ f[0], f[1] === null ? null : f[1][1] ] ) 
 }
 
-listparen = lp _ values:arguments _ rp { return { name:'list', values } }
+listparen = lp _ values:arguments _ b:rp? { 
+  
+  if( b===null ) {
+    throw SyntaxError('Are you missing a closing parenthesis for your list?')
+  }
+  return { name:'list', values } 
+}
 
 loop "loop" = _ '[' _ 
   obj:(operation / group / geometry) _ 
   num:int _ 
   mods:( (modspecial/modchar) _ (mathoperation/listparen)?)* _ 
-']' _ {
+d:']'? _ {
+  if( d === null ) throw SyntaxError( 'Did you forget to close your loop?' )
   mods = mods.map( v => [ v[0], v[2] ] )
   return ['loop', obj, num, mods]
 }
 
-assignment "assign" = name:word _ '=' _ statement:(expr/vector) {
+assignment "assign" = name:word _ '=' _ statement:(expr/vector)? {
+  if( statement === null ) {
+    throw SyntaxError(`You didn't assign anything to ${name}.`)
+  }
   return [ 'assignment', name, statement ]
 }
 
@@ -53,45 +63,105 @@ operation =
   modoperation
 
 // union
-union "union"   = a:operand _ '++' args:operandargs? _ b:expr* { 
-  return ['combinator', 'Union', a,b[0],args ] 
+union "union"   = a:operand? _ '++' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your union is missing an argument to the left of the ++ operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your union is missing an argument to the right of the ++ operator.`)
+  }
+  return ['combinator', 'Union', a,b,args ] 
 }
-roundunion "runion"   = a:operand _ '+++' args:operandargs? _ b:expr* { 
-  return ['combinator', 'RoundUnion', a,b[0],args ] 
+roundunion "runion"   = a:operand _ '+++' args:operandargs? _ b:expr? {
+  if( a===null ) { 
+    throw SyntaxError(`Your round union is missing an argument to the left of the ++ operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your round union is missing an argument to the right of the +++ operator.`)
+  }
+  return ['combinator', 'RoundUnion', a,b,args ] 
 }
-stairsunion "sunion"  = a:operand _ '++++' args:operandargs? _ b:expr* { 
-  return ['combinator', 'StairsUnion', a,b[0],args ] 
+stairsunion "sunion"  = a:operand _ '++++' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your stairs union is missing an argument to the left of the ++ operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your stairs union is missing an argument to the right of the ++++ operator.`)
+  }
+  return ['combinator', 'StairsUnion', a,b,args ] 
 }
 
 // difference
-difference "difference" = a:operand _ '--' args:operandargs? _ b:expr* {
- return ['combinator', 'Difference', a,b[0] ] 
+difference "difference" = a:operand? _ '--' args:operandargs? _ b:expr? {
+  if( a===null ) { 
+    throw SyntaxError(`Your difference is missing an argument to the left of the -- operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your difference is missing an argument to the right of the -- operator.`)
+  }
+  return ['combinator', 'Difference', a,b, args] 
 }
-rounddifference "rdifference"   = a:operand _ '---' args:operandargs? _ b:expr* { 
-  return ['combinator', 'RoundDifference', a,b[0],args ] 
+rounddifference "rdifference"   = a:operand? _ '---' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your round difference is missing an argument to the left of the --- operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your round difference is missing an argument to the right of the --- operator.`)
+  }
+  return ['combinator', 'RoundDifference', a,b,args ] 
 }
-stairsdifference "sdifference"  = a:operand _ '----' args:operandargs? _ b:expr* { 
-  return ['combinator', 'StairsDifference', a,b[0],args ] 
+stairsdifference "sdifference"  = a:operand? _ '----' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your stairs difference is missing an argument to the left of the ---- operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your stairs difference is missing an argument to the right of the ---- operator.`)
+  }
+
+  return ['combinator', 'StairsDifference', a,b,args ] 
 }
 
 // intersection
-intersection "intersection" = a:operand _ '**' args:operandargs? _ b:expr* {
-  return ['combinator', 'Intersection', a,b[0] ]
+intersection "intersection" = a:operand? _ '**' args:operandargs? _ b:expr? {
+  if( a===null ) { 
+    throw SyntaxError(`Your intersection is missing an argument to the left of the ** operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your intersection is missing an argument to the right of the ** operator.`)
+  }
+  return ['combinator', 'Intersection', a,b,args ]
 }
-roundintersection "rintersection"   = a:operand _ '***' args:operandargs? _ b:expr* { 
-  return ['combinator', 'RoundIntersection', a,b[0],args ] 
+roundintersection "rintersection"   = a:operand? _ '***' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your round intersection is missing an argument to the left of the *** operator.`)
+  }
+  if( b===null ) { 
+     throw SyntaxError(`Your round intersection is missing an argument to the right of the *** operator.`)
+  }
+
+  return ['combinator', 'RoundIntersection', a,b,args ] 
 }
-stairsintersection "sintersection"  = a:operand _ '****' args:operandargs? _ b:expr* { 
-  return ['combinator', 'StairsIntersection', a,b[0],args ] 
+stairsintersection "sintersection"  = a:operand? _ '****' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your stairs intersection is missing an argument to the left of the **** operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your stairs intersection is missing an argument to the right of the **** operator.`)
+  }
+
+  return ['combinator', 'StairsIntersection', a,b,args ] 
 }
 
 mathchar = '+' / '-' / '/' / '*'/ '%' / '^'
-mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)* {
+mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)? {
   // operations are represented as arrays. 
   // if b is instead a number, it is the final term
   // in a potential sequence of operations
-  const isFinalTerm = b[0] === undefined
-  return isFinalTerm ? a : ['math',b[0][0], a,b[0][2] ] 
+  const isFinalTerm = b === null
+  //if( !isFinalTerm && b[2] === null ) {
+  //  throw SyntaxError(`You're missing a value to the right of your ${b[0]} operator.`)
+  //}
+  return isFinalTerm ? a : ['math',b[0], a,b[2] ] 
 }
 
 modspecial = modchar $moddims+
@@ -122,7 +192,10 @@ maths "math" = name:math lp a:arguments rp {
 }
 
 // support for optional parenthesis
-geometry "geometries" = name:geometry_name a:(lp b:arguments rp)? {
+geometry "geometries" = name:geometry_name a:(lp b:arguments rp?)? {
+  if( a !== null && a[2] === null ) {
+    throw SyntaxError(`Are you missing a right parenthesis when creating your ${name}?`)
+  }
   return ['geometry', name[0].toUpperCase() + name.slice(1), a===undefined||a===null ? null : a[1] ]
 }
 

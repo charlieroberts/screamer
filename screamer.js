@@ -1,5 +1,8 @@
 const globals = {}
 
+// ernie's favorite number
+const EFN = 8243721
+
 const mods = {
   '\'':  'scale',
   '\'\'': 'scaleBy', 
@@ -42,7 +45,7 @@ const screamer = {
   },
 
   mathwalk( obj ) {
-    let out = 1, a, b
+    let out = EFN, a, b
     if( Array.isArray( obj ) ) { 
       if( obj.length > 1 ) {
         const a = screamer.mathwalk( obj[2] )
@@ -125,6 +128,17 @@ const screamer = {
           Marching.FFT.windowSize = screamer.config.fft
           out = t => Marching.FFT.high
           break
+        default:
+          const isGlobal = globals[ obj ] !== undefined
+
+          if( !isGlobal ) {
+            throw Error(`The word "${obj}" is not a keyword in screamer, and not a variable that has been assigned a value`)
+          }else{
+            throw Error(`The variable "${obj}" contains a geometry or combinator, and cannot be used in a math expression.`)
+          }
+
+          break
+
       }
     }else{
       const val = obj === null ? null : parseFloat( obj )
@@ -239,13 +253,18 @@ const screamer = {
       }
 
       if( obj[1] === 'fog' ) {
-        const fogfncs = obj[2].values.map( screamer.mathwalk )
+        let fogfncs
+        if( obj[2].values === undefined ) {
+          fogfncs = [ screamer.mathwalk( obj[2] ) ]
+        }else{
+          fogfncs = obj[2].values.map( screamer.mathwalk )
+        }
         const runfog = time => {
           const fog = Marching.__scene.postprocessing[0]
           fog.amount   = fogfncs[0]( time )
-          fog.color.r  = fogfncs[1]( time )
-          fog.color.g  = fogfncs[2]( time )
-          fog.color.b  = fogfncs[3]( time )
+          if( typeof fogfncs[1] === 'function' ) fog.color.r = fogfncs[1]( time )
+          if( typeof fogfncs[2] === 'function' ) fog.color.g = fogfncs[2]( time )
+          if( typeof fogfncs[3] === 'function' ) fog.color.b = fogfncs[3]( time )
         }
         Marching.postrendercallbacks.push( runfog )
 
@@ -328,6 +347,9 @@ const screamer = {
           || name === 'moveBy' ) {
           let args, isList = false
           
+          if( mod[1] === null ) {
+            throw Error(`Are you missing an argument to your ${mod[0]} (${name}) modifier?`) 
+          }
           if( mod[1].name === 'list' ) {
             args = mod[1].values.map( screamer.mathwalk )
             isList = true
@@ -446,6 +468,7 @@ const screamer = {
             // process distance dimensions for Repeat
             if( name === 'Repeat' || name === 'SmoothRepetition' || name === 'Twist' ) {
               let args, isList = false
+              
               if( mod[1].name === 'list' ) {
                 args = mod[1].values.map( screamer.mathwalk )
                 isList = true
@@ -545,6 +568,10 @@ const screamer = {
               else
                 out = window[ name ]( geo, .03, dims ) 
             }else{
+              if( mod[1] === null ) {
+                throw Error(`Are you missing an argument to your ${mod[0]} (${name}) modifier?`) 
+              }
+              // what is this for?
               out = window[ name ]( geo )
             }
           }
@@ -556,7 +583,13 @@ const screamer = {
 
     string( obj ) { 
       const isGlobal = globals[ obj ] !== undefined
-      return isGlobal ? globals[ obj ] : screamer.mathwalk( obj ) 
+      const out = isGlobal ? globals[ obj ] : screamer.mathwalk( obj )
+
+
+      
+      if( out === EFN ) throw Error(`The word ${obj} is not a keyword in screamer, and it is not a variable that has been assigned a value`)
+
+      return out
     },
 
     vec( obj ) {
@@ -583,9 +616,14 @@ const screamer = {
   },
 
   run( code, dims=null ) {
-    try {
       console.log( 'code:', code )
-      const tree = walking.parse( code )
+      let tree = null
+      try{
+        tree = walking.parse( code )
+      }catch(e) {
+        console.error( e.toString() )
+        return
+      }
       let out
 
       for( let s of tree ) {
@@ -607,9 +645,6 @@ const screamer = {
         m.render( config.render )
          .camera( ...config.camera )
       }
-    } catch (e) {
-      console.log( e )
-    }
   }
 }
 
