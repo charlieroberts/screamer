@@ -1,5 +1,5 @@
 function Context(indented, column, type, info, align, prev) {
-  this.indented = indented;
+  this.indented = 0;
   this.column = column;
   this.type = type;
   this.info = info;
@@ -7,7 +7,7 @@ function Context(indented, column, type, info, align, prev) {
   this.prev = prev;
 }
 function pushContext(state, col, type, info) {
-  var indent = state.indented;
+  var indent = 0//state.indented;
   if (state.context && state.context.type == "statement" && type != "statement")
     indent = state.context.indented;
   return state.context = new Context(indent, col, type, info, null, state.context);
@@ -44,8 +44,8 @@ export function clike(parserConfig) {
       atoms = parserConfig.atoms || {},
       hooks = parserConfig.hooks || {},
       multiLineStrings = parserConfig.multiLineStrings,
-      indentStatements = parserConfig.indentStatements !== false,
-      indentSwitch = parserConfig.indentSwitch !== false,
+      indentStatements = 0, //parserConfig.indentStatements !== false,
+      indentSwitch = 0, //parserConfig.indentSwitch !== false,
       namespaceSeparator = parserConfig.namespaceSeparator,
       isPunctuationChar = parserConfig.isPunctuationChar || /[\[\]{}\(\),;\:\.]/,
       numberStart = parserConfig.numberStart || /[\d\.]/,
@@ -150,7 +150,7 @@ export function clike(parserConfig) {
     startState: function(indentUnit) {
       return {
         tokenize: null,
-        context: new Context(-indentUnit, 0, "top", null, false),
+        context: new Context(0, 0, "top", null, false),
         indented: 0,
         startOfLine: true,
         prevToken: null
@@ -207,32 +207,7 @@ export function clike(parserConfig) {
     },
 
     indent: function(state, textAfter, context) {
-      if (state.tokenize != tokenBase && state.tokenize != null || state.typeAtEndOfLine && isTopScope(state.context))
-        return null;
-      var ctx = state.context, firstChar = textAfter && textAfter.charAt(0);
-      var closing = firstChar == ctx.type;
-      if (ctx.type == "statement" && firstChar == "}") ctx = ctx.prev;
-      if (parserConfig.dontIndentStatements)
-        while (ctx.type == "statement" && parserConfig.dontIndentStatements.test(ctx.info))
-          ctx = ctx.prev
-      if (hooks.indent) {
-        var hook = hooks.indent(state, ctx, textAfter, context.unit);
-        if (typeof hook == "number") return hook
-      }
-      var switchBlock = ctx.prev && ctx.prev.info == "switch";
-      if (parserConfig.allmanIndentation && /[{(]/.test(firstChar)) {
-        while (ctx.type != "top" && ctx.type != "}") ctx = ctx.prev
-        return ctx.indented
-      }
-      if (ctx.type == "statement")
-        return ctx.indented + (firstChar == "{" ? 0 : statementIndentUnit || context.unit);
-      if (ctx.align && (!dontAlignCalls || ctx.type != ")"))
-        return ctx.column + (closing ? 0 : 1);
-      if (ctx.type == ")" && !closing)
-        return ctx.indented + (statementIndentUnit || context.unit);
-
-      return ctx.indented + (closing ? 0 : context.unit) +
-        (!closing && switchBlock && !/^(?:case|default)\b/.test(textAfter) ? context.unit : 0);
+      return null
     },
 
     languageData: {
