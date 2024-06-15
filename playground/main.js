@@ -27,6 +27,7 @@ const init = async function() {
   }
 }
 
+
 const showError = function( msg ) {
   const div = document.createElement('div')
   div.style = `width:calc(100% - 1em); margin:0; padding:.5em; height:2em; position:absolute; bottom:0; left:0; background:rgb(127,0,0); color:white; z-index:1000; font-family:monospace`
@@ -58,7 +59,9 @@ const setupMarching = function() {
 window.onload = init
 
 const getAllCode = editor => editor.state.doc.toString()
-const getCurrentLine = e => e.state.doc.lineAt( e.state.selection.main.head ).text
+const getCurrentLine = e => { 
+  return e.state.doc.lineAt( e.state.selection.main.head )
+}
 
 const editableCompartment = new Compartment
 
@@ -129,6 +132,8 @@ const loadDemo = function() {
   screamer.run( reset + code )
 }
 
+
+
 const getBlock = function( cm ) {
   let startline = cm.state.doc.lineAt( cm.state.selection.main.head ).number, 
       endline = startline
@@ -142,7 +147,31 @@ const getBlock = function( cm ) {
     cm.state.doc.line( endline ).to
   )
 
-  return text
+  const range = [ startline, endline ]
+  if( cm.state.doc.line( endline ).text === "" ) range[1] -= 1
+
+  return { text, range }
+}
+
+const markLine = function( lineNumber, color ) {
+  const lines = document.querySelectorAll( '.cm-line' )
+  lines[ lineNumber ].style.background = color
+}
+
+const flashColor = 'rgba(255,255,255,.35)'
+const bgColor = 'rgba(0,0,0,.65)'
+
+const flashLine = function( line ) {
+  markLine( line, flashColor )
+  setTimeout( ()=> markLine( line, bgColor ), 400 )
+}
+
+const flashBlock = function( range ) {
+  for( let i = range[0]; i < range[1]; i++ ) markLine( i, flashColor )
+
+  setTimeout( ()=> {
+    for( let i = range[0]; i < range[1]; i++ ) markLine( i, bgColor )
+  }, 400 )
 }
 
 const prefix = `camera=(0 0 5) fog = (0 0 0 0) post = () background = (0 0 0 ) render = med\n`
@@ -153,7 +182,9 @@ const setupEditor = function() {
         key: "Shift-Enter", 
         run(e) { 
           //localStorage.setItem("src", e.state.doc.toString())
-          const code = getBlock( e ) 
+          const block = getBlock( e )
+          const code  = block.text 
+          flashBlock( block.range )
           screamer.run( prefix+code )
           return true
         } 
@@ -161,9 +192,10 @@ const setupEditor = function() {
       { 
         key: "Alt-Enter", 
         run(e) { 
-          //localStorage.setItem("src", e.state.doc.toString())
-          const code = getBlock( e ) 
-          screamer.run( code )
+          const block = getBlock( e )
+          const code  = block.text 
+          flashBlock( block.range )
+          setTimeout( ()=>screamer.run( code ), 0 )
           return true
         } 
       }, 
@@ -179,7 +211,9 @@ const setupEditor = function() {
         key: "Ctrl-Enter", 
         run(e) { 
           //localStorage.setItem("src", e.state.doc.toString())
-          screamer.run( getCurrentLine( e ) )
+          const line = getCurrentLine( e )
+          flashLine( line.number - 1 ) 
+          screamer.run( line.text )
           return true
         } 
       },
