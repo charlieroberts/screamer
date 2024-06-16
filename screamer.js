@@ -36,7 +36,7 @@ const screamer = {
   },
 
   init() {
-    window.onmousemove = function(e) {
+    window.onpointermove = function(e) {
       mouse.x = e.clientX / window.innerWidth
       mouse.y = e.clientY / window.innerHeight
     }
