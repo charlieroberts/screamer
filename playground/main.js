@@ -11,6 +11,8 @@ import { demos } from './demos.js'
 import tutorial from './tutorial.js' 
 import screamer from '../screamer.js'
 
+const isMobile = /iPhone|iPad|iPod|Android/i.test( navigator.userAgent )
+
 let run
 const init = async function() {
   screamer.init()
@@ -24,6 +26,14 @@ const init = async function() {
   console.error = function( e ) {
     showError( e )
     err( e )
+  }
+
+  if( isMobile ) {
+    const btn = document.createElement('button')
+    btn.innerText = 'Next Demo >>'
+    btn.style = 'position:fixed; top:0; right:0; background:black; color:white; font-size:1.25rem; border:none'
+    document.body.append( btn )
+    btn.onclick = loadDemo
   }
 }
 
@@ -78,6 +88,9 @@ const toggleCamera = function( shouldToggleGUI=true) {
 }
 
 const starter = `// welcome to screamer!
+
+// coding on this site targets desktops, but mobile users can
+// click through demos using the "Next Demo >>" button in the top right corner.
 
 // key commands (replace "alt" key with "option" key in macOS)
 // - alt + l loads the next demo
@@ -153,13 +166,16 @@ const getBlock = function( cm ) {
   return { text, range }
 }
 
+// this is the top-notch-pro way to flash code lines 
+// in codemirror 6, without using all that newfangled
+// decoration / facet stuff.
+const flashColor = 'rgba(255,255,255,.35)'
+const bgColor = 'rgba(0,0,0,.65)'
+
 const markLine = function( lineNumber, color ) {
   const lines = document.querySelectorAll( '.cm-line' )
   lines[ lineNumber ].style.background = color
 }
-
-const flashColor = 'rgba(255,255,255,.35)'
-const bgColor = 'rgba(0,0,0,.65)'
 
 const flashLine = function( line ) {
   markLine( line, flashColor )
@@ -189,6 +205,19 @@ const setupEditor = function() {
           return true
         } 
       },
+      // for mobile?
+      { 
+        key: "$", 
+        run(e) { 
+          //localStorage.setItem("src", e.state.doc.toString())
+          const block = getBlock( e )
+          const code  = block.text 
+          flashBlock( block.range )
+          screamer.run( prefix+code )
+          return true
+        } 
+      },
+
       { 
         key: "Alt-Enter", 
         run(e) { 
