@@ -31,7 +31,7 @@ const init = async function() {
   if( isMobile ) {
     const btn = document.createElement('button')
     btn.innerText = 'Next Demo >>'
-    btn.style = 'position:fixed; top:0; right:0; background:black; color:white; font-size:1.25rem; border:none'
+    btn.style = 'position:fixed; bottom:0; right:0; background:rgba(0,0,0,.75); color:white; font-size:2.5rem; min-height:5.5rem; border:1px solid white'
     document.body.append( btn )
     btn.onclick = loadDemo
   }
@@ -40,7 +40,7 @@ const init = async function() {
 
 const showError = function( msg ) {
   const div = document.createElement('div')
-  div.style = `width:calc(100% - 1em); margin:0; padding:.5em; height:2em; position:absolute; bottom:0; left:0; background:rgb(127,0,0); color:white; z-index:1000; font-family:monospace`
+  div.style = `width:calc(100% - 1em); margin:0; padding:.5rem; height:2.5rem; position:absolute; bottom:0; left:0; background:rgb(127,0,0); color:white; z-index:1000; font-family:monospace; font-size:1.5rem;`
   div.textContent = msg
   document.body.append( div )
   setTimeout( t=> {
@@ -90,13 +90,16 @@ const toggleCamera = function( shouldToggleGUI=true) {
 const starter = `// welcome to screamer!
 
 // coding on this site targets desktops, but mobile users can
-// click through demos using the "Next Demo >>" button in the top right corner.
+// click through demos using the "Next Demo >>" button in 
+// the top right corner. for the adventurous, mobile users
+// can also evaluate code using the $ key (or normal key
+// combos if you have a physical keyboard connected).
 
 // key commands (replace "alt" key with "option" key in macOS)
 // - alt + l loads the next demo
 // - ctrl + enter executes a line
 // - alt + enter executes a block
-// - shift + enter executes a block and resets configuration to default
+// - shift + enter executes a block and resets default config
 // - ctrl + . clears the scene
 // - alt + c enables WASD + arrow keys camera control
 
@@ -270,6 +273,15 @@ const setupEditor = function() {
 
   const sd = StreamLanguage.define( screamer_def )
 
+  const theme = EditorView.theme({
+    '&': {
+      fontSize: '1.5rem',
+    },
+    '.cm-content': {
+      fontFamily: "Menlo, Monaco, Lucida Console, monospace",
+    } 
+  })
+
   window.editor = new EditorView({
     doc: getStarterCode(),
     extensions: [
@@ -279,6 +291,7 @@ const setupEditor = function() {
       sd,
       p,
       basicDark,
+      theme,
       editableCompartment.of( EditorView.editable.of( true ) ),
       // only close ( and [
       sd.data.of({closeBrackets: {brackets: ['(', '[']}})
