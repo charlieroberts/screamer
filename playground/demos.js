@@ -31,7 +31,7 @@ post = ( edge, invert(1) )
 ( box:red -- box:green'mousey/4 #.2+mousex/3 ) '1.6 @yz time*15
 `,
 
-`render = repeat.med
+`render = repeat.low
 camera = (0 0 time*-.15)
 fog = (.5 0 0 0)
   
