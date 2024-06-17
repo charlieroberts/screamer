@@ -104,7 +104,7 @@ const getStarterCode = function() {
     }
   }else{
     const code = demos[ 0 ]
-    out += code
+    out = code
     screamer.run( code )
   }
   
