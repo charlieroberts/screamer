@@ -18,10 +18,16 @@ let run
 const init = async function() {
   screamer.init()
   const canvas = setupMarching()
+  Marching.materials.__clearOnEmit = false
+  
   setupEditor()
 
-  canvas.onclick = () => editor.focus() 
-  Marching.materials.__clearOnEmit = false
+  canvas.onclick = () => { 
+    introEle.classList.remove('enter')
+    introEle.classList.add('exit')
+    setTimeout( ()=>introEle.remove(), 900 )
+    editor.focus() 
+  }
   
   const err = console.error
   console.error = function( e ) {
@@ -36,6 +42,18 @@ const init = async function() {
     document.body.append( btn )
     btn.onclick = loadDemo
   }
+
+  const introEle = showIntro()
+}
+
+const showIntro = function() {
+  const div = document.createElement('div')
+  div.innerHTML = intro
+  div.classList.add( 'intro' )
+  div.classList.add( 'enter' )
+  document.body.append( div )
+
+  return div
 }
 
 
@@ -78,8 +96,6 @@ const editableCompartment = new Compartment
 
 const toggleCamera = function( shouldToggleGUI=true) {
   Marching.cameraEnabled = !Marching.cameraEnabled
-  //document.querySelector('#cameratoggle').checked = Marching.cameraEnabled
-  //if( shouldToggleGUI ) toggleGUI()
   Marching.camera.on()
   editor.dispatch({
     effects: editableCompartment.reconfigure(EditorView.editable.of(!Marching.cameraEnabled))
@@ -123,8 +139,6 @@ const loadDemo = function() {
   screamer.run( reset + code )
 }
 
-
-
 const getBlock = function( cm ) {
   let startline = cm.state.doc.lineAt( cm.state.selection.main.head ).number, 
       endline = startline
@@ -144,27 +158,39 @@ const getBlock = function( cm ) {
   return { text, range }
 }
 
-// this is the top-notch-pro way to flash code lines 
+// this is a top-notch-pro way to flash code lines 
 // in codemirror 6, without using all that newfangled
-// decoration / facet stuff.
+// decoration / facet stuff. </sarcasm>
 const flashColor = 'rgba(255,255,255,.35)'
 const bgColor = 'rgba(0,0,0,.65)'
 
-const markLine = function( lineNumber, color ) {
-  const lines = document.querySelectorAll( '.cm-line' )
-  lines[ lineNumber ].style.background = color
+const markLine = function( lineNumber, color, __line ) {
+  const lines = Array.from( document.querySelectorAll( '.cm-line' ) )
+  const line = lines.filter( e => e.innerText === __line.text)[0]
+  line.style.background = color
 }
 
-const flashLine = function( line ) {
-  markLine( line, flashColor )
-  setTimeout( ()=> markLine( line, bgColor ), 400 )
+const flashLine = function( line, __line ) {
+  markLine( line, flashColor, __line )
+  setTimeout( ()=> markLine( line, bgColor, __line ), 400 )
 }
 
-const flashBlock = function( range ) {
-  for( let i = range[0]; i < range[1]; i++ ) markLine( i, flashColor )
+const flashBlock = function( range, code ) {
+  const lines = Array.from( document.querySelectorAll( '.cm-line' ) )
+  const firstline = code.split('\n')[0]
+  const idx = lines.findIndex( e => e.innerText === firstline )
+  const linediff = range[1] - range[0]
+
+  for( let i = idx; i < idx + linediff; i++ ) {
+    const line = lines[ i ]
+    line.style.background = flashColor 
+  }
 
   setTimeout( ()=> {
-    for( let i = range[0]; i < range[1]; i++ ) markLine( i, bgColor )
+    for( let i = idx; i < idx + linediff; i++ ) {
+      const line = lines[ i ]
+      line.style.background = bgColor 
+    }
   }, 400 )
 }
 
@@ -178,7 +204,7 @@ const setupEditor = function() {
           //localStorage.setItem("src", e.state.doc.toString())
           const block = getBlock( e )
           const code  = block.text 
-          flashBlock( block.range )
+          flashBlock( block.range, code )
           screamer.run( prefix+code )
           return true
         } 
@@ -190,7 +216,7 @@ const setupEditor = function() {
           //localStorage.setItem("src", e.state.doc.toString())
           const block = getBlock( e )
           const code  = block.text 
-          flashBlock( block.range )
+          flashBlock( block.range, code )
           screamer.run( prefix+code )
           return true
         } 
@@ -201,7 +227,7 @@ const setupEditor = function() {
         run(e) { 
           const block = getBlock( e )
           const code  = block.text 
-          flashBlock( block.range )
+          flashBlock( block.range, code )
           setTimeout( ()=>screamer.run( code ), 0 )
           return true
         } 
@@ -219,7 +245,7 @@ const setupEditor = function() {
         run(e) { 
           //localStorage.setItem("src", e.state.doc.toString())
           const line = getCurrentLine( e )
-          flashLine( line.number - 1 ) 
+          flashLine( line.number - 1, line ) 
           screamer.run( line.text )
           return true
         } 
@@ -250,7 +276,7 @@ const setupEditor = function() {
 
   const theme = EditorView.theme({
     '&': {
-      fontSize: '1.5rem',
+      fontSize: '1.25rem',
     },
     '.cm-content': {
       fontFamily: "Menlo, Monaco, Lucida Console, monospace",
@@ -323,8 +349,6 @@ window.getlink = function( name='link' ) {
   const code = btoa( lines )
   const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${code}`
 
-
-  // DRY... also used for gabber button
   const menu = document.createElement('div')
   menu.setAttribute('id', 'connectmenu')
   menu.style.fontFamily = 'sans-serif'
