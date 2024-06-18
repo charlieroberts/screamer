@@ -19524,7 +19524,7 @@ const screamer_def = clike({
 });
 
 const demos = [
-`render = repeat.med 
+`render = repeat.low 
 fog = (.5 0 0 0)
 camera = (0 0 time*.25)
 
@@ -19541,10 +19541,10 @@ post = ( antialias )
 fog = (1 0 0 0)
 camera = (0 0 .65)
 post = (bloom(.55 1.25))
-[torus((1,.05)):white 10 >xy i*.125 @i*10*sin(time/6) ||(.001)] '.05 @y time*10
+[torus((1,.05)):white 10 >xy i*.125 @i*10*sin(time/6) ||(.001)] '.035 @y time*10
 `,
 
-`render = voxel.med
+`render = voxel.low
 fog = (.2 0 .3 0)
 background = (0 .3 0)
 camera = (0 0 time*-.1)
@@ -19576,29 +19576,26 @@ mandalay( high*5, .25, 4 )'.75 @z time*5 ::rainbow(.3)
 
 
 `fog = (.05 1 0 0)
-post = ( antialias(2) )
+background = (.5 0 .25)
+post = ( antialias )
  
 head = sphere :magenta
-lear = sphere'.25 > .75:red
-rear = sphere'.25 >(-.75,.75,.75):red
-mouth = torus((.35,.05)) >(0,-.5,.55) @x 30 :green ++ torus((.35,.05)) >(0,-.6,.55) :green
+ears = sphere'.25 > .75:red |x
+mouth = torus((.35,.05)) >(0,-.5,.55) @x 30 :green
 nose = sphere'.1 > (0 0 1) :red >y -.1
-lpupil = sphere:black '.1 >(-.25 .15 .95)
-leye = lpupil ++ sphere:glue '.5 >(-.25 .15 .5)
-rpupil = sphere:black '.1 >(.25 .15 .95)
-reye = rpupil ++ sphere:glue '.5 >(.25 .15 .5)
-face = ((head ++++(.2 3) lear ++++(.2 3) rear) ++(.05) mouth) ++ nose ++ leye ++ reye
+ 
+pupil = sphere:black '.1 >(.25 .15 .95)
+eye  = pupil ++ sphere:glue '.5 >(.25 .15 .5)
+eyes = eye |x
+face = ((head ++++(.2 3) ears ) ++(.05) mouth) ++ nose ++ eyes
 face >x 1.85 >z .35 >y -1.25
  
-body = sphere'.9 >y -1.35 >x .25::dots(2)
-body = body ++ sphere '.8 >y -1.5 >x -1.::dots(6)
-body = body ++ sphere '.5 >(-2,  -1.85,.25) ::dots(8)
-body = body ++ sphere '.3 >(-2.5,-2,   .5)::dots(10)
-body = body +++ sphere '.15 >(-2.4, -2.15, 1.05) ::dots(5)
-face @y sin(time)*15
-(face +++(.075) body:magenta) >y 1.25 >z .5 ++ plane:red ++ plane((0 0 1)):red
+body = ((sphere'.9 #x 1.5):magenta *** capsule((-1.5,0,0) (1.5,0,0))'1.45)::dots(10):magenta >x -1.5 >y -1.7
+ 
+face @y sin(time)*20
+ 
+(face+++(.075) body) >y 1.25 >z .5 ++ plane:red
 `
-
 ];
 
 const tutorial = 
@@ -19761,31 +19758,31 @@ post = ( antialias, focus(.1,.025) )
 // https://charlieroberts.github.io/screamer
 `;
 
-const intro = `
-// welcome to screamer!
+const intro = `<p>Welcome to <i>screamer</i>, a language for strange art. A screamer is a sped-up circus march composed to <a href="https://en.wikipedia.org/wiki/Screamer_(march)" target=_blank>"to stir audiences into a frenzy"</a>; this language uses a technique called raymarching to render graphical weirdness.</p>
 
-// coding on this site targets desktops, but mobile users can
-// click through demos using the "Next Demo >>" button in 
-// the top right corner. for the adventurous, mobile users
-// can also evaluate code using the $ key (or normal key
-// combos if you have a physical keyboard connected).
+<p>Coding on this site targets desktops, but mobile users can
+click through demos using the "Next Demo >>" button in 
+the bottom right corner. Adventurous mobile users
+can also evaluate code using the $ key, or normal key
+combos if you have an external keyboard connected to your mobile device.</p>
 
-// key commands (replace "alt" key with "option" key in macOS)
-// - alt + l loads the next demo
-// - ctrl + enter executes a line
-// - alt + enter executes a block
-// - shift + enter executes a block and resets default config
-// - ctrl + . clears the scene
-// - alt + c enables WASD + arrow keys camera control
+<p>Key commands are as follows (replace "alt" key with "option"
+key in macOS):</p>
 
-// interactive reference:
-// https://charlieroberts.github.io/screamer-docs
-//
-// tutorial:
-// https://charlieroberts.github.io/screamer/playground/?tutorial
-//
-// have fun!
-`;
+<ul>
+<li><pre>alt + l</pre> loads the next demo
+<li><pre>ctrl + enter</pre> executes a line
+<li><pre>alt + enter</pre> executes a block
+<li><pre>shift + enter</pre> executes a block and resets default config
+<li><pre>ctrl + .</pre> clears the scene
+<li><pre>alt + c</pre> enables WASD + arrow keys camera control
+</ul>
+
+<p>For more help, see:</p>
+<a href="https://charlieroberts.github.io/screamer-docs">Interactive reference</a><br>
+<a href="https://charlieroberts.github.io/screamer/playground/?tutorial" target=_blank>Tutorial</a><br>
+
+<p>Click off this panel to dismiss it. Have fun!</p>`;
 
 const globals = {};
 
@@ -20438,10 +20435,16 @@ const isMobile = /iPhone|iPad|iPod|Android/i.test( navigator.userAgent );
 const init = async function() {
   screamer.init();
   const canvas = setupMarching();
+  Marching.materials.__clearOnEmit = false;
+  
   setupEditor();
 
-  canvas.onclick = () => editor.focus(); 
-  Marching.materials.__clearOnEmit = false;
+  canvas.onclick = () => { 
+    introEle.classList.remove('enter');
+    introEle.classList.add('exit');
+    setTimeout( ()=>introEle.remove(), 900 );
+    editor.focus(); 
+  };
   
   const err = console.error;
   console.error = function( e ) {
@@ -20456,6 +20459,18 @@ const init = async function() {
     document.body.append( btn );
     btn.onclick = loadDemo;
   }
+
+  const introEle = showIntro();
+};
+
+const showIntro = function() {
+  const div = document.createElement('div');
+  div.innerHTML = intro;
+  div.classList.add( 'intro' );
+  div.classList.add( 'enter' );
+  document.body.append( div );
+
+  return div
 };
 
 
@@ -20498,8 +20513,6 @@ const editableCompartment = new Compartment;
 
 const toggleCamera = function( shouldToggleGUI=true) {
   Marching.cameraEnabled = !Marching.cameraEnabled;
-  //document.querySelector('#cameratoggle').checked = Marching.cameraEnabled
-  //if( shouldToggleGUI ) toggleGUI()
   Marching.camera.on();
   editor.dispatch({
     effects: editableCompartment.reconfigure(EditorView.editable.of(!Marching.cameraEnabled))
@@ -20524,7 +20537,7 @@ const getStarterCode = function() {
     }
   }else {
     const code = demos[ 0 ];
-    out += code;
+    out = code;
     screamer.run( code );
   }
   
@@ -20542,8 +20555,6 @@ const loadDemo = function() {
   
   screamer.run( reset + code );
 };
-
-
 
 const getBlock = function( cm ) {
   let startline = cm.state.doc.lineAt( cm.state.selection.main.head ).number, 
@@ -20564,27 +20575,39 @@ const getBlock = function( cm ) {
   return { text, range }
 };
 
-// this is the top-notch-pro way to flash code lines 
+// this is a top-notch-pro way to flash code lines 
 // in codemirror 6, without using all that newfangled
-// decoration / facet stuff.
+// decoration / facet stuff. </sarcasm>
 const flashColor = 'rgba(255,255,255,.35)';
 const bgColor = 'rgba(0,0,0,.65)';
 
-const markLine = function( lineNumber, color ) {
-  const lines = document.querySelectorAll( '.cm-line' );
-  lines[ lineNumber ].style.background = color;
+const markLine = function( lineNumber, color, __line ) {
+  const lines = Array.from( document.querySelectorAll( '.cm-line' ) );
+  const line = lines.filter( e => e.innerText === __line.text)[0];
+  line.style.background = color;
 };
 
-const flashLine = function( line ) {
-  markLine( line, flashColor );
-  setTimeout( ()=> markLine( line, bgColor ), 400 );
+const flashLine = function( line, __line ) {
+  markLine( line, flashColor, __line );
+  setTimeout( ()=> markLine( line, bgColor, __line ), 400 );
 };
 
-const flashBlock = function( range ) {
-  for( let i = range[0]; i < range[1]; i++ ) markLine( i, flashColor );
+const flashBlock = function( range, code ) {
+  const lines = Array.from( document.querySelectorAll( '.cm-line' ) );
+  const firstline = code.split('\n')[0];
+  const idx = lines.findIndex( e => e.innerText === firstline );
+  const linediff = range[1] - range[0];
+
+  for( let i = idx; i < idx + linediff; i++ ) {
+    const line = lines[ i ];
+    line.style.background = flashColor; 
+  }
 
   setTimeout( ()=> {
-    for( let i = range[0]; i < range[1]; i++ ) markLine( i, bgColor );
+    for( let i = idx; i < idx + linediff; i++ ) {
+      const line = lines[ i ];
+      line.style.background = bgColor; 
+    }
   }, 400 );
 };
 
@@ -20598,7 +20621,7 @@ const setupEditor = function() {
           //localStorage.setItem("src", e.state.doc.toString())
           const block = getBlock( e );
           const code  = block.text; 
-          flashBlock( block.range );
+          flashBlock( block.range, code );
           screamer.run( prefix+code );
           return true
         } 
@@ -20610,7 +20633,7 @@ const setupEditor = function() {
           //localStorage.setItem("src", e.state.doc.toString())
           const block = getBlock( e );
           const code  = block.text; 
-          flashBlock( block.range );
+          flashBlock( block.range, code );
           screamer.run( prefix+code );
           return true
         } 
@@ -20621,7 +20644,7 @@ const setupEditor = function() {
         run(e) { 
           const block = getBlock( e );
           const code  = block.text; 
-          flashBlock( block.range );
+          flashBlock( block.range, code );
           setTimeout( ()=>screamer.run( code ), 0 );
           return true
         } 
@@ -20639,7 +20662,7 @@ const setupEditor = function() {
         run(e) { 
           //localStorage.setItem("src", e.state.doc.toString())
           const line = getCurrentLine( e );
-          flashLine( line.number - 1 ); 
+          flashLine( line.number - 1, line ); 
           screamer.run( line.text );
           return true
         } 
@@ -20670,7 +20693,7 @@ const setupEditor = function() {
 
   const theme = EditorView.theme({
     '&': {
-      fontSize: '1.5rem',
+      fontSize: '1.25rem',
     },
     '.cm-content': {
       fontFamily: "Menlo, Monaco, Lucida Console, monospace",
@@ -20743,8 +20766,6 @@ window.getlink = function( name='link' ) {
   const code = btoa( lines );
   const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${code}`;
 
-
-  // DRY... also used for gabber button
   const menu = document.createElement('div');
   menu.setAttribute('id', 'connectmenu');
   menu.style.fontFamily = 'sans-serif';
