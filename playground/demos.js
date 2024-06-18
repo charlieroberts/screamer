@@ -3,7 +3,7 @@ const demos = [
 fog = (.5 0 0 0)
 camera = (0 0 time*.25)
 
-sphere(.1)::dots(30)@time*40 # .4 
+sphere(.1) ::dots(30) @time*40 # .4 
 `,
 
 `render = fractal.med
@@ -24,7 +24,7 @@ fog = (.2 0 .3 0)
 background = (0 .3 0)
 camera = (0 0 time*-.1)
 post = (invert(1), focus(.0, .05) )
-sphere::rainbow( .5 ) '1.5 + sin(time/4) * .2 # 3`,
+sphere ::rainbow( .5 ) '1.5 + sin(time/4) * .2 # 3`,
 
 ` // move your mouse around the window center
 post = ( edge, invert(1) )
