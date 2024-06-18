@@ -12,6 +12,10 @@ a img {
   height:3rem;
 }
 
+a { color:white; }
+
+a:visited { color: gray }
+
 header select {
   position:relative;
   margin-top:1rem;
@@ -57,3 +61,45 @@ canvas {
 }
 
 .cm-focused { outline:none !important }
+@keyframes slidein {
+  from {
+    translate: 0 -150vw;
+  }
+
+  to {
+    translate: 0 0;
+  }
+}
+@keyframes slideout {
+  from {
+    translate: 0 0;
+  }
+
+  to {
+    translate: 0 -150vw;
+  }
+}
+.intro {
+  width:50rem; 
+  display:block; 
+  left:calc(50% - 25rem); 
+  top:0; 
+  z-index:100; 
+  background:rgba(0,0,0,.85); 
+  color:white; 
+  position:absolute; 
+  font-size:1.25rem; 
+  font-family:sans-serif; 
+  box-sizing:border-box; 
+  border:3px solid white; 
+  padding:2rem;
+}
+.enter {
+  animation: 1s slidein;
+}
+.exit {
+  animation: 1s slideout;
+}
+
+
+.intro pre { display:inline; }
