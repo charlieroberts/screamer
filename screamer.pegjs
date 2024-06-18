@@ -44,6 +44,10 @@ assignment "assign" = name:word _ '=' _ statement:(expr/vector)? {
 
 vector = lp a:arguments rp { return a }
 
+mathgroup "mathgroup" = _ lp body:mathoperation rp {
+  return body
+}
+
 group "group" = _ '(' body:expr ')' _ { 
   return body 
 }
@@ -152,6 +156,7 @@ stairsintersection "sintersection"  = a:operand? _ '****' args:operandargs? _ b:
   return ['combinator', 'StairsIntersection', a,b,args ] 
 }
 
+mathoperand "mathoperand" = mathgroup / number / variable / function 
 mathchar = '+' / '-' / '/' / '*'/ '%' / '^'
 mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)? {
   // operations are represented as arrays. 
@@ -182,7 +187,6 @@ modoperation "modop" = a:(geometry/group/loop/word) _ b:((modspecial/modchar) _ 
 operandargs = lp alist:list rp { return alist }
 operand  "operand" = modoperation / group / geometry / loop / function
 
-mathoperand "mathoperand" = number / variable / function 
 variable = "time" / "low" / "mid" / "high" / "mousex" / "mousey" / "i"
 
 function = maths / geometry

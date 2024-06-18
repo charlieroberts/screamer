@@ -22,7 +22,6 @@ In music, a "screamer" is a sped-up march used in circuses to ["stir audiences i
 - *Variables*: Values that change over time that can be modified with math expressions; these changes are declared once and then applied continuously ("reactive" programming).
 - *Math*: A small assortment of operators and functions primarily intended to manipulate variables over time.
 
-`(` and `)` begin and end a *group*, which can have modifications (like repeat and scale) applied to them. This is a simple way to make groupings explicit to the language parser.... if you have trouble running complex lines of code try grouping elements together.
+`(` and `)` begin and end a *group*, which can have modifications (like repeat and scale) applied to them. This is a simple way to make groupings explicit to the language parser.... if you have trouble running complex lines of code try grouping elements together. They can also be used to gorup expressions in math operations.
 
 `//` is the operator for a single-line comment.
-
