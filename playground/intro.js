@@ -1,8 +1,9 @@
-const intro = `<p>Welcome to <i>screamer</i>, a language for strange art. A screamer is a sped-up circus march composed to <a href="https://en.wikipedia.org/wiki/Screamer_(march)" target=_blank>"to stir audiences into a frenzy"</a>; this language uses a technique called raymarching to render graphical weirdness.</p>
+const intro = `<p>Welcome to <i>screamer</i>, a ive-coding language for strange art. A screamer is a sped-up circus march composed to <a href="https://en.wikipedia.org/wiki/Screamer_(march)" target=_blank>"to stir audiences into a frenzy"</a>; this language uses a technique called raymarching to render graphical oddities.</p>
 
 <p>Coding on this site targets desktops, but mobile users can
 click through demos using the "Next Demo >>" button in 
-the bottom right corner. Adventurous mobile users
+the top right corner (this button is only available
+on mobile, desktop users can hit alt+l). Adventurous mobile users
 can also evaluate code using the $ key, or normal key
 combos if you have an external keyboard connected to your mobile device.</p>
 
@@ -23,7 +24,8 @@ Whenver code is executed, the URL for the site is updated to include your code; 
 <p>For more help, see:</p>
 <a href="https://charlieroberts.github.io/screamer-docs">Interactive reference</a><br>
 <a href="https://charlieroberts.github.io/screamer/playground/?tutorial" target=_blank>Tutorial</a><br>
+<a href="https://discord.gg/JfFVSr8RhH">Discord server</a><br>
 
-<p>Click off this panel to dismiss it. Have fun!</p>`
+<p>Click outside this panel to dismiss it. Have fun!</p>`
 
 export default intro 
