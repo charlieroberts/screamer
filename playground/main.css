@@ -128,3 +128,14 @@ canvas {
 
 
 .intro pre { display:inline; }
+
+
+@media( max-width:767px ) {
+  .intro{ 
+    left:0;
+    max-width:50rem;
+    width:100%;
+  }
+}
+
+
