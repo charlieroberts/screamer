@@ -19778,6 +19778,8 @@ key in macOS):</p>
 <li><pre>alt + c</pre> enables WASD + arrow keys camera control
 </ul>
 
+Whenver code is executed, the URL for the site is updated to run all the code in the editor; just copy/paste the link in your address bar to share your creation.
+
 <p>For more help, see:</p>
 <a href="https://charlieroberts.github.io/screamer-docs">Interactive reference</a><br>
 <a href="https://charlieroberts.github.io/screamer/playground/?tutorial" target=_blank>Tutorial</a><br>
@@ -20611,6 +20613,13 @@ const flashBlock = function( range, code ) {
   }, 400 );
 };
 
+const updateLocation = function() {
+  const code = editor.state.doc.text.join('\n');
+  const codeCompressed = btoa( code );
+  const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${codeCompressed}`;
+  window.history.replaceState( {} , 'screamer', link );
+};
+
 const prefix = `camera=(0 0 5) fog = (0 0 0 0) post = () background = (0 0 0 ) render = med\n`;
 const setupEditor = function() {
   const p = Prec.highest(
@@ -20623,6 +20632,7 @@ const setupEditor = function() {
           const code  = block.text; 
           flashBlock( block.range, code );
           screamer.run( prefix+code );
+          updateLocation();
           return true
         } 
       },
@@ -20635,6 +20645,7 @@ const setupEditor = function() {
           const code  = block.text; 
           flashBlock( block.range, code );
           screamer.run( prefix+code );
+          updateLocation();
           return true
         } 
       },
@@ -20646,6 +20657,7 @@ const setupEditor = function() {
           const code  = block.text; 
           flashBlock( block.range, code );
           setTimeout( ()=>screamer.run( code ), 0 );
+          updateLocation();
           return true
         } 
       }, 
@@ -20664,6 +20676,7 @@ const setupEditor = function() {
           const line = getCurrentLine( e );
           flashLine( line.number - 1, line ); 
           screamer.run( line.text );
+          updateLocation();
           return true
         } 
       },
@@ -20672,6 +20685,7 @@ const setupEditor = function() {
         run(e) { 
           //localStorage.setItem("src", e.state.doc.toString())
           screamer.run( getAllCode( e ) );
+          updateLocation();
           return true
         } 
       },
