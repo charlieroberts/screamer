@@ -19764,7 +19764,7 @@ post = ( antialias, focus(.1,.025) )
 // https://charlieroberts.github.io/screamer
 `;
 
-const intro = `<p>Welcome to <i>screamer</i>, a ive-coding language for strange art. A screamer is a sped-up circus march composed to <a href="https://en.wikipedia.org/wiki/Screamer_(march)" target=_blank>"to stir audiences into a frenzy"</a>; this language uses a technique called raymarching to render graphical oddities.</p>
+const intro = `<p>Welcome to <i>screamer</i>, a live-coding language for strange art. A screamer is a sped-up circus march composed to <a href="https://en.wikipedia.org/wiki/Screamer_(march)" target=_blank>"to stir audiences into a frenzy"</a>; this language uses a technique called raymarching to render graphical oddities.</p>
 
 <p>Coding on this site targets desktops, but mobile users can
 click through demos using the "Next Demo >>" button in 
