@@ -19778,7 +19778,7 @@ key in macOS):</p>
 <li><pre>alt + c</pre> enables WASD + arrow keys camera control
 </ul>
 
-Whenver code is executed, the URL for the site is updated to run all the code in the editor; just copy/paste the link in your address bar to share your creation.
+Whenver code is executed, the URL for the site is updated to include your code; just copy the link from your address bar to share your creation.
 
 <p>For more help, see:</p>
 <a href="https://charlieroberts.github.io/screamer-docs">Interactive reference</a><br>
@@ -20434,6 +20434,17 @@ const screamer = {
 };
 
 const isMobile = /iPhone|iPad|iPod|Android/i.test( navigator.userAgent );
+let introEle = null;
+
+const removeIntro = function() {
+  if( introEle !== null ) {
+    introEle.classList.remove('enter');
+    introEle.classList.add('exit');
+    setTimeout( ()=> { introEle.remove(); introEle = null; }, 900 );
+    editor.focus(); 
+  }
+};
+
 const init = async function() {
   screamer.init();
   const canvas = setupMarching();
@@ -20441,12 +20452,7 @@ const init = async function() {
   
   setupEditor();
 
-  canvas.onclick = () => { 
-    introEle.classList.remove('enter');
-    introEle.classList.add('exit');
-    setTimeout( ()=>introEle.remove(), 900 );
-    editor.focus(); 
-  };
+  canvas.onclick = removeIntro; 
   
   const err = console.error;
   console.error = function( e ) {
@@ -20457,12 +20463,19 @@ const init = async function() {
   if( isMobile ) {
     const btn = document.createElement('button');
     btn.innerText = 'Next Demo >>';
-    btn.style = 'position:fixed; bottom:0; right:0; background:rgba(0,0,0,.75); color:white; font-size:2.5rem; min-height:5.5rem; border:1px solid white';
+    btn.classList.add( 'next' );
     document.body.append( btn );
     btn.onclick = loadDemo;
   }
 
-  const introEle = showIntro();
+  introEle = showIntro();
+
+  const help = document.querySelector('#help');
+
+  help.addEventListener( 'click',  e => {
+    introEle = showIntro();
+    return true
+  });
 };
 
 const showIntro = function() {
@@ -20702,7 +20715,6 @@ const setupEditor = function() {
   //let src = localStorage.getItem("src")
   //src = src == null ? shaderDefault : src
 
-
   const sd = StreamLanguage.define( screamer_def );
 
   const theme = EditorView.theme({
@@ -20712,6 +20724,10 @@ const setupEditor = function() {
     '.cm-content': {
       fontFamily: "Menlo, Monaco, Lucida Console, monospace",
     } 
+  });
+
+  const handlers = EditorView.domEventHandlers({
+    click() { removeIntro(); }
   });
 
   window.editor = new EditorView({
@@ -20726,7 +20742,8 @@ const setupEditor = function() {
       theme,
       editableCompartment.of( EditorView.editable.of( true ) ),
       // only close ( and [
-      sd.data.of({closeBrackets: {brackets: ['(', '[']}})
+      sd.data.of({closeBrackets: {brackets: ['(', '[']}}),
+      handlers
     ],
     parent: document.body,
   });
