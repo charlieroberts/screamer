@@ -19537,6 +19537,12 @@ post = ( antialias )
 (julia(time/2):red || >.5 || .25 ||) @y time*10
 `,
 
+`render = med
+fog = (.4 .25 0 0) background = (.25 0 0)
+ring = cylinder((.125,3)) ###(20 1)
+ring:red::stripes(5 (0 time/6 0)) 
+ring @x 90 @y time*20 ++ plane::checkers`,
+
 `render = fractal.kindaclose
 fog = (1 0 0 0)
 camera = (0 0 .65)
@@ -19758,11 +19764,12 @@ post = ( antialias, focus(.1,.025) )
 // https://charlieroberts.github.io/screamer
 `;
 
-const intro = `<p>Welcome to <i>screamer</i>, a language for strange art. A screamer is a sped-up circus march composed to <a href="https://en.wikipedia.org/wiki/Screamer_(march)" target=_blank>"to stir audiences into a frenzy"</a>; this language uses a technique called raymarching to render graphical weirdness.</p>
+const intro = `<p>Welcome to <i>screamer</i>, a ive-coding language for strange art. A screamer is a sped-up circus march composed to <a href="https://en.wikipedia.org/wiki/Screamer_(march)" target=_blank>"to stir audiences into a frenzy"</a>; this language uses a technique called raymarching to render graphical oddities.</p>
 
 <p>Coding on this site targets desktops, but mobile users can
 click through demos using the "Next Demo >>" button in 
-the bottom right corner. Adventurous mobile users
+the top right corner (this button is only available
+on mobile, desktop users can hit alt+l). Adventurous mobile users
 can also evaluate code using the $ key, or normal key
 combos if you have an external keyboard connected to your mobile device.</p>
 
@@ -19783,8 +19790,9 @@ Whenver code is executed, the URL for the site is updated to include your code; 
 <p>For more help, see:</p>
 <a href="https://charlieroberts.github.io/screamer-docs">Interactive reference</a><br>
 <a href="https://charlieroberts.github.io/screamer/playground/?tutorial" target=_blank>Tutorial</a><br>
+<a href="https://discord.gg/JfFVSr8RhH">Discord server</a><br>
 
-<p>Click off this panel to dismiss it. Have fun!</p>`;
+<p>Click outside this panel to dismiss it. Have fun!</p>`;
 
 const globals = {};
 
@@ -19920,9 +19928,13 @@ const screamer = {
           const isGlobal = globals[ obj ] !== undefined;
 
           if( !isGlobal ) {
-            throw Error(`The word "${obj}" is not a keyword in screamer, and not a variable that has been assigned a value`)
+            if( obj === '.' ) {
+              throw SyntaxError(`Did you forget a number before or after a . ?`)
+            }else {
+              throw ReferenceError(`The word "${obj}" is not a keyword in screamer, and not a variable that has been assigned a value`)
+            }
           }else {
-            throw Error(`The variable "${obj}" contains a geometry or combinator, and cannot be used in a math expression.`)
+            throw SyntaxError(`The variable "${obj}" contains a geometry or combinator, and cannot be used in a math expression.`)
           }
 
       }
@@ -20133,7 +20145,7 @@ const screamer = {
           let args, isList = false;
           
           if( mod[1] === null ) {
-            throw Error(`Are you missing an argument to your ${mod[0]} (${name}) modifier?`) 
+            throw SyntaxError(`Are you missing an argument to your ${mod[0]} (${name}) modifier?`) 
           }
           if( mod[1].name === 'list' ) {
             args = mod[1].values.map( screamer.mathwalk );
@@ -20354,7 +20366,7 @@ const screamer = {
                 out = window[ name ]( geo, .03, dims ); 
             }else {
               if( mod[1] === null ) {
-                throw Error(`Are you missing an argument to your ${mod[0]} (${name}) modifier?`) 
+                throw SyntaxError(`Are you missing an argument to your ${mod[0]} (${name}) modifier?`) 
               }
               // what is this for?
               out = window[ name ]( geo );
@@ -20372,7 +20384,7 @@ const screamer = {
 
 
       
-      if( out === EFN ) throw Error(`The word ${obj} is not a keyword in screamer, and it is not a variable that has been assigned a value`)
+      if( out === EFN ) throw ReferenceError(`The word ${obj} is not a keyword in screamer, and it is not a variable that has been assigned a value`)
 
       return out
     },
@@ -20669,7 +20681,7 @@ const setupEditor = function() {
           const block = getBlock( e );
           const code  = block.text; 
           flashBlock( block.range, code );
-          setTimeout( ()=>screamer.run( code ), 0 );
+          screamer.run( code );
           updateLocation();
           return true
         } 
@@ -20719,10 +20731,10 @@ const setupEditor = function() {
 
   const theme = EditorView.theme({
     '&': {
-      fontSize: '1.25rem',
+      fontSize: isMobile ? '2rem' : '1.25rem'
     },
     '.cm-content': {
-      fontFamily: "Menlo, Monaco, Lucida Console, monospace",
+      fontFamily: "Menlo, Monaco, Lucida Console, monospace"
     } 
   });
 
