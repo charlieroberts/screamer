@@ -6,6 +6,20 @@ html {
   color:#bbb;
 }
 
+#help {
+  position:absolute;
+  top:0;
+  right:0;
+  border:#aaa 1px solid;
+  width:4rem;
+  height:4rem;
+  background:rgba(0,0,0,.5);
+  font-size:2rem;
+  color:white;
+  font-weight:bold;
+  z-index:10000;
+}
+
 a img {
   filter: invert(100%);
   width:3rem;
@@ -92,6 +106,7 @@ canvas {
   font-family:sans-serif; 
   box-sizing:border-box; 
   border:3px solid white; 
+  border-top-width:0px;
   padding:2rem;
 }
 .enter {
@@ -99,6 +114,16 @@ canvas {
 }
 .exit {
   animation: 1s slideout;
+}
+.next {
+  box-sizing: border-box;
+  position:absolute; 
+  bottom:0; right:0; 
+  background:rgba(0,0,0,.75); 
+  color:white; 
+  font-size:2.5rem; 
+  min-height:5.5rem; 
+  border:1px solid white;
 }
 
 
