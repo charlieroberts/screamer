@@ -18,7 +18,7 @@ key in macOS):</p>
 <li><pre>alt + c</pre> enables WASD + arrow keys camera control
 </ul>
 
-Whenver code is executed, the URL for the site is updated to run all the code in the editor; just copy/paste the link in your address bar to share your creation.
+Whenver code is executed, the URL for the site is updated to include your code; just copy the link from your address bar to share your creation.
 
 <p>For more help, see:</p>
 <a href="https://charlieroberts.github.io/screamer-docs">Interactive reference</a><br>
