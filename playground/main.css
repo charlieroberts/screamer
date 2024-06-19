@@ -118,11 +118,11 @@ canvas {
 .next {
   box-sizing: border-box;
   position:absolute; 
-  bottom:0; right:0; 
+  top:0; right:4rem; 
   background:rgba(0,0,0,.75); 
   color:white; 
-  font-size:2.5rem; 
-  min-height:5.5rem; 
+  font-size:2rem; 
+  min-height:4rem; 
   border:1px solid white;
 }
 
@@ -138,4 +138,8 @@ canvas {
   }
 }
 
-
+@media( max-width:50rem ) {
+  .intro {
+    font-size:1.75rem !important
+  }
+}
