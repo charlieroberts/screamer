@@ -132,9 +132,13 @@ const screamer = {
           const isGlobal = globals[ obj ] !== undefined
 
           if( !isGlobal ) {
-            throw Error(`The word "${obj}" is not a keyword in screamer, and not a variable that has been assigned a value`)
+            if( obj === '.' ) {
+              throw SyntaxError(`Did you forget a number before or after a . ?`)
+            }else{
+              throw ReferenceError(`The word "${obj}" is not a keyword in screamer, and not a variable that has been assigned a value`)
+            }
           }else{
-            throw Error(`The variable "${obj}" contains a geometry or combinator, and cannot be used in a math expression.`)
+            throw SyntaxError(`The variable "${obj}" contains a geometry or combinator, and cannot be used in a math expression.`)
           }
 
           break
@@ -348,7 +352,7 @@ const screamer = {
           let args, isList = false
           
           if( mod[1] === null ) {
-            throw Error(`Are you missing an argument to your ${mod[0]} (${name}) modifier?`) 
+            throw SyntaxError(`Are you missing an argument to your ${mod[0]} (${name}) modifier?`) 
           }
           if( mod[1].name === 'list' ) {
             args = mod[1].values.map( screamer.mathwalk )
@@ -569,7 +573,7 @@ const screamer = {
                 out = window[ name ]( geo, .03, dims ) 
             }else{
               if( mod[1] === null ) {
-                throw Error(`Are you missing an argument to your ${mod[0]} (${name}) modifier?`) 
+                throw SyntaxError(`Are you missing an argument to your ${mod[0]} (${name}) modifier?`) 
               }
               // what is this for?
               out = window[ name ]( geo )
@@ -587,7 +591,7 @@ const screamer = {
 
 
       
-      if( out === EFN ) throw Error(`The word ${obj} is not a keyword in screamer, and it is not a variable that has been assigned a value`)
+      if( out === EFN ) throw ReferenceError(`The word ${obj} is not a keyword in screamer, and it is not a variable that has been assigned a value`)
 
       return out
     },
