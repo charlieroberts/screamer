@@ -250,7 +250,7 @@ const setupEditor = function() {
           const block = getBlock( e )
           const code  = block.text 
           flashBlock( block.range, code )
-          setTimeout( ()=>screamer.run( code ), 0 )
+          screamer.run( code )
           updateLocation()
           return true
         } 
@@ -300,10 +300,10 @@ const setupEditor = function() {
 
   const theme = EditorView.theme({
     '&': {
-      fontSize: '1.25rem',
+      fontSize: isMobile ? '2rem' : '1.25rem'
     },
     '.cm-content': {
-      fontFamily: "Menlo, Monaco, Lucida Console, monospace",
+      fontFamily: "Menlo, Monaco, Lucida Console, monospace"
     } 
   })
 
