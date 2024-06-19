@@ -12,6 +12,12 @@ post = ( antialias )
 (julia(time/2):red || >.5 || .25 ||) @y time*10
 `,
 
+`render = med
+fog = (.4 .25 0 0) background = (.25 0 0)
+ring = cylinder((.125,3)) ###(20 1)
+ring:red::stripes(5 (0 time/6 0)) 
+ring @x 90 @y time*20 ++ plane::checkers`,
+
 `render = fractal.kindaclose
 fog = (1 0 0 0)
 camera = (0 0 .65)
