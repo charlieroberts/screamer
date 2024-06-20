@@ -20491,13 +20491,17 @@ const init = async function() {
 };
 
 const showIntro = function() {
-  const div = document.createElement('div');
-  div.innerHTML = intro;
-  div.classList.add( 'intro' );
-  div.classList.add( 'enter' );
-  document.body.append( div );
+  if( introEle === null ) {
+    const div = document.createElement('div');
+    div.innerHTML = intro;
+    div.classList.add( 'intro' );
+    div.classList.add( 'enter' );
+    document.body.append( div );
 
-  return div
+    return div
+  }else {
+    return introEle
+  }
 };
 
 
