@@ -60,11 +60,20 @@ const init = async function() {
 }
 
 const showIntro = function() {
+  editor.focus()
   if( introEle === null ) {
     const div = document.createElement('div')
     div.innerHTML = intro
     div.classList.add( 'intro' )
     div.classList.add( 'enter' )
+    div.setAttribute( 'tabindex', 0 )
+
+    div.addEventListener( 'keydown', e => {
+      if( e.key === 'l' && e.altKey === true ) {
+        loadDemo() 
+      }
+    })
+
     document.body.append( div )
 
     return div
