@@ -31,6 +31,7 @@ const screamer = {
     fog: [0,0,0,0],
     background:[0,0,0],
     post: [],
+    voxel:.1,
     camera: [0,0,5],
     fft: 512
   },
@@ -645,6 +646,10 @@ const screamer = {
           .post(   ...config.post )
 
         if( dims !== null ) m = m.setdim( dims[0], dims[1] )
+
+        if( config.render.indexOf( 'voxel' ) !== -1 ) {
+          m = m.voxel( config.voxel )
+        } 
 
         m.render( config.render )
          .camera( ...config.camera )

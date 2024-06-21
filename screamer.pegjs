@@ -7,11 +7,11 @@ statement = _ __* body:(comment / config / assignment / expr ) _ __* {
 
 comment = '//' _ (!'\n' .)*  _ '\n' { return ['comment'] }
 
-config "config" = name:config_name _ '=' _ value:(word / pp / listparen / number) {
+config "config" = name:config_name _ '=' _ value:(number / word / pp / listparen) {
   return ['config', name, value ]
 }
 
-config_name = "render" / "fog" / "background" / "post" / "camera" / "fft" / "lights"
+config_name = "render" / "fog" / "background" / "post" / "camera" / "fft" / "lights" / "voxel"
 
 pp = lp fx:(post (lp arguments rp)? ','?)+ rp { 
    return fx.map( f => [ f[0], f[1] === null ? null : f[1][1] ] ) 
