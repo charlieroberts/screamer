@@ -1,11 +1,11 @@
 out "out" = body:statement+ 
 
-statement = _ __* body:(comment / config / assignment / expr / hydra ) _ __* { 
+statement = _ __* body:(comment / hydra / config / assignment / expr ) _ __* { 
   //console.log( body )
   return body
 }
 
-hydra "hydra" = "`" body:$(!"`" .)* "`" {
+hydra "hydra" = "hydra`" _  body:$(!"`" .)* _ '`' {
   return ['hydra', body]
 } 
 

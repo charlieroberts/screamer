@@ -122,6 +122,7 @@ export function clike(parserConfig) {
       }
       if (end || !(escaped || multiLineStrings))
         state.tokenize = null;
+        
       return "string";
     };
   }

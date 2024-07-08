@@ -6,6 +6,8 @@ import { javascript, javascriptLanguage } from "@codemirror/lang-javascript"
 import { defaultKeymap } from "@codemirror/commands"
 import { basicDark } from 'cm6-theme-basic-dark'
 import { StreamLanguage } from "@codemirror/language"
+//import { tags } from "@lezer/highlight"
+//import { syntaxHighlighting, HighlightStyle } from "@codemirror/language"
 import { screamer_def } from "./screamer-def.js"
 import { demos } from './demos.js'
 import tutorial from './tutorial.js' 
@@ -328,10 +330,10 @@ const setupEditor = function() {
         key: "Ctrl-.", 
         run(e) { 
           Marching.clear()
-          if( screamer.libs.hydra !== undefined ) {
-            delete screamer.libs.hydra
-            screamer.use( 'hydra' )
-          }
+          //if( screamer.libs.hydra !== undefined ) {
+          //  delete screamer.libs.hydra
+          //  screamer.use( 'hydra' )
+          //}
           return true
         } 
       }
@@ -352,6 +354,10 @@ const setupEditor = function() {
     } 
   })
 
+  //const myHighlightStyle = HighlightStyle.define([
+  //  {tag: tags.string, filter:'invert(100%)', backgroundColor:'black !important' }
+  //])
+
   const handlers = EditorView.domEventHandlers({
     click() { removeIntro() }
   })
@@ -366,6 +372,7 @@ const setupEditor = function() {
       p,
       basicDark,
       theme,
+      //syntaxHighlighting(myHighlightStyle),
       editableCompartment.of( EditorView.editable.of( true ) ),
       // only close ( and [
       sd.data.of({closeBrackets: {brackets: ['(', '[']}}),

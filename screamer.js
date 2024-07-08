@@ -47,12 +47,16 @@ const screamer = {
       mouse.y = e.clientY / window.innerHeight
     }
 
-    window.addEventListener( 'load', function() {
-      screamer.config.lights = [
-        Marching.Light( Marching.vectors.Vec3( 2.,2.,3. ),  Marching.vectors.Vec3(.25,.25,.25), 1. ), 
-        Marching.Light( Marching.vectors.Vec3( -2.,2.,3. ), Marching.vectors.Vec3(.25,.25,.25), 1. ) 
-      ]
-    })
+    /*
+    const Vec3 = Marching.vectors.Vec3
+
+    screamer.config.lights = [
+      Marching.Light( Vec3( 2.,2.,3. ),  Vec3(.25,.25,.25), 1. ), 
+      Marching.Light( Vec3( -2.,2.,3. ), Vec3(.25,.25,.25), 1. ) 
+    ]
+*/
+    screamer.initHydra()
+
     return this
   },
 
@@ -317,8 +321,8 @@ const screamer = {
     },
 
     hydra( obj ) {
-      console.log( 'hydra:', obj )
-      if( screamer.libs.hydra !== undefined ) eval( obj[1] )
+      console.log( 'hydra:', obj[1] )
+      new Function( obj[1] )()
       return false
     },
 
@@ -482,7 +486,7 @@ const screamer = {
                 if( materialName !== 'hydra' ) {
                   out = geo[ name ]( materialName )
                 }else{
-                  screamer.use( 'hydra' )
+                  //screamer.use( 'hydra' )
                   
                   if( typeof screamer.textures.hydra !== 'function' ) {
                     console.warn( `hydra wasn't loaded; we'll load it now. you can load hydra using ctrl+alt+h` )
@@ -697,58 +701,37 @@ const screamer = {
       }
   },
 
-  libs: {
+  initHydra() {
+    const Hydrasynth = Hydra
 
+    //window.Hydra = function( w=500,h=500 ) {
+    const canvas = document.createElement('canvas')
+    canvas.width = 400
+    canvas.height = 400
+
+    // temporarily removing warning
+    const warn = console.warn
+    console.warn = ()=> {}
+    setTimeout( ()=> console.warn = warn, 100 )
+
+    const hydra = new Hydrasynth({ canvas, global:false, detectAudio:false }) 
+
+    hydra.synth.canvas = canvas
+
+    hydra.synth.texture = ()=> {
+        const t = Texture('canvas', { canvas:hydra.synth.canvas })
+        Marching.postrendercallbacks.push( ()=> t.update() )
+        hydra.synth.__texture = t
+
+
+      return t // hydra.synth.__texture
+    }
+
+    screamer.libs.hydra = hydra
+    screamer.textures.hydra = ()=> hydra.synth.texture()
   },
 
-  use( name ) {
-    if( screamer.libs.hydra !== undefined ) return
-
-    const hydrascript = document.createElement( 'script' )
-    hydrascript.src = 'https://cdn.jsdelivr.net/npm/hydra-synth@1.3.0/dist/hydra-synth.js'
-    document.querySelector( 'head' ).appendChild( hydrascript )
-
-    hydrascript.onload = function() {
-      //msg( 'hydra is ready to texture', 'new module loaded' )
-      const Hydrasynth = Hydra
-      let __hydra = null
-
-      window.Hydra = function( w=500,h=500 ) {
-        const canvas = document.createElement('canvas')
-        canvas.width = w
-        canvas.height = h
-
-        const warn = console.warn
-        
-        console.warn = ()=> { }
-        
-        setTimeout( ()=> console.warn = warn, 100 )
-
-        const hydra = __hydra === null ?  new Hydrasynth({ canvas, global:false, detectAudio:false }) : __hydra
-
-        if( __hydra === null ) {
-          hydra.synth.canvas = canvas
-        }
-
-        hydra.synth.texture = ()=> {
-          if( hydra.synth.__texture === undefined ) {
-            const t = Texture('canvas', { canvas:hydra.synth.canvas })
-            Marching.postrendercallbacks.push( ()=> t.update() )
-            hydra.synth.__texture = t
-          }
-
-          return hydra.synth.__texture
-        }
-
-        __hydra = hydra
-
-        return hydra.synth
-      }
-
-      screamer.libs.hydra = Hydra()
-      screamer.textures.hydra = ()=> screamer.libs.hydra.texture()
-    }
-  }
+  libs: {}
 }
 
 export default screamer
