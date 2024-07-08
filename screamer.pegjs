@@ -1,9 +1,13 @@
 out "out" = body:statement+ 
 
-statement = _ __* body:(comment / config / assignment / expr ) _ __* { 
+statement = _ __* body:(comment / config / assignment / expr / hydra ) _ __* { 
   //console.log( body )
   return body
 }
+
+hydra "hydra" = "`" body:$(!"`" .)* "`" {
+  return ['hydra', body]
+} 
 
 comment = '//' _ (!'\n' .)*  _ '\n' { return ['comment'] }
 
@@ -251,7 +255,7 @@ material = _ name:(
   "normal"
 ) _ { return name }
 
-texture = _ name:texture_name args:(lp ((mathoperation/vec) ","?)* rp)? {
+texture = _ name:(texture_name) args:(lp ((mathoperation/vec) ","?)* rp)? {
   if( args === null ) {
     return [ name, args ]
   }else{
@@ -263,15 +267,16 @@ texture = _ name:texture_name args:(lp ((mathoperation/vec) ","?)* rp)? {
 }
 
 texture_name = _ name:(
-  "rainbow"/
-  "stripes"/
-  "dots"/
-  "zigzag"/
-  "truchet"/
-  "noise"/
-  "checkers"/
-  "voronoi"/
-  "cellular"
+  "rainbow" /
+  "stripes" /
+  "dots" /
+  "zigzag" /
+  "truchet" /
+  "noise" /
+  "checkers" /
+  "voronoi" /
+  "cellular" /
+  "hydra"
 ) _ { return name }
 
 post = _ name: (

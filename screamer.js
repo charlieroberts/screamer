@@ -33,7 +33,12 @@ const screamer = {
     post: [],
     voxel:.1,
     camera: [0,0,5],
-    fft: 512
+    fft: 512,
+    lights:null
+  },
+
+  textures: {
+
   },
 
   init() {
@@ -42,6 +47,12 @@ const screamer = {
       mouse.y = e.clientY / window.innerHeight
     }
 
+    window.addEventListener( 'load', function() {
+      screamer.config.lights = [
+        Marching.Light( Marching.vectors.Vec3( 2.,2.,3. ),  Marching.vectors.Vec3(.25,.25,.25), 1. ), 
+        Marching.Light( Marching.vectors.Vec3( -2.,2.,3. ), Marching.vectors.Vec3(.25,.25,.25), 1. ) 
+      ]
+    })
     return this
   },
 
@@ -305,6 +316,12 @@ const screamer = {
       return constructor( ...args )
     },
 
+    hydra( obj ) {
+      console.log( 'hydra:', obj )
+      if( screamer.libs.hydra !== undefined ) eval( obj[1] )
+      return false
+    },
+
     loop( obj ) {
       let out = screamer.walk( obj[1] )
       const mods = obj[3]
@@ -461,7 +478,28 @@ const screamer = {
                 }
               )
             }else{
-              out = geo[ name ]( materialName )
+              if( name === 'texture' ) {
+                if( materialName !== 'hydra' ) {
+                  out = geo[ name ]( materialName )
+                }else{
+                  screamer.use( 'hydra' )
+                  
+                  if( typeof screamer.textures.hydra !== 'function' ) {
+                    console.warn( `hydra wasn't loaded; we'll load it now. you can load hydra using ctrl+alt+h` )
+                    out = geo
+                  }else{
+                    if( screamer.libs.hydra === undefined ) {
+                      console.warn( 'resetting hydra texture after clear. please re-run' )
+                      out = geo
+                    }else{
+                      const t = screamer.textures.hydra()
+                      out = geo.texture( t )
+                    }
+                  }
+                }
+              }else{
+                out = geo[ name ]( materialName )
+              }
             }
           }else{
             out = geo[ name ]( mod[1] )
@@ -621,7 +659,7 @@ const screamer = {
   },
 
   run( code, dims=null ) {
-      console.log( 'code:', code )
+      console.log( 'screamer:', code )
       let tree = null
       try{
         tree = walking.parse( code )
@@ -643,7 +681,10 @@ const screamer = {
             config.fog.length > 0 ? config.fog.slice( 1 ) : [0,0,0]
           )
           .background( Vec3(...config.background ) )
-          .post(   ...config.post )
+          
+        if( config.lights !== null ) m = m.light( ...config.lights )
+        
+        m = m.post( ...config.post )
 
         if( dims !== null ) m = m.setdim( dims[0], dims[1] )
 
@@ -654,6 +695,59 @@ const screamer = {
         m.render( config.render )
          .camera( ...config.camera )
       }
+  },
+
+  libs: {
+
+  },
+
+  use( name ) {
+    if( screamer.libs.hydra !== undefined ) return
+
+    const hydrascript = document.createElement( 'script' )
+    hydrascript.src = 'https://cdn.jsdelivr.net/npm/hydra-synth@1.3.0/dist/hydra-synth.js'
+    document.querySelector( 'head' ).appendChild( hydrascript )
+
+    hydrascript.onload = function() {
+      //msg( 'hydra is ready to texture', 'new module loaded' )
+      const Hydrasynth = Hydra
+      let __hydra = null
+
+      window.Hydra = function( w=500,h=500 ) {
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+
+        const warn = console.warn
+        
+        console.warn = ()=> { }
+        
+        setTimeout( ()=> console.warn = warn, 100 )
+
+        const hydra = __hydra === null ?  new Hydrasynth({ canvas, global:false, detectAudio:false }) : __hydra
+
+        if( __hydra === null ) {
+          hydra.synth.canvas = canvas
+        }
+
+        hydra.synth.texture = ()=> {
+          if( hydra.synth.__texture === undefined ) {
+            const t = Texture('canvas', { canvas:hydra.synth.canvas })
+            Marching.postrendercallbacks.push( ()=> t.update() )
+            hydra.synth.__texture = t
+          }
+
+          return hydra.synth.__texture
+        }
+
+        __hydra = hydra
+
+        return hydra.synth
+      }
+
+      screamer.libs.hydra = Hydra()
+      screamer.textures.hydra = ()=> screamer.libs.hydra.texture()
+    }
   }
 }
 

@@ -30,17 +30,22 @@ const init = async function() {
   screamer.init()
   const canvas = setupMarching()
   Marching.materials.__clearOnEmit = false
-  
-  setupEditor()
 
-  canvas.onclick = removeIntro 
-  
   const err = console.error
   console.error = function( e ) {
     showError( e )
     err( e )
   }
+  const warning = console.warn
+  console.warn = function( e ) {
+    showWarning( e )
+    warning( e )
+  }
 
+  setupEditor()
+
+  canvas.onclick = removeIntro 
+  
   if( isMobile ) {
     const btn = document.createElement('button')
     btn.innerText = 'Next Demo >>'
@@ -57,6 +62,8 @@ const init = async function() {
     introEle = showIntro()
     return true
   })
+
+  window.screamer = screamer
 }
 
 const showIntro = function() {
@@ -95,6 +102,20 @@ const showError = function( msg ) {
   setTimeout( t=> div.remove(), 5000 )
   setTimeout( t=> { div.style.background='rgba(0,0,0,.75)' }, 250 )
 }
+
+const showWarning = function( msg ) {
+  const div = document.createElement('div')
+  div.style = `width:calc(100% - 1em); margin:0; padding:.5rem; height:2.5rem; position:absolute; bottom:0; left:0; background:rgb(127,127,0); color:white; z-index:1000; font-family:monospace; font-size:1.5rem;`
+  div.textContent = msg
+  document.body.append( div )
+  setTimeout( t=> {
+    div.style.opacity = 0;
+    div.style.transition = 'opacity 1s linear'
+  }, 4000 )
+  setTimeout( t=> div.remove(), 5000 )
+  setTimeout( t=> { div.style.background='rgba(0,0,0,.75)' }, 250 )
+}
+
 
 const setupMarching = function() {
   const c = document.querySelector('canvas')
@@ -275,6 +296,13 @@ const setupEditor = function() {
           return true
         } 
       }, 
+      { 
+        key: "Alt-Ctrl-h", 
+        run(e) { 
+          screamer.use('hydra')
+          return true
+        } 
+      }, 
 
       {
         key: "Ctrl-Enter", 
@@ -300,6 +328,10 @@ const setupEditor = function() {
         key: "Ctrl-.", 
         run(e) { 
           Marching.clear()
+          if( screamer.libs.hydra !== undefined ) {
+            delete screamer.libs.hydra
+            screamer.use( 'hydra' )
+          }
           return true
         } 
       }
@@ -419,4 +451,5 @@ window.getlink = function( name='link' ) {
 
   return link
 }
+
 
