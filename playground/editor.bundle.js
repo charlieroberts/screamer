@@ -19558,6 +19558,25 @@ camera = (0 0 time*-.1)
 post = (invert(1), focus(.0, .05) )
 sphere ::rainbow( .5 ) '1.5 + sin(time/4) * .2 # 3`,
 
+`
+// this demo uses the hydra live coding language
+// to texture a fractal. 
+render = fractal.med fog = .125
+
+// every thing between the \` characters is 
+// javascript. you can re-run the hydra block
+// without needing to recompile the main screamer
+// shader
+hydra\`
+  osc(5,.25,.5).kaleid(6).out()
+\`
+
+container = sphere(2):blackhole
+fractal = mandelbox(.75, 3+sin(time/2)) '.5 ::hydra :white
+fractal @y time*10
+container --- fractal
+`,
+
 ` // move your mouse around the window center
 post = ( edge, invert(1) )
 ( box:red -- box:green'mousey/4 #.2+mousex/3 ) '1.6 @yz time*15
