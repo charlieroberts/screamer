@@ -176,7 +176,7 @@ mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)? {
 modspecial = modchar $moddims+
 moddims = [xyz]
 
-modchar = "'" / '::' / ':' / '@@' / '@' / '>>' / '>' / '###' / '##' / '#' / '||' / '|' / '~'
+modchar = "'" / ':::' / '::' / ':' / '@@' / '@' / '>>' / '>' / '###' / '##' / '#' / '||' / '|' / '~'
 
 modoperation "modop" = a:(geometry/group/loop/word) _ b:((modspecial/modchar) _ (material/texture/listparen/mathoperation/modoperation)?)* {
   const isBNull = b === null

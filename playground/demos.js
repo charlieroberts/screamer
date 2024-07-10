@@ -67,6 +67,11 @@ cross '.15 @@( time*45,1,.5,.5 )
 cross # .75
 `,
 
+`post = (focus(.125))
+fog = .05
+s = sphere(1.5):red:::voronoi(0.1 3+sin(time/4)*2 (time/4 0 0)) @ time*20
+s ++ plane((0 0 1) .25 ):red::cellular(1 (time/4 0 0))`,
+
 `// requires microphone access
 // shushing sounds work great!
 render = fractal.med

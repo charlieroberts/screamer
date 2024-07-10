@@ -4,13 +4,14 @@ const globals = {}
 const EFN = 8243721
 
 const mods = {
-  '\'':  'scale',
-  '\'\'': 'scaleBy', 
+  '\'': 'scale',
+  '\'\'':'scaleBy', 
   '#':  'Repeat',
-  '###': 'PolarRepeat',
+  '###':'PolarRepeat',
   '##': 'SmoothRepetition',
   ':':  'material',
   '::': 'texture',
+  ':::':'bump',
   '>':  'translate',
   '>>': 'moveBy',
   '@':  'rotateDims',
@@ -450,37 +451,49 @@ const screamer = {
               }
             }
           //}
-        }else if( name === 'material' || name === 'texture' ) {
+        }else if( name === 'material' || name === 'texture' || name === 'bump' ) {
           if( Array.isArray( mod[1] ) ) {
             const materialName = typeof mod[1][1] === 'string' ? mod[1][1] : mod[1][0]
 
+            // if arguments are passed to texture...
             if( mod[1][1] !== undefined && mod[1][1] !== null) {
-              const scalefnc = screamer.mathwalk( mod[1][1] )
+              let idx = name === 'bump' ? 2 : 1
+
+              let scalefnc = null
+              if( mod[1][idx] !== undefined ) scalefnc = screamer.mathwalk( mod[1][idx] )
               let uvfncs = null
-              if( mod[1][2] !== undefined ) {
-                uvfncs = mod[1][2][1].map( screamer.mathwalk )
+              if( mod[1][idx+1] !== undefined ) {
+                uvfncs = mod[1][idx+1][1].map( screamer.mathwalk )
               }
+
+              const t = Texture( 
+                materialName, 
+                { 
+                  scale: scalefnc !== null ? scalefnc( 0 ) : 1, 
+                  uv:    uvfncs !== null ? uvfncs.map( f => f( 0 ) ) : [0,0,0]
+                }
+              )
               
               Marching.postrendercallbacks.push( time => {
-                geo.texture.scale = scalefnc( time )  
+                if( scalefnc !== null ) geo.texture.scale = scalefnc( time )  
                 if( uvfncs !== null ) {
                   const x = uvfncs[0]( time )
                   const y = uvfncs[1]( time )
                   const z = uvfncs[2]( time )
 
-                  geo.texture.uv.x = x
-                  geo.texture.uv.y = y
-                  geo.texture.uv.z = z
+                  t.uv.x = x
+                  t.uv.y = y
+                  t.uv.z = z
                 }
               })
 
-              out = geo[ name ]( 
-                materialName, 
-                { 
-                  scale: scalefnc( 0 ), 
-                  uv:    uvfncs !== null ? uvfncs.map( f => f( 0 ) ) : [0,0,0]
-                }
-              )
+              
+
+              if( name === 'bump' ) {
+                out = geo.texture( t ).bump( t, mod[1][1] )
+              }else{
+                out = geo[ name ]( t ) 
+              }
             }else{
               if( name === 'texture' ) {
                 if( materialName !== 'hydra' ) {
@@ -501,6 +514,9 @@ const screamer = {
                     }
                   }
                 }
+              }else if( name === 'bump' ) {
+                const t = Texture( materialName )
+                out = geo.texture( t ).bump( t, .1 )
               }else{
                 out = geo[ name ]( materialName )
               }
