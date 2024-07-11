@@ -298,13 +298,6 @@ const setupEditor = function() {
           return true
         } 
       }, 
-      { 
-        key: "Alt-Ctrl-h", 
-        run(e) { 
-          screamer.use('hydra')
-          return true
-        } 
-      }, 
 
       {
         key: "Ctrl-Enter", 
