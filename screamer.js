@@ -466,16 +466,16 @@ const screamer = {
                 uvfncs = mod[1][idx+1][1].map( screamer.mathwalk )
               }
 
-              const t = Texture( 
-                materialName, 
-                { 
-                  scale: scalefnc !== null ? scalefnc( 0 ) : 1, 
-                  uv:    uvfncs !== null ? uvfncs.map( f => f( 0 ) ) : [0,0,0]
-                }
-              )
+              const props = { 
+                scale: scalefnc !== null ? scalefnc( 0 ) : 1, 
+                uv:    uvfncs !== null ? uvfncs.map( f => f( 0 ) ) : [0,0,0]
+              }
+              const t = materialName === 'hydra'
+                ? screamer.textures.hydra( props ) 
+                : Texture( materialName, props ) 
               
               Marching.postrendercallbacks.push( time => {
-                if( scalefnc !== null ) geo.texture.scale = scalefnc( time )  
+                if( scalefnc !== null ) t.scale = scalefnc( time )  
                 if( uvfncs !== null ) {
                   const x = uvfncs[0]( time )
                   const y = uvfncs[1]( time )
@@ -486,8 +486,6 @@ const screamer = {
                   t.uv.z = z
                 }
               })
-
-              
 
               if( name === 'bump' ) {
                 out = geo.texture( t ).bump( t, mod[1][1] )
@@ -734,17 +732,17 @@ const screamer = {
 
     hydra.synth.canvas = canvas
 
-    hydra.synth.texture = ()=> {
-        const t = Texture('canvas', { canvas:hydra.synth.canvas })
-        Marching.postrendercallbacks.push( ()=> t.update() )
-        hydra.synth.__texture = t
+    hydra.synth.texture = ( __props )=> {
+      const props = Object.assign({ canvas:hydra.synth.canvas}, __props )
+      const t = Texture('canvas', props )
+      Marching.postrendercallbacks.push( ()=> t.update() )
+      hydra.synth.__texture = t
 
-
-      return t // hydra.synth.__texture
+      return t
     }
 
     screamer.libs.hydra = hydra
-    screamer.textures.hydra = ()=> hydra.synth.texture()
+    screamer.textures.hydra = props => hydra.synth.texture( props )
   },
 
   libs: {}
