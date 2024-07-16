@@ -214,7 +214,8 @@ math =
   "abs" /
   "floor" /
   "random" /
-  "ceil" 
+  "ceil" /
+  "fade" 
 
 geometry_name = _ name:(
   "box" /
@@ -286,7 +287,12 @@ post = _ name: (
   "godrays" /
   "edge" /
   "invert" /
-  "blur"
+  "motionblur" /
+  "blur" /
+  "hue" /
+  "brightness" /
+  "contrast" /
+  "glow"
 ) _ { return name }
 
 vec = lp a:arguments rp { return ['vec', a] }
