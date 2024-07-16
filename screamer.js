@@ -27,6 +27,7 @@ const vecMembers = ['x','y','z','w']
 
 const screamer = {
   __i:0,
+  
   config : {
     render: 'med',
     fog: [0,0,0,0],
@@ -38,9 +39,7 @@ const screamer = {
     lights:null
   },
 
-  textures: {
-
-  },
+  textures: {},
 
   init() {
     window.onpointermove = function(e) {
@@ -48,14 +47,6 @@ const screamer = {
       mouse.y = e.clientY / window.innerHeight
     }
 
-    /*
-    const Vec3 = Marching.vectors.Vec3
-
-    screamer.config.lights = [
-      Marching.Light( Vec3( 2.,2.,3. ),  Vec3(.25,.25,.25), 1. ), 
-      Marching.Light( Vec3( -2.,2.,3. ), Vec3(.25,.25,.25), 1. ) 
-    ]
-*/
     screamer.initHydra()
 
     return this
@@ -114,6 +105,18 @@ const screamer = {
             break
           case 'abs':
             out = t => Math.abs( a( t ) )
+            break
+          case 'fade':
+            const _a = obj[2][0], _b = obj[2][1], _c = obj[2][2]
+            let counter = 0
+            console.log( _a, _b, _c )
+            out = t => {
+              if( counter++ < _a ) {
+                return _b + ((counter/_a) * (_c-_b))
+              }else{
+                return _c
+              }
+            }
             break
         }
       }else{
@@ -249,11 +252,33 @@ const screamer = {
         // correct for lists
         if( !Array.isArray( obj[2] )) { obj[2] = obj[2].values }
 
-        obj[2] = obj[2].map( v => {
+        obj[2] = obj[2].map( (v,i) => {
           const func = window[ v[0][0].toUpperCase() + v[0].slice(1) ]
-          const out = v[1] !== null
-            ? func( ...v[1] )
-            : func()
+          let __args = []
+          
+          // use postrender callbcaks to assign uniform values, 
+          // leave constructor call empty
+          const out = func()
+          const desc = Object.getOwnPropertyDescriptors( out )
+
+          let idx = 0
+          for( let key in desc ) {
+            // avoid metadata
+            if( key === '__wrapped__' ) continue
+
+            if( v[1] !== null ) {
+              __args = v[1].map( screamer.mathwalk )
+              let num = idx++
+              
+              // will be undefined if no value for this argument
+              // has been passed to consructor
+              if( __args[ num ] !== undefined ) {
+                Marching.postrendercallbacks.push( time => {
+                  out[ key ] = __args[ num ]( time )
+                })
+              }
+            }
+          }
 
           return out
         })
