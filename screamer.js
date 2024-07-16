@@ -107,12 +107,17 @@ const screamer = {
             out = t => Math.abs( a( t ) )
             break
           case 'fade':
-            const _a = obj[2][0], _b = obj[2][1], _c = obj[2][2]
+            const _a = obj[2][0] || 120, 
+                  _b = obj[2][1] || 0, 
+                  _c = isNaN(obj[2][2]) ? 1 : obj[2][2]
             let counter = 0
-            console.log( _a, _b, _c )
             out = t => {
               if( counter++ < _a ) {
-                return _b + ((counter/_a) * (_c-_b))
+                if( _b < _c ) {
+                  return _b + ((counter/_a) * (_c-_b))
+                }else{
+                  return _b - ((counter/_a) * (_b-_c))
+                }
               }else{
                 return _c
               }
