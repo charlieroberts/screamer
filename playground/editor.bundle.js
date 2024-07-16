@@ -19937,8 +19937,7 @@ const screamer = {
                 if( _b < _c ) {
                   return _b + ((counter/_a) * (_c-_b))
                 }else {
-                  console.log( _b, (counter/_a), _b - ((counter/_a)) );
-                  return _b - ((counter/_a)*(_b-_c))
+                  return _b - ((counter/_a) * (_b-_c))
                 }
               }else {
                 return _c
