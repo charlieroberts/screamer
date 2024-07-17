@@ -20076,7 +20076,10 @@ const screamer = {
         if( !Array.isArray( obj[2] )) { obj[2] = obj[2].values; }
 
         obj[2] = obj[2].map( (v,i) => {
-          const func = window[ v[0][0].toUpperCase() + v[0].slice(1) ];
+          const func = v[0] === 'motionblur' 
+                ? window.MotionBlur
+                : window[ v[0][0].toUpperCase() + v[0].slice(1) ];
+
           let __args = [];
           
           // use postrender callbcaks to assign uniform values, 
