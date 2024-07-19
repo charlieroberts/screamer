@@ -280,9 +280,9 @@ const screamer = {
             light.color.z = colfncs[2]( time )
           })
 
-          return false
         }
 
+        return false
       }
 
       if( obj[1] === 'post' ) {
