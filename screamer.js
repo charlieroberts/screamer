@@ -36,7 +36,7 @@ const screamer = {
     voxel:.1,
     camera: [0,0,5],
     fft: 512,
-    lights:null
+    lighting:null
   },
 
   textures: {},
@@ -253,6 +253,38 @@ const screamer = {
     comment() { return false },
 
     config( obj ) {
+      if( obj[1] === 'lighting' ) {
+        const lights = obj[2].values
+
+        screamer.config.lighting = []
+
+        for( const __light of lights ) {
+          const lightdesc = __light[1][1]
+          
+          const light = Light( 
+            Vec3(...lightdesc[0][1]), 
+            Vec3(...lightdesc[1][1]), 
+            lightdesc[2] || 1 
+          )
+
+          screamer.config.lighting.push( light )
+
+          const posfncs = lightdesc[0][1].map( screamer.mathwalk )
+          const colfncs = lightdesc[1][1].map( screamer.mathwalk )
+          Marching.postrendercallbacks.push( time => {
+            light.pos.x = posfncs[0]( time )
+            light.pos.y = posfncs[1]( time )
+            light.pos.z = posfncs[2]( time )
+            light.color.x = colfncs[0]( time )
+            light.color.y = colfncs[1]( time )
+            light.color.z = colfncs[2]( time )
+          })
+
+          return false
+        }
+
+      }
+
       if( obj[1] === 'post' ) {
         // correct for lists
         if( !Array.isArray( obj[2] )) { obj[2] = obj[2].values }
@@ -733,7 +765,7 @@ const screamer = {
           )
           .background( Vec3(...config.background ) )
           
-        if( config.lights !== null ) m = m.light( ...config.lights )
+        if( config.lighting !== null ) m = m.light( ...config.lighting )
         
         m = m.post( ...config.post )
 

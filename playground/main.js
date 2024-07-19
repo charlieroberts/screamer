@@ -176,7 +176,7 @@ const getStarterCode = function() {
   return out
 }
 
-const reset = `camera = (0 0 5) render = med fog = (0 0 0 0) post = () background = (0 0 0)\n`
+const reset = `camera = (0 0 5) render = med fog = (0 0 0 0) post = () background = (0 0 0) lighting = ()\n`
 const loadDemo = function() {
   const code = demos[ ++demoidx % demos.length ]
 
@@ -323,10 +323,9 @@ const setupEditor = function() {
         key: "Ctrl-.", 
         run(e) { 
           Marching.clear()
-          //if( screamer.libs.hydra !== undefined ) {
-          //  delete screamer.libs.hydra
-          //  screamer.use( 'hydra' )
-          //}
+          Marching.lighting.lights.length = 0
+          screamer.config.lighting = null
+          
           return true
         } 
       }

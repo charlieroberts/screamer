@@ -15,7 +15,7 @@ config "config" = name:config_name _ '=' _ value:(number / word / pp / listparen
   return ['config', name, value ]
 }
 
-config_name = "render" / "fog" / "background" / "post" / "camera" / "fft" / "lights" / "voxel"
+config_name = "render" / "fog" / "background" / "post" / "camera" / "fft" / "lighting" / "voxel"
 
 pp = lp fx:(post (lp arguments rp)? ','?)+ rp { 
    return fx.map( f => [ f[0], f[1] === null ? null : f[1][1] ] ) 
@@ -297,12 +297,14 @@ post = _ name: (
 
 vec = lp a:arguments rp { return ['vec', a] }
 
+light = 'light' vec  
+
 // argument list or empty
 arguments = list / _
 list = l:(argument ','? _ )+ {
   return l.map( v => v[0] )
 }
-argument = mathoperation / mathoperand / vec
+argument = mathoperation / mathoperand / light / vec
 
 rp = _')'_ { return ')' }
 lp = _'('_ { return '(' }
