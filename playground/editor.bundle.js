@@ -20192,11 +20192,19 @@ const screamer = {
       
       if( obj[1] === 'camera' ) {
         const camerafncs = obj[2].values.map( screamer.mathwalk );
-        Marching.postrendercallbacks.push( time => {
-          if( camerafncs[0].varies ) camera.pos.x = camerafncs[0]( time );
-          if( camerafncs[1].varies ) camera.pos.y = camerafncs[1]( time );
-          if( camerafncs[2].varies ) camera.pos.z = camerafncs[2]( time );
-        });
+        if( camerafncs.findIndex( f => f.varies === true ) !== -1 ) {
+          Marching.postrendercallbacks.push( time => {
+            if( camerafncs[0].varies ) camera.pos.x = camerafncs[0]( time );
+            if( camerafncs[1].varies ) camera.pos.y = camerafncs[1]( time );
+            if( camerafncs[2].varies ) camera.pos.z = camerafncs[2]( time );
+          });
+        }else {
+          setTimeout( ()=> {
+          camera.pos.x = camerafncs[0]( 0 );
+          camera.pos.y = camerafncs[1]( 0 );
+          camera.pos.z = camerafncs[2]( 0 );
+          }, 0 );
+        }
 
         obj[2].values = camerafncs.map( fnc => fnc(0) );
       }
@@ -20215,14 +20223,18 @@ const screamer = {
           if( typeof fogfncs[2] === 'function' && fogfncs[2].varies ) fog.color.g = fogfncs[2]( time );
           if( typeof fogfncs[3] === 'function' && fogfncs[3].varies ) fog.color.b = fogfncs[3]( time );
         };
-        Marching.postrendercallbacks.push( runfog );
-        setTimeout( ()=> {
-        const fog = Marching.__scene.postprocessing[0];
-        fog.amount   = fogfncs[0]( 0 );
-        if( typeof fogfncs[1] === 'function' ) fog.color.r = fogfncs[1]( 0 );
-        if( typeof fogfncs[2] === 'function' ) fog.color.g = fogfncs[2]( 0 );
-        if( typeof fogfncs[3] === 'function' ) fog.color.b = fogfncs[3]( 0 );
-        }, 0 );
+
+        if( fogfncs.findIndex( f => f.varies === true ) !== -1 ) {
+          Marching.postrendercallbacks.push( runfog );
+        }else {
+          setTimeout( ()=> {
+            const fog = Marching.__scene.postprocessing[0];
+            fog.amount   = fogfncs[0]( 0 );
+            if( typeof fogfncs[1] === 'function' ) fog.color.r = fogfncs[1]( 0 );
+            if( typeof fogfncs[2] === 'function' ) fog.color.g = fogfncs[2]( 0 );
+            if( typeof fogfncs[3] === 'function' ) fog.color.b = fogfncs[3]( 0 );
+          }, 0 );
+        }
         // don't bother setting initial fog just use the render callback
       }
 
@@ -20244,7 +20256,7 @@ const screamer = {
         }else {
           if( !Array.isArray( obj[i] ) ) {
             if( obj[i] !== null && obj[i] !== undefined )
-              args.push( obj[ i ] );
+              args.push( screamer.walk( obj[ i ] ) );
           }else {
             // hmmm what is this?
             args.push( ...obj[i] );
@@ -20252,7 +20264,15 @@ const screamer = {
         }
       }
 
+      // have to account for vectors, hence typeof check
+      // but what happens to reactive vectors?
+      // nothing.
+      //
+      args.map( f => {
+        return f.varies ? f : typeof f === 'function' ? f(0) : f 
+      });
       return constructor( ...args )
+      
     },
 
     hydra( obj ) {
@@ -20339,11 +20359,15 @@ const screamer = {
 
           if( isList ) {
             if( name !== 'rotateDims' ) {
-              Marching.postrendercallbacks.push( time => {
-                const __args = args.map( v => typeof v === 'function' ? v( time ) : v );
-             
-                geo[ name ]( ...__args );
-              });
+              if( args.findIndex( v => v.varies === true ) !== -1 ) {
+                Marching.postrendercallbacks.push( time => {
+                  const __args = args.map( v => typeof v === 'function' ? v( time ) : v );
+               
+                  geo[ name ]( ...__args );
+                });
+              }else {
+                geo[ name ]( ...(args.map( v => typeof v === 'function' ? v( 0 ) : v )) );
+              }
             }
           }else if( name === 'rotateDims' ) {
             // used to disable absolute rotations with axis/angle
@@ -20361,31 +20385,36 @@ const screamer = {
                 geo.transform.__rotations[ idx ] = Matrix.rotate( 
                   args[0]( time ), 
                   x,y,z
-                );              
+                );
+                geo.transform.dirty = true;
               });
+
 
             }else {
               geo.transform.__rotations[ idx ] = Matrix.rotate( args[0]( 0 ), x,y,z );
             }
+            
 
             // needed to determine indexing
             geo.transform.__rotations.length++;
             
             name = 'rotate';
-          }
-
-          //if( out === null ) {
+            out = geo;
+          }else {
             if( isList ) { 
-              out = geo[ name ]( ...args  );
+
+              const __args = args.map( f => f.varies ? f : f(0) );
+              out = geo[ name ]( ...__args  );
             }else {
               if( usesDims ) {
                 out = geo[ name ]( ...args );  
               }else {
-                const v = screamer.mathwalk( mod[1] );
+                let v = screamer.mathwalk( mod[1] );
+                if( v.varies === false ) v = v(0); 
                 out = geo[ name ]( v,v,v ); 
               }
             }
-          //}
+          }
         }else if( name === 'material' || name === 'texture' || name === 'bump' ) {
           if( Array.isArray( mod[1] ) ) {
             const materialName = typeof mod[1][1] === 'string' ? mod[1][1] : mod[1][0];
@@ -20492,6 +20521,8 @@ const screamer = {
                 // are we repeating on all three axes?
                 const is3Dim = args.indexOf( DNR ) === -1;
 
+                args = args.map( v => { return v.varies ? v : typeof v === 'function' ? v(0) : v });
+
                 if( is3Dim ) {
                   // use 3D repeat
                   out = window[ name ]( geo, Vec3(...args) );
@@ -20510,11 +20541,18 @@ const screamer = {
                 }
               }else {
                 args = isList ? args : screamer.mathwalk( mod[1] ); 
+                if( isList ) 
+                  args = args.map( v => v.varies ? v : v(0) ); 
+                else
+                  args = args.varies ? args : args(0);
 
                 if( name === 'Twist' ) {
                   const fnc   = Array.isArray( args ) ? args[0] : args;
                   const twist = window.Twist( geo, Vec2( fnc,0 ) );
-                  Marching.postrendercallbacks.push( t => twist.amount.x = fnc(t) );
+                  
+                  if( fnc.varies )
+                    Marching.postrendercallbacks.push( t => twist.amount.x = fnc(t) );
+                  
                   out = geo = twist;
                 }else {
                   out = window[ name ]( geo, isList ? Vec3(...args) : args );
@@ -20544,7 +20582,10 @@ const screamer = {
                   if( l !==1 )
                     console.warn( 'smoothmirror only accepts a single smoothness value for all axes.');
                 }
-                out = window[ name ]( geo, screamer.mathwalk( mod[1] ), dims );
+                let __args = screamer.mathwalk( mod[1] );
+                if( __args.varies === false ) __args = __args(0);
+
+                out = window[ name ]( geo, __args, dims );
                 //}
               }else {
                 out = typeof mod[1] === 'object' && typeof mod[1].values !== 'function'
@@ -20588,7 +20629,7 @@ const screamer = {
 
     vec( obj ) {
       const len = obj[1].length;
-      const args = obj[1].map( screamer.mathwalk );
+      const args = obj[1].map( screamer.mathwalk ).map( f => f.varies ? f : f(0) );
 
       return window[ 'Vec'+len ]( ...args )
     }
@@ -20847,6 +20888,8 @@ const getStarterCode = function() {
 
 const reset = `camera = (0 0 5) render = med fog = (0 0 0 0) post = () background = (0 0 0) lighting = ()\n`;
 const loadDemo = function() {
+  Marching.postrendercallbacks.length = 0;
+
   const code = demos[ ++demoidx % demos.length ];
 
   // do not include reset code in editor, but run it

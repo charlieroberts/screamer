@@ -178,6 +178,8 @@ const getStarterCode = function() {
 
 const reset = `camera = (0 0 5) render = med fog = (0 0 0 0) post = () background = (0 0 0) lighting = ()\n`
 const loadDemo = function() {
+  Marching.postrendercallbacks.length = 0
+
   const code = demos[ ++demoidx % demos.length ]
 
   // do not include reset code in editor, but run it
