@@ -23,7 +23,7 @@ const removeIntro = function() {
   if( introEle !== null ) {
     introEle.classList.remove('enter')
     introEle.classList.add('exit')
-    setTimeout( ()=> { introEle.remove(); introEle = null }, 900 )
+    setTimeout( ()=> { if( introEle !== null ) { introEle.remove(); introEle = null } }, 900 )
     editor.focus() 
   }
 }
@@ -246,10 +246,12 @@ const flashBlock = function( range, code ) {
 }
 
 const updateLocation = function() {
+  if( editor.state.doc.text !== undefined ) {
   const code = editor.state.doc.text.join('\n')
   const codeCompressed = btoa( code )
   const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${codeCompressed}`
   window.history.replaceState( {} , 'screamer', link );
+  }
 }
 
 const prefix = `camera=(0 0 5) fog = (0 0 0 0) post = () background = (0 0 0 ) render = med\n`
