@@ -52,8 +52,13 @@ const screamer = {
     return this
   },
 
+  isVarying( func, varies=false, a=null, b=null ) {
+    func.varies = func.varies || varies || (a !== null && a.varies ) || (b !== null && b.varies )
+  },
+
   mathwalk( obj ) {
     let out = EFN, a, b
+    const varies = screamer.isVarying
     if( Array.isArray( obj ) ) { 
       if( obj.length > 1 ) {
         const a = screamer.mathwalk( obj[2] )
@@ -62,49 +67,64 @@ const screamer = {
         const op = obj[1]                  
         switch( op ) {
           case '+': 
-            out = t => a( t ) + b( t ) 
+            out = t => a( t ) + b( t )
+            varies( out, false, a, b )
             break
           case '-':
             out = t => a( t ) - b( t ) 
+            varies( out, false, a, b )
             break
           case '*':
             out = t => a( t ) * b( t ) 
+            varies( out, false, a, b )
             break
           case '/':
             out = t => a( t ) / b( t ) 
+            varies( out, false, a, b )
             break
           case '%':
             out = t => a( t ) % b( t ) 
+            varies( out, false, a, b )
             break
           case '^':
             out = t => Math.pow(a( t ), b( t )) 
+            varies( out, false, a, b )
             break
           case 'sin':
             out = t => Math.sin( a( t ) )
+            varies( out, false, a )
             break
           case 'sinn':
             out = t => .5 + Math.sin( a( t ) ) * .5
+            varies( out, false, a )
             break
           case 'cos':
             out = t => Math.cos( a( t ) )
+            varies( out, false, a )
             break
           case 'cosn':
             out = t => .5 + Math.cos( a( t ) ) * .5
+            varies( out, false, a )
             break
           case 'round':
             out = t => Math.round( a( t ) )
+            varies( out, false, a )
             break
           case 'random':
             out = t => Math.random()
+            varies( out, false )
             break
           case 'floor':
             out = t => Math.floor( a( t ) )
+            varies( out, false, a )
             break
           case 'ceil':
             out = t => Math.ceil( a( t ) )
+            varies( out, false, a )
             break
           case 'abs':
             out = t => Math.abs( a( t ) )
+            varies( out, false, a )
             break
           case 'fade':
             const _a = obj[2][0] || 120, 
@@ -122,6 +142,7 @@ const screamer = {
                 return _c
               }
             }
+            varies( out, true )
             break
         }
       }else{
@@ -133,25 +154,38 @@ const screamer = {
           const i = screamer.__i
           out = t => i
           break
-        case 'time': out = t => t; break;
-        case 'mousex': out = t => mouse.x; break;
-        case 'mousey': out = t => mouse.y; break;
+        case 'time': 
+          out = t => t
+          varies( out, true )
+          break
+        case 'mousex': 
+          out = t => mouse.x
+          varies( out, true )
+          varies( out, true )
+          break
+        case 'mousey': 
+          out = t => mouse.y
+          varies( out, true )
+          break
         case 'low':
           // .start() is a null operation if audio
           // has already been initialized
           Marching.FFT.start()
           Marching.FFT.windowSize = screamer.config.fft
           out = t => Marching.FFT.low
+          varies( out, true )
           break
         case 'mid':
           Marching.FFT.start()
           Marching.FFT.windowSize = screamer.config.fft
           out = t => Marching.FFT.mid
+          varies( out, true )
           break
         case 'high':
           Marching.FFT.start()
           Marching.FFT.windowSize = screamer.config.fft
           out = t => Marching.FFT.high
+          varies( out, true )
           break
         default:
           const isGlobal = globals[ obj ] !== undefined
@@ -172,6 +206,7 @@ const screamer = {
     }else{
       const val = obj === null ? null : parseFloat( obj )
       out = t => val 
+      varies( out, false )
     }
 
     return out
@@ -272,13 +307,20 @@ const screamer = {
           const posfncs = lightdesc[0][1].map( screamer.mathwalk )
           const colfncs = lightdesc[1][1].map( screamer.mathwalk )
           Marching.postrendercallbacks.push( time => {
-            light.pos.x = posfncs[0]( time )
-            light.pos.y = posfncs[1]( time )
-            light.pos.z = posfncs[2]( time )
-            light.color.x = colfncs[0]( time )
-            light.color.y = colfncs[1]( time )
-            light.color.z = colfncs[2]( time )
+            if( posfncs[0].varies ) light.pos.x = posfncs[0]( time )
+            if( posfncs[1].varies ) light.pos.y = posfncs[1]( time )
+            if( posfncs[2].varies ) light.pos.z = posfncs[2]( time )
+            if( colfncs[0].varies ) light.color.x = colfncs[0]( time )
+            if( colfncs[1].varies ) light.color.y = colfncs[1]( time )
+            if( colfncs[2].varies ) light.color.z = colfncs[2]( time )
           })
+
+          if( posfncs[0].varies !== true ) light.pos.x = posfncs[0]( 0 )
+          if( posfncs[1].varies !== true ) light.pos.y = posfncs[1]( 0 )
+          if( posfncs[2].varies !== true ) light.pos.z = posfncs[2]( 0 )
+          if( colfncs[0].varies !== true ) light.color.x = colfncs[0]( 0 )
+          if( colfncs[1].varies !== true ) light.color.y = colfncs[1]( 0 )
+          if( colfncs[2].varies !== true ) light.color.z = colfncs[2]( 0 )
 
         }
 
@@ -297,7 +339,10 @@ const screamer = {
           let __args = []
           
           // use postrender callbcaks to assign uniform values, 
-          // leave constructor call empty
+          // leave constructor call empty, as setting values
+          // before webgl is initialized will create problems
+          // this means that all postprocessing properties are
+          // reactive by default
           const out = func()
           const desc = Object.getOwnPropertyDescriptors( out )
 
@@ -330,12 +375,12 @@ const screamer = {
       if( obj[1] === 'camera' ) {
         const camerafncs = obj[2].values.map( screamer.mathwalk )
         Marching.postrendercallbacks.push( time => {
-          camera.pos.x = camerafncs[0]( time )
-          camera.pos.y = camerafncs[1]( time )
-          camera.pos.z = camerafncs[2]( time )
+          if( camerafncs[0].varies ) camera.pos.x = camerafncs[0]( time )
+          if( camerafncs[1].varies ) camera.pos.y = camerafncs[1]( time )
+          if( camerafncs[2].varies ) camera.pos.z = camerafncs[2]( time )
         })
 
-        obj[2].values = obj[2].values.map( fnc => screamer.mathwalk( fnc )(0) )
+        obj[2].values = camerafncs.map( fnc => fnc(0) )
       }
 
       if( obj[1] === 'fog' ) {
@@ -347,13 +392,19 @@ const screamer = {
         }
         const runfog = time => {
           const fog = Marching.__scene.postprocessing[0]
-          fog.amount   = fogfncs[0]( time )
-          if( typeof fogfncs[1] === 'function' ) fog.color.r = fogfncs[1]( time )
-          if( typeof fogfncs[2] === 'function' ) fog.color.g = fogfncs[2]( time )
-          if( typeof fogfncs[3] === 'function' ) fog.color.b = fogfncs[3]( time )
+          if( fogfncs[0].varies ) fog.amount   = fogfncs[0]( time )
+          if( typeof fogfncs[1] === 'function' && fogfncs[1].varies ) fog.color.r = fogfncs[1]( time )
+          if( typeof fogfncs[2] === 'function' && fogfncs[2].varies ) fog.color.g = fogfncs[2]( time )
+          if( typeof fogfncs[3] === 'function' && fogfncs[3].varies ) fog.color.b = fogfncs[3]( time )
         }
         Marching.postrendercallbacks.push( runfog )
-
+        setTimeout( ()=> {
+        const fog = Marching.__scene.postprocessing[0]
+        fog.amount   = fogfncs[0]( 0 )
+        if( typeof fogfncs[1] === 'function' ) fog.color.r = fogfncs[1]( 0 )
+        if( typeof fogfncs[2] === 'function' ) fog.color.g = fogfncs[2]( 0 )
+        if( typeof fogfncs[3] === 'function' ) fog.color.b = fogfncs[3]( 0 )
+        }, 0 )
         // don't bother setting initial fog just use the render callback
       }
 
@@ -487,20 +538,21 @@ const screamer = {
             const y = usesDims ? +!(dims.indexOf('y') === -1) : 1
             const z = usesDims ? +!(dims.indexOf('z') === -1) : 1
             
-            Marching.postrendercallbacks.push( time => {
-              geo.transform.__rotations[ idx ] = Matrix.rotate( 
-                args[0]( time ), 
-                x,y,z
-              )              
-            })
+            if( args[0].varies ) {
+              Marching.postrendercallbacks.push( time => {
+                geo.transform.__rotations[ idx ] = Matrix.rotate( 
+                  args[0]( time ), 
+                  x,y,z
+                )              
+              })
+
+            }else{
+              geo.transform.__rotations[ idx ] = Matrix.rotate( args[0]( 0 ), x,y,z )
+            }
 
             // needed to determine indexing
             geo.transform.__rotations.length++
-
-
-            // I don't know why we have to call rotate here but
-            // no rotation occurs if we don't, so...
-            // out = geo.rotate(...args)
+            
             name = 'rotate'
           }
 
@@ -521,7 +573,7 @@ const screamer = {
             const materialName = typeof mod[1][1] === 'string' ? mod[1][1] : mod[1][0]
 
             // if arguments are passed to texture...
-            if( mod[1][1] !== undefined && mod[1][1] !== null) {
+            if( name !== 'material' && mod[1][1] !== undefined && mod[1][1] !== null) {
               let idx = name === 'bump' ? 2 : 1
 
               let scalefnc = null
@@ -539,18 +591,16 @@ const screamer = {
                 ? screamer.textures.hydra( props ) 
                 : Texture( materialName, props ) 
               
-              Marching.postrendercallbacks.push( time => {
-                if( scalefnc !== null ) t.scale = scalefnc( time )  
-                if( uvfncs !== null ) {
-                  const x = uvfncs[0]( time )
-                  const y = uvfncs[1]( time )
-                  const z = uvfncs[2]( time )
-
-                  t.uv.x = x
-                  t.uv.y = y
-                  t.uv.z = z
-                }
-              })
+              if( scalefnc !== null || uvfncs !== null ) {
+                Marching.postrendercallbacks.push( time => {
+                  if( scalefnc !== null && scalefnc.varies ) t.scale = scalefnc( time )  
+                  if( uvfncs !== null  ) {
+                    if( uvfncs[0].varies ) t.uv.x = uvfncs[0]( time )
+                    if( uvfncs[1].varies ) t.uv.y = uvfncs[1]( time )
+                    if( uvfncs[2].varies ) t.uv.z = uvfncs[2]( time )
+                  }
+                })
+              }
 
               if( name === 'bump' ) {
                 out = geo.texture( t ).bump( t, mod[1][1] )
@@ -764,8 +814,12 @@ const screamer = {
             config.fog.length > 0 ? config.fog.slice( 1 ) : [0,0,0]
           )
           .background( Vec3(...config.background ) )
+
           
-        if( config.lighting !== null ) m = m.light( ...config.lighting )
+        if( config.lighting !== null ) {
+          Marching.lighting.lights = []
+          m = m.light( ...config.lighting ) 
+        }
         
         m = m.post( ...config.post )
 
