@@ -19533,9 +19533,8 @@ sphere(.1) ::dots(30) @time*40 # .4
 `,
 
 `render = fractal.med
-camera = (0 0 4)
-post = ( antialias )
-(julia(time/2):red || >.5 || .25 ||) @y time*10
+lighting = ( light( (0 0 5) (1 1 1 ) .25) )
+(julia(time/5):color(1 0 0) || >.5 || .25 ||) @y time*10 ' 1.25
 `,
 
 `render = med
@@ -20077,6 +20076,11 @@ const screamer = {
       return out
     },
 
+    color( obj ) {
+      console.log( 'color', obj ); 
+      return false
+    },
+
     combinator( obj ) {
       const constructor = window[ obj[1] ];
       const args = [];
@@ -20368,6 +20372,7 @@ const screamer = {
               }else {
                 geo[ name ]( ...(args.map( v => typeof v === 'function' ? v( 0 ) : v )) );
               }
+              out = geo;
             }
           }else if( name === 'rotateDims' ) {
             // used to disable absolute rotations with axis/angle
@@ -20478,7 +20483,14 @@ const screamer = {
                 const t = Texture( materialName );
                 out = geo.texture( t ).bump( t, .1 );
               }else {
-                out = geo[ name ]( materialName );
+                // material
+                if( Array.isArray( mod[1] )) {
+                  // if color material is used with arguments...
+                  const m = Material( 'phong', Vec3(...mod[1][1]), Vec3(...mod[1][1]), Vec3(1), mod[1][1][3] || 32, Vec3(0));
+                  out = geo[ name ]( m );
+                }else {
+                  out = geo[ name ]( materialName );
+                }
               }
             }
           }else {
@@ -21038,6 +21050,7 @@ const setupEditor = function() {
         run(e) { 
           Marching.clear();
           Marching.lighting.lights.length = 0;
+          Marching.materials.materials.length = 0;
           screamer.config.lighting = null;
           
           return true
