@@ -259,6 +259,11 @@ const screamer = {
       return out
     },
 
+    color( obj ) {
+      console.log( 'color', obj ) 
+      return false
+    },
+
     combinator( obj ) {
       const constructor = window[ obj[1] ]
       const args = []
@@ -550,6 +555,7 @@ const screamer = {
               }else{
                 geo[ name ]( ...(args.map( v => typeof v === 'function' ? v( 0 ) : v )) )
               }
+              out = geo
             }
           }else if( name === 'rotateDims' ) {
             // used to disable absolute rotations with axis/angle
@@ -575,7 +581,6 @@ const screamer = {
             }else{
               geo.transform.__rotations[ idx ] = Matrix.rotate( args[0]( 0 ), x,y,z )
             }
-            
 
             // needed to determine indexing
             geo.transform.__rotations.length++
@@ -660,7 +665,14 @@ const screamer = {
                 const t = Texture( materialName )
                 out = geo.texture( t ).bump( t, .1 )
               }else{
-                out = geo[ name ]( materialName )
+                // material
+                if( Array.isArray( mod[1] )) {
+                  // if color material is used with arguments...
+                  const m = Material( 'phong', Vec3(...mod[1][1]), Vec3(...mod[1][1]), Vec3(1), mod[1][1][3] || 32, Vec3(0))
+                  out = geo[ name ]( m )
+                }else{
+                  out = geo[ name ]( materialName )
+                }
               }
             }
           }else{
