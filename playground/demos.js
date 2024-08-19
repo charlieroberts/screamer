@@ -7,9 +7,8 @@ sphere(.1) ::dots(30) @time*40 # .4
 `,
 
 `render = fractal.med
-camera = (0 0 4)
-post = ( antialias )
-(julia(time/2):red || >.5 || .25 ||) @y time*10
+lighting = ( light( (0 0 5) (1 1 1 ) .25) )
+(julia(time/5):color(1 0 0) || >.5 || .25 ||) @y time*10 ' 1.25
 `,
 
 `render = med
