@@ -1,6 +1,6 @@
 out "out" = body:statement+ 
 
-statement = _ __* body:(comment / hydra / config / assignment / expr ) _ __* { 
+statement = _ __* body:(comment / hydra / config / assignment / color / expr  ) _ __* { 
   //console.log( body )
   return body
 }
@@ -178,7 +178,7 @@ moddims = [xyz]
 
 modchar = "'" / ':::' / '::' / ':' / '@@' / '@' / '>>' / '>' / '###' / '##' / '#' / '||' / '|' / '~'
 
-modoperation "modop" = a:(geometry/group/loop/word) _ b:((modspecial/modchar) _ (material/texture/listparen/mathoperation/modoperation)?)* {
+modoperation "modop" = a:(geometry/group/loop/word) _ b:((modspecial/modchar) _ (color/material/texture/listparen/mathoperation/modoperation)?)* {
   const isBNull = b === null
   if( !isBNull ) {
     const isFinalTerm = b !== null && b[0] === undefined
@@ -205,6 +205,10 @@ geometry "geometries" = name:geometry_name a:(lp b:arguments rp?)? {
     throw SyntaxError(`Are you missing a right parenthesis when creating your ${name}?`)
   }
   return ['geometry', name[0].toUpperCase() + name.slice(1), a===undefined||a===null ? null : a[1] ]
+}
+
+color "color" = 'color' lp args:arguments rp {
+  return ['color', args ]
 }
 
 math = 
@@ -242,6 +246,7 @@ geometry_name = _ name:(
 material = _ name:(
   "blackhole" /
   "white glow" /
+  "redp" /
   "red" /
   "green" /
   "blue" /
