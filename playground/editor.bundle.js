@@ -20398,7 +20398,6 @@ const screamer = {
             }else {
               geo.transform.__rotations[ idx ] = Matrix.rotate( args[0]( 0 ), x,y,z );
             }
-            
 
             // needed to determine indexing
             geo.transform.__rotations.length++;
@@ -20434,10 +20433,15 @@ const screamer = {
               if( mod[1][idx+1] !== undefined ) {
                 uvfncs = mod[1][idx+1][1].map( screamer.mathwalk );
               }
+              let strengthfnc = null;
+              if( mod[1][idx+2] !== undefined ) {
+                strengthfnc = screamer.mathwalk( mod[1][idx+2] );
+              }
 
               const props = { 
                 scale: scalefnc !== null ? scalefnc( 0 ) : 1, 
-                uv:    uvfncs !== null ? uvfncs.map( f => f( 0 ) ) : [0,0,0]
+                uv:    uvfncs !== null ? uvfncs.map( f => f( 0 ) ) : [0,0,0],
+                strength: strengthfnc !== null ? strengthfnc( 0 ) : 1
               };
               const t = materialName === 'hydra'
                 ? screamer.textures.hydra( props ) 
@@ -20451,6 +20455,7 @@ const screamer = {
                     if( uvfncs[1].varies ) t.uv.y = uvfncs[1]( time );
                     if( uvfncs[2].varies ) t.uv.z = uvfncs[2]( time );
                   }
+                  if( strengthfnc !== null ) t.strength = strengthfnc( time );
                 });
               }
 
@@ -21050,7 +21055,6 @@ const setupEditor = function() {
         run(e) { 
           Marching.clear();
           Marching.lighting.lights.length = 0;
-          Marching.materials.materials.length = 0;
           screamer.config.lighting = null;
           
           return true
