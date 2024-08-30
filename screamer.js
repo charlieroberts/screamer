@@ -674,7 +674,7 @@ const screamer = {
                 // material
                 if( Array.isArray( mod[1] )) {
                   // if color material is used with arguments...
-                  const m = Material( 'phong', Vec3(...mod[1][1]), Vec3(...mod[1][1]), Vec3(1), mod[1][1][3] || 32, Vec3(0))
+                  const m = Material( 'phong', Vec3(...(mod[1][1].map( v=>v*.1))), Vec3(...mod[1][1]), Vec3(1), mod[1][1][3] || 32, Vec3(0))
                   out = geo[ name ]( m )
                 }else{
                   out = geo[ name ]( materialName )

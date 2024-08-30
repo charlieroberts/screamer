@@ -282,7 +282,8 @@ texture_name = _ name:(
   "checkers" /
   "voronoi" /
   "cellular" /
-  "hydra"
+  "hydra" /
+  "feedback"
 ) _ { return name }
 
 post = _ name: (
