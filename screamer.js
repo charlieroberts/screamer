@@ -639,6 +639,7 @@ const screamer = {
                     if( uvfncs[2].varies ) t.uv.z = uvfncs[2]( time )
                   }
                   if( strengthfnc !== null ) t.strength = strengthfnc( time )
+                  if( materialName === 'feedback' ) t.update()
                 })
               }
 
@@ -650,7 +651,15 @@ const screamer = {
             }else{
               if( name === 'texture' ) {
                 if( materialName !== 'hydra' ) {
-                  out = geo[ name ]( materialName )
+                  if( materialName === 'feedback' ) {
+                    const t = Texture( 'feedback' )
+                    Marching.postrendercallbacks.push( time => {
+                      t.update()
+                    })
+                    out = geo[ name ]( t )
+                  }else{
+                    out = geo[ name ]( materialName )
+                  }
                 }else{
                   //screamer.use( 'hydra' )
                   
