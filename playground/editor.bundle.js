@@ -19526,10 +19526,10 @@ const screamer_def = clike({
 
 const demos = [
 `render = repeat.low 
-fog = (.5 0 0 0)
-camera = (0 0 time*.25)
+fog = .5
 
-sphere(.1) ::dots(30) @time*40 # .4 
+field = sphere(.1)::dots(30) @time*40 # .4 
+field >z time * -.125
 `,
 
 `render = fractal.med
@@ -21062,7 +21062,7 @@ const setupEditor = function() {
       { 
         key: "Ctrl-.", 
         run(e) { 
-          Marching.clear();
+          Marching.clear( true );
           Marching.lighting.lights.length = 0;
           screamer.config.lighting = null;
           
