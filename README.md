@@ -3,6 +3,8 @@
 
 In music, a "screamer" is a sped-up march used in circuses to ["stir audiences into a frenzy"](https://en.wikipedia.org/wiki/Screamer_(march)).
 
+![A 3D scene rendered with feedback textures](https://github.com/user-attachments/assets/f78fd4cb-4e18-4fc3-932b-030ccd2dae18)
+
 ## Play
 [Try the playground](https://charlieroberts.github.io/screamer/playground). Here's a few keyboard commands worth knowing:
 
