@@ -326,7 +326,7 @@ const setupEditor = function() {
       { 
         key: "Ctrl-.", 
         run(e) { 
-          Marching.clear()
+          Marching.clear( true )
           Marching.lighting.lights.length = 0
           screamer.config.lighting = null
           
