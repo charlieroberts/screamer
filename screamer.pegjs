@@ -160,7 +160,7 @@ stairsintersection "sintersection"  = a:operand? _ '****' args:operandargs? _ b:
   return ['combinator', 'StairsIntersection', a,b,args ] 
 }
 
-mathoperand "mathoperand" = mathgroup / number / variable / function 
+mathoperand "mathoperand" = audio / mathgroup / number / variable / function 
 mathchar = '+' / '-' / '/' / '*'/ '%' / '^'
 mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)? {
   // operations are represented as arrays. 
@@ -191,13 +191,20 @@ modoperation "modop" = a:(geometry/group/loop/word) _ b:((modspecial/modchar) _ 
 operandargs = lp alist:list rp { return alist }
 operand  "operand" = modoperation / group / geometry / loop / function
 
-variable = "time" / "low" / "mid" / "high" / "mousex" / "mousey" / "i"
+variable = "time" / "mousex" / "mousey" / "i"
 
 function = maths / geometry
 
 maths "math" = name:math lp a:arguments rp {
   return ['math', name, a ]
 }
+
+audiovar = name:("low"/"mid"/"high") { return name }
+audiofnc = name:("low"/"mid"/"high") lp a:arguments rp {
+  return ['math', name, a ]
+}
+
+audio = audiofnc / audiovar 
 
 // support for optional parenthesis
 geometry "geometries" = name:geometry_name a:(lp b:arguments rp?)? {
@@ -220,6 +227,7 @@ math =
   "random" /
   "ceil" /
   "fade" 
+  
 
 geometry_name = _ name:(
   "box" /

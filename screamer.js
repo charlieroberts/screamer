@@ -64,6 +64,7 @@ const screamer = {
         const a = screamer.mathwalk( obj[2] )
         const b = obj[3] !== undefined ? screamer.mathwalk( obj[3] ) : null
 
+        let lastlow = 0, lastmid = 0, lasthigh = 0
         const op = obj[1]                  
         switch( op ) {
           case '+': 
@@ -126,6 +127,41 @@ const screamer = {
             out = t => Math.abs( a( t ) )
             varies( out, false, a )
             break
+          case 'low':
+            // .start() is a null operation if audio
+            // has already been initialized
+            Marching.FFT.start()
+            Marching.FFT.windowSize = screamer.config.fft
+
+            console.log( 'a:', a(0) )
+            out = t => {
+              lastlow = Marching.FFT.low * (1.0 - a(t)) + lastlow * a(t)
+              return lastlow
+            }
+            varies( out, true )
+            break
+          case 'mid':
+            Marching.FFT.start()
+            Marching.FFT.windowSize = screamer.config.fft
+            
+            out = t => {
+              lastmid = Marching.FFT.mid * (1.0 - a(t)) + lastmid * a(t)
+              return lastmid
+            }
+
+            varies( out, true )
+            break
+          case 'high':
+            Marching.FFT.start()
+            Marching.FFT.windowSize = screamer.config.fft
+
+            out = t => {
+              lasthigh = Marching.FFT.high * (1.0 - a(t)) + lasthigh * a(t)
+              return lasthigh
+            }
+
+            varies( out, true )
+            break
           case 'fade':
             const _a = obj[2][0] || 120, 
                   _b = obj[2][1] || 0, 
@@ -170,21 +206,22 @@ const screamer = {
         case 'low':
           // .start() is a null operation if audio
           // has already been initialized
+          console.log( 'low' )
           Marching.FFT.start()
           Marching.FFT.windowSize = screamer.config.fft
-          out = t => Marching.FFT.low
+          out = t => Marching.FFT.low || 0 
           varies( out, true )
           break
         case 'mid':
           Marching.FFT.start()
           Marching.FFT.windowSize = screamer.config.fft
-          out = t => Marching.FFT.mid
+          out = t => Marching.FFT.mid || 0
           varies( out, true )
           break
         case 'high':
           Marching.FFT.start()
           Marching.FFT.windowSize = screamer.config.fft
-          out = t => Marching.FFT.high
+          out = t => Marching.FFT.high || 0
           varies( out, true )
           break
         default:
