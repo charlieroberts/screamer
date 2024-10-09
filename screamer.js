@@ -133,7 +133,6 @@ const screamer = {
             Marching.FFT.start()
             Marching.FFT.windowSize = screamer.config.fft
 
-            console.log( 'a:', a(0) )
             out = t => {
               lastlow = Marching.FFT.low * (1.0 - a(t)) + lastlow * a(t)
               return lastlow
@@ -206,7 +205,6 @@ const screamer = {
         case 'low':
           // .start() is a null operation if audio
           // has already been initialized
-          console.log( 'low' )
           Marching.FFT.start()
           Marching.FFT.windowSize = screamer.config.fft
           out = t => Marching.FFT.low || 0 
