@@ -1,0 +1,31 @@
+.bitty-editor { 
+  font-family:   'Menlo', 'Monaco', 'Lucida Console', monospace;
+  font-size:     12px; 
+  outline:       none; 
+  height:        100vh;
+  display:       block;
+  overflow-y:    auto; 
+  white-space:   pre-wrap;
+  z-index:       1;
+  font-size:     1rem;
+  position:      absolute;
+  color:         #6fb3d2;
+}
+
+.bitty-editor div { 
+  position: relative; 
+  display:block;
+  background-color:rgba(0,0,0,.65);
+  width:fit-content;
+}
+
+/* syntax coloring rules */
+.bitty-keywords  { color:#fda331; }
+.bitty-variables { color:#fda331 }
+.bitty-strings   { font-style:italic; }
+.bitty-comments  { font-style:italic; color:#aaa }
+.bitty-numbers   { color:#fda331; }
+.bitty-operators { color:#cc99cc; }
+
+/* active line highlight */
+.bitty-active { background:#222 }

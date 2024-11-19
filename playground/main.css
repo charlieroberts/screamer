@@ -1,10 +1,29 @@
 html {
-  margin:0
+  margin:0;
+  color:#ccc;
+  font-size:1.5em;
 }
 
-&1b {
-  color:#bbb;
+body { 
+  background:black;
+  padding:0;
+  margin:0;
 }
+
+::selection {
+  background:#444;
+  color:white;
+}
+
+canvas {
+  width:100%;
+  height:100%;
+  position:fixed;
+  top:0; left:0;
+}
+
+a { color:white; }
+a:visited { color: gray }
 
 #help {
   position:absolute;
@@ -18,63 +37,8 @@ html {
   color:white;
   font-weight:bold;
   z-index:10000;
-}
+}}
 
-a img {
-  filter: invert(100%);
-  width:3rem;
-  height:3rem;
-}
-
-a { color:white; }
-
-a:visited { color: gray }
-
-header select {
-  position:relative;
-  margin-top:1rem;
-  vertical-align:top
-}
-header{
-  position:absolute;
-  top:0;
-  right:0;
-}
-
-body {
-  margin:0;
-  padding:0;
-  background:black;
-}
-
-canvas {
-  width:100%;
-  height:100%;
-  position:fixed;
-  top:0; left:0;
-}
-
-.cm-editor {
-  position:absolute !important;
-  background-color:transparent;
-  top:0;
-}
-
-.cm-line {
-  display:inline-block;
-  background-color:rgba(0,0,0,.65);
-  width:fit-content;
-}
-
-.cm-gutters {
-  background-color:rgba(0,0,0,.5) !important;
-}
-
-.cm-activeLine {
-  background-color:rgba(0,0,0,.85) !important;
-}
-
-.cm-focused { outline:none !important }
 @keyframes slidein {
   from {
     translate: 0 -150vw;
@@ -93,10 +57,11 @@ canvas {
     translate: 0 -150vw;
   }
 }
+
 .intro {
-  width:50rem; 
+  width:30rem; 
   display:block; 
-  left:calc(50% - 25rem); 
+  left:calc(50% - 15rem); 
   top:0; 
   z-index:100; 
   background:rgba(0,0,0,.85); 
@@ -108,13 +73,12 @@ canvas {
   border:3px solid white; 
   border-top-width:0px;
   padding:2rem;
+  font-size:.85rem;
 }
-.enter {
-  animation: 1s slidein;
-}
-.exit {
-  animation: 1s slideout;
-}
+
+.enter { animation: 1s slidein; }
+.exit  { animation: 1s slideout;}
+
 .next {
   box-sizing: border-box;
   position:absolute; 
@@ -126,9 +90,7 @@ canvas {
   border:1px solid white;
 }
 
-
 .intro pre { display:inline; }
-
 
 @media( max-width:767px ) {
   .intro{ 

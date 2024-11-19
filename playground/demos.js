@@ -1,15 +1,13 @@
 const demos = [
 `render = repeat.low 
 fog = .5
-
+ 
 field = sphere(.1)::dots(30) @time*40 # .4 
-field >z time * -.125
-`,
+field >z time * -.125`,
 
 `render = fractal.med
 lighting = ( light( (0 0 5) (1 1 1 ) .25) )
-(julia(time/5):color(1 0 0) || >.5 || .25 ||) @y time*10 ' 1.25
-`,
+(julia(time/5):color(1 0 0) || >.5 || .25 ||) @y time*10 ' 1.25`,
 
 `render = med
 fog = (.4 .25 0 0) background = (.25 0 0)
@@ -21,8 +19,7 @@ ring @x 90 @y time*20 ++ plane::checkers`,
 fog = (1 0 0 0)
 camera = (0 0 .65)
 post = (bloom(.55 1.25))
-[torus((1,.05)):white 10 >xy i*.125 @i*10*sin(time/6) ||(.001)] '.035 @y time*10
-`,
+[torus((1,.05)):white 10 >xy i*.125 @i*10*sin(time/6) ||(.001)] '.035 @y time*10`,
 
 `render = voxel.low
 fog = (.2 0 .3 0)
@@ -31,8 +28,7 @@ camera = (0 0 time*-.1)
 post = (invert(1), focus(.0, .05) )
 sphere ::rainbow( .5 ) '1.5 + sin(time/4) * .2 # 3`,
 
-`
-// this demo uses the hydra live coding language
+`// this demo uses the hydra live coding language
 // to texture a fractal. 
 render = fractal.med fog = .125
 
@@ -47,13 +43,11 @@ hydra\`
 container = sphere(2):blackhole
 fractal = mandelbox(.75, 3+sin(time/2)) '.5 ::hydra :white
 fractal @y time*10
-container --- fractal
-`,
+container --- fractal`,
 
 ` // move your mouse around the window center
 post = ( edge, invert(1) )
-( box:red -- box:green'mousey/4 #.2+mousex/3 ) '1.6 @yz time*15
-`,
+( box:red -- box:green'mousey/4 #.2+mousex/3 ) '1.6 @yz time*15`,
 
 `render = repeat.low
 camera = (0 0 time*-.15)
@@ -63,8 +57,7 @@ cross = cylinder((1,1.5)) ::dots
 cross = cross ++ (cylinder((.95 1.5))::stripes( 1 )) @z 90
 cross = cross ++ (cylinder((.95 1.5))::checkers( 5 )) @x 90
 cross '.15 @@( time*45,1,.5,.5 )
-cross # .75
-`,
+cross # .75`,
 
 `post = (focus(.125))
 fog = .05
@@ -75,8 +68,7 @@ s ++ plane((0 0 1) .25 ):red::cellular(1 (time/4 0 0))`,
 // shushing sounds work great!
 render = fractal.med
 fft = 4096
-mandalay( high*5, .25, 4 )'.75 @z time*5 ::rainbow(.3)
-`,
+mandalay( high*5, .25, 4 )'.75 @z time*5 ::rainbow(.3)`,
 
 
 `fog = (.05 1 0 0)
@@ -98,8 +90,7 @@ body = ((sphere'.9 #x 1.5):magenta *** capsule((-1.5,0,0) (1.5,0,0))'1.45)::dots
  
 face @y sin(time)*20
  
-(face+++(.075) body) >y 1.25 >z .5 ++ plane:red
-`
+(face+++(.075) body) >y 1.25 >z .5 ++ plane:red`
 ]
 
 export { demos }

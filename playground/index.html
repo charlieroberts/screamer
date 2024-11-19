@@ -3,10 +3,11 @@
   <head>
     <meta charset='utf-8'>
     <meta name="description" content="the playground for screamer, a live-coding language for ray marching.">
-
     <title>screamer</title>
 
+    <script src='../../bitty/bitty.js' defer></script>
     <script src='editor.bundle.js' type='module'></script>
+    <script src='highlight.js' type='module'></script>
     <script src='../screamer-lang.js'></script>
     
     <!-- will load from git repo on github pages, otherwise expects local copy -->
@@ -14,11 +15,13 @@
 
     <script src='https://cdn.jsdelivr.net/npm/hydra-synth@latest/dist/hydra-synth.js'></script>
 
-    <link href='main.css' rel='stylesheet'>
+    <link href='main.css'   rel='stylesheet'>
+    <link href='editor.css' rel='stylesheet'>
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
   </head>
 
   <body>
+    <div class='bitty-editor' contenteditable=true spellcheck=false></div>
     <canvas></canvas>
     <button id='help'>?</button>
   </body>
