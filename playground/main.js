@@ -13,7 +13,7 @@ const removeIntro = function() {
     introEle.classList.remove('enter')
     introEle.classList.add('exit')
     setTimeout( ()=> { if( introEle !== null ) { introEle.remove(); introEle = null } }, 900 )
-    bitty.focus() 
+    editor.el.focus() 
   }
 }
 
@@ -58,7 +58,7 @@ const init = async function() {
 }
 
 const showIntro = function() {
-  bitty.focus()
+  editor.el.focus()
   if( introEle === null ) {
     const div = document.createElement('div')
     div.innerHTML = intro
