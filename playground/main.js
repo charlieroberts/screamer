@@ -17,7 +17,7 @@ const removeIntro = function() {
   }
 }
 
-let bitty = null
+let bitty = null, editor = null
 const init = async function() {
   screamer.init()
   const canvas = setupMarching()
@@ -35,7 +35,7 @@ const init = async function() {
   }
 
   bitty = window.bitty
-  setupEditor()
+  editor = setupEditor()
   
   if( isMobile ) {
     const btn = document.createElement('button')
@@ -171,12 +171,12 @@ const loadDemo = function() {
 
   // do not include reset code in editor, but run it
   
-  bitty.value = code
+  editor.value = code
   screamer.run( reset + code )
 }
 
 const updateLocation = function() {
-  const code = bitty.value.join('\n')
+  const code = editor.value.join('\n')
   const codeCompressed = btoa( code )
   const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${codeCompressed}`
   window.history.replaceState( {} , 'screamer', link );
@@ -188,11 +188,11 @@ const setupEditor = function() {
   const intro = getStarterCode()
   const processed = bitty.process( intro, true )
 
-  bitty.init({ value:intro })
+  const b = bitty.create({ value:intro })
 
-  bitty.subscribe( 'run', code => screamer.run( prefix+code ) ) 
+  b.subscribe( 'run', code => screamer.run( prefix+code ) ) 
 
-  bitty.subscribe( 'keydown', e => {
+  b.subscribe( 'keydown', e => {
     if( e.ctrlKey && e.key === '.' ) {
       Marching.clear( true )
       Marching.lighting.lights.length = 0
@@ -222,11 +222,13 @@ const setupEditor = function() {
     }
   })
 
-  bitty.subscribe( 'click', e=> {
+  b.subscribe( 'click', e=> {
     removeIntro() 
   })
 
-  bitty.focus()
+  b.focus()
+
+  return b
 }
 
 // taken wih gratitude from https://stackoverflow.com/a/52082569
