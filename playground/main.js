@@ -67,7 +67,7 @@ const showIntro = function() {
     div.setAttribute( 'tabindex', 0 )
 
     div.addEventListener( 'keydown', e => {
-      if( e.key === 'l' && e.altKey === true ) {
+      if( e.key === 'l' && e.ctrlKey === true ) {
         loadDemo() 
       }
     })
@@ -197,10 +197,12 @@ const setupEditor = function() {
       Marching.clear( true )
       Marching.lighting.lights.length = 0
       screamer.config.lighting = null
-    }else if( e.altKey && e.key === 'l' ) {
+    }else if( e.altKey && e.code === 'KeyL' ) {
       loadDemo()  
+      e.preventDefault()
     }else if( e.key === '$' ) {
       bitty.runBlock()
+      e.preventDefault()
     }
 
     return false
