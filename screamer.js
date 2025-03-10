@@ -41,13 +41,13 @@ const screamer = {
 
   textures: {},
 
-  init() {
+  init( shouldInitHydra = true ) {
     window.onpointermove = function(e) {
       mouse.x = e.clientX / window.innerWidth
       mouse.y = e.clientY / window.innerHeight
     }
 
-    screamer.initHydra()
+    if( shouldInitHydra ) screamer.initHydra()
 
     return this
   },
