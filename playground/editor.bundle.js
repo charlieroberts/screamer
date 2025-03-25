@@ -1372,11 +1372,29 @@ const setupMarching = function() {
 
 window.onload = init;
 
-const toggleCamera = function( shouldToggleGUI=true) {
-  Marching.cameraEnabled = !Marching.cameraEnabled;
+let cameraIsOn = false;
+const toggleCamera = function() {
+  cameraIsOn = !cameraIsOn;
+  if( cameraIsOn ) 
+    cameraOn();
+  else
+    cameraOff();
+};
+const cameraOn = function( shouldToggleGUI=true) {
+  Marching.cameraEnabled = true; //!Marching.cameraEnabled
   Marching.camera.on();
 
-  //if( !Marching.cameraEnabled ) editor.focus()
+  editor.el.style.display = 'none';
+};
+const cameraOff = function( shouldToggleGUI=true) {
+  Marching.cameraEnabled = false; //!Marching.cameraEnabled
+
+  const idx = Marching.callbacks.indexOf( Marching.camera.__framefnc );
+  if( idx !== -1 ) {
+    Marching.callbacks.splice( idx, 1 );
+  }
+
+  editor.el.style.display = 'block';
 };
 
 let demoidx = 0;
@@ -1432,7 +1450,7 @@ const setupEditor = function() {
   b.subscribe( 'run', code => {
     const __code = prefix+code.trim();
     screamer.run( __code ); 
-    updateLocation( __code );
+    updateLocation( code.trim() );
   }); 
 
   b.subscribe( 'keydown', e => {
@@ -1446,10 +1464,24 @@ const setupEditor = function() {
     }else if( e.key === '$' ) {
       bitty.runBlock();
       e.preventDefault();
+    }else if( e.altKey && e.code === 'KeyC' ) ;else if( Marching.keys[ e.key ] !== undefined && Marching.cameraEnabled ) {
+      Marching.keys[ e.key ] = 1;
     }
 
     return false
   });
+
+  b.subscribe('keyup', event => {
+    if( Marching.cameraEnabled ) {
+      const code = event.key;//.code.slice(3).toLowerCase()
+      Marching.keys[ code ] = 0;
+    }else if( event.key === 'Alt' ) {
+      for( let key in Marching.keys ) {
+        Marching.keys[ key ] = 0;
+      }
+    } 
+  });
+
 
   window.addEventListener( 'keydown', e => {
     if( e.key === 'c' && e.altKey === true ) {
