@@ -4013,4 +4013,4 @@ function peg$parse(input, options) {
     SyntaxError: peg$SyntaxError,
     parse: peg$parse
   };
-})(this);
+})(window);
