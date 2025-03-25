@@ -31,7 +31,7 @@ box'.2 #xy .5
 // the quickest way to run most examples in this tutorial...
 // just click in a block and hit alt+enter.
 render = repeat.med
-box'.1 # .4
+box '.1 # .4
 
 // a little fog makes things purdy
 // first, the amount of fog, then, the color
