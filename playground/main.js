@@ -133,9 +133,6 @@ const getCurrentLine = e => {
 const toggleCamera = function( shouldToggleGUI=true) {
   Marching.cameraEnabled = !Marching.cameraEnabled
   Marching.camera.on()
-  //editor.dispatch({
-  //  effects: editableCompartment.reconfigure(EditorView.editable.of(!Marching.cameraEnabled))
-  //})
 
   //if( !Marching.cameraEnabled ) editor.focus()
 }
@@ -175,8 +172,8 @@ const loadDemo = function() {
   screamer.run( reset + code )
 }
 
-const updateLocation = function() {
-  const code = editor.value.join('\n')
+const updateLocation = function( code ) {
+  //const code = bitty.value//.join('\n')
   const codeCompressed = btoa( code )
   const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${codeCompressed}`
   window.history.replaceState( {} , 'screamer', link );
@@ -190,7 +187,11 @@ const setupEditor = function() {
 
   const b = bitty.create({ value:intro })
 
-  b.subscribe( 'run', code => screamer.run( prefix+code ) ) 
+  b.subscribe( 'run', code => {
+    const __code = prefix+code.trim()
+    screamer.run( __code ) 
+    updateLocation( __code )
+  }) 
 
   b.subscribe( 'keydown', e => {
     if( e.ctrlKey && e.key === '.' ) {
@@ -231,63 +232,4 @@ const setupEditor = function() {
   b.focus()
 
   return b
-}
-
-// taken wih gratitude from https://stackoverflow.com/a/52082569
-function copyToClipboard(text) {
-    var selected = false
-    var el = document.createElement('textarea')
-    el.value = text
-    el.setAttribute('readonly', '')
-    el.style.position = 'absolute'
-    el.style.left = '-9999px'
-    document.body.appendChild(el)
-    if (document.getSelection().rangeCount > 0) {
-        selected = document.getSelection().getRangeAt(0)
-    }
-    el.select()
-    document.execCommand('copy')
-    document.body.removeChild(el)
-    if (selected) {
-        document.getSelection().removeAllRanges()
-        document.getSelection().addRange(selected)
-    }
-}
-
-window.getlink = function( name='link' ) {
-  const lines = getAllCode( window.editor )
-  if( lines[ lines.length - 1].indexOf('getlink') > -1 ) {
-    lines.pop()
-  }
-
-  const code = btoa( lines )
-  const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${code}`
-
-  const menu = document.createElement('div')
-  menu.setAttribute('id', 'connectmenu')
-  menu.style.fontFamily = 'sans-serif'
-  menu.style.background = 'rgba(255,255,255,.85)'
-  menu.style.color = 'black'
-  menu.style.width = '12.5em'
-  menu.style.height = '3.5em'
-  menu.style.position = 'fixed'
-  menu.style.display = 'block'
-  menu.style.border = '1px var(--f_inv) solid'
-  menu.style.borderTop = 0
-  menu.style.top = 0
-  menu.style.right = 0 
-  menu.style.zIndex = 1000
-
-  menu.innerHTML = `<p style='font-size:.7em; margin:.5em; margin-bottom:1.5em; color:var(--f_inv)'>Click here to copy a link that runs your code.</p>`
-
-  document.body.appendChild( menu )
-
-  const blurfnc = ()=> {
-    copyToClipboard( link )
-    menu.remove()
-    document.body.removeEventListener( 'click', blurfnc )
-  }
-  document.body.addEventListener( 'click', blurfnc )
-
-  return link
 }
