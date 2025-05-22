@@ -746,13 +746,15 @@ const screamer = {
       if( obj[1] === 'foreground' ) {
         const c = obj[2].values;
         const m = Material( 'phong', Vec3(...(c.map( v=>v*.1))), Vec3(...c), Vec3(1), c[3] || 32, Vec3(0));
-        Marching.materials.default = m;
+        console.log( 'foreground', m );
+        screamer.config.foreground = m; 
       }
 
       const isPreset = Array.isArray( obj[2] ) 
         || (typeof obj[2] === 'string' || typeof obj[2] === 'number' );
 
-      screamer.config[ obj[1] ] = isPreset ? obj[2] : obj[2].values;
+      if( obj[1] !== 'foreground' )
+        screamer.config[ obj[1] ] = isPreset ? obj[2] : obj[2].values;
 
       return false
     },
