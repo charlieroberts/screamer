@@ -59,22 +59,26 @@ const init = async function() {
 
 const showIntro = function() {
   editor.el.focus()
-  if( introEle === null ) {
-    const div = document.createElement('div')
-    div.innerHTML = intro
-    div.classList.add( 'intro' )
-    div.classList.add( 'enter' )
-    div.setAttribute( 'tabindex', 0 )
+  if( window.location.search.indexOf('HIDE') === -1 ) {
+    if( introEle === null ) {
+      const div = document.createElement('div')
+      div.innerHTML = intro
+      div.classList.add( 'intro' )
+      div.classList.add( 'enter' )
+      div.setAttribute( 'tabindex', 0 )
 
-    div.addEventListener( 'keydown', e => {
-      if( e.key === 'l' && e.ctrlKey === true ) {
-        loadDemo() 
-      }
-    })
+      div.addEventListener( 'keydown', e => {
+        if( e.key === 'l' && e.ctrlKey === true ) {
+          loadDemo() 
+        }
+      })
 
-    document.body.append( div )
+      document.body.append( div )
 
-    return div
+      return div
+    }else{
+      return introEle
+    }
   }else{
     return introEle
   }
@@ -197,7 +201,7 @@ const updateLocation = function( code ) {
   window.history.replaceState( {} , 'screamer', link );
 }
 
-const prefix = `camera=(0 0 5) fog = (0 0 0 0) post = () background = (0 0 0 ) render = med\n`
+const prefix = `fog = (0 0 0 0) post = () background = (0 0 0 ) render = med shadow=0.1\n`
 
 const setupEditor = function() {
   const intro = getStarterCode()
@@ -207,7 +211,12 @@ const setupEditor = function() {
 
   b.subscribe( 'run', code => {
     const __code = prefix+code.trim()
-    screamer.run( __code ) 
+    const pos = Marching.camera.__camera.position.slice(0)
+    const rot = Marching.camera.__camera.rotation.slice(0)
+    screamer.run( __code )
+    Marching.camera.__camera.position = pos
+    Marching.camera.__camera.rotation = rot
+    Marching.camera.update()
     updateLocation( code.trim() )
   }) 
 
@@ -226,6 +235,13 @@ const setupEditor = function() {
       //toggleCamera()
     }else if( Marching.keys[ e.key ] !== undefined && Marching.cameraEnabled ) {
       Marching.keys[ e.key ] = 1
+    }else if( e.altKey && e.key === '=' ) {
+      bitty.instances[0].changeFontSize( 2 )
+    }else if( e.altKey && e.key === '-' ) {
+      bitty.instances[0].changeFontSize( -2 )
+    }else if( e.altKey && e.key === '/' ) {
+      const help = document.querySelector('#help')
+      help.style.display = 'none'
     }
 
     return false
