@@ -29,6 +29,8 @@ const screamer = {
   __i:0,
   
   config : {
+    shadow: .2,
+    foreground:null,
     render: 'med',
     fog: [0,0,0,0],
     background:[0,0,0],
@@ -295,7 +297,6 @@ const screamer = {
     },
 
     color( obj ) {
-      console.log( 'color', obj ) 
       return false
     },
 
@@ -460,6 +461,12 @@ const screamer = {
         // don't bother setting initial fog just use the render callback
       }
 
+      if( obj[1] === 'foreground' ) {
+        const c = obj[2].values
+        const m = Material( 'phong', Vec3(...(c.map( v=>v*.1))), Vec3(...c), Vec3(1), c[3] || 32, Vec3(0))
+        Marching.materials.default = m
+      }
+
       const isPreset = Array.isArray( obj[2] ) 
         || (typeof obj[2] === 'string' || typeof obj[2] === 'number' )
 
@@ -493,8 +500,12 @@ const screamer = {
       const __args = args.map( f => {
         return f.varies ? f : typeof f === 'function' ? f(0) : f 
       })
-      return constructor( ...args )
-      
+      const geo = constructor( ...args )
+      if( screamer.config.foreground !== null ) {
+        geo.material( screamer.config.foreground )
+      }
+
+      return geo
     },
 
     hydra( obj ) {
@@ -917,8 +928,10 @@ const screamer = {
             config.fog.length > 0 ? config.fog.slice( 1 ) : [0,0,0]
           )
           .background( Vec3(...config.background ) )
+          .shadow( config.shadow )
 
           
+        console.log( 'SHADOW:', config.shadow )
         if( config.lighting !== null ) {
           Marching.lighting.lights = []
           m = m.light( ...config.lighting ) 
@@ -938,33 +951,37 @@ const screamer = {
   },
 
   initHydra() {
-    const Hydrasynth = Hydra
+    if( window.Hydra !== undefined ) {
+      const Hydrasynth = Hydra
 
-    //window.Hydra = function( w=500,h=500 ) {
-    const canvas = document.createElement('canvas')
-    canvas.width = 400
-    canvas.height = 400
+      //window.Hydra = function( w=500,h=500 ) {
+      const canvas = document.createElement('canvas')
+      canvas.width = 400
+      canvas.height = 400
 
-    // temporarily removing warning
-    const warn = console.warn
-    console.warn = ()=> {}
-    setTimeout( ()=> console.warn = warn, 100 )
+      // temporarily removing warning
+      const warn = console.warn
+      console.warn = ()=> {}
+      setTimeout( ()=> console.warn = warn, 100 )
 
-    const hydra = new Hydrasynth({ canvas, global:false, detectAudio:false }) 
+      const hydra = new Hydrasynth({ canvas, global:false, detectAudio:false }) 
 
-    hydra.synth.canvas = canvas
+      hydra.synth.canvas = canvas
 
-    hydra.synth.texture = ( __props )=> {
-      const props = Object.assign({ canvas:hydra.synth.canvas}, __props )
-      const t = Texture('canvas', props )
-      Marching.postrendercallbacks.push( ()=> t.update() )
-      hydra.synth.__texture = t
+      hydra.synth.texture = ( __props )=> {
+        const props = Object.assign({ canvas:hydra.synth.canvas}, __props )
+        const t = Texture('canvas', props )
+        Marching.postrendercallbacks.push( ()=> t.update() )
+        hydra.synth.__texture = t
 
-      return t
+        return t
+      }
+
+      screamer.libs.hydra = hydra
+      screamer.textures.hydra = props => hydra.synth.texture( props )
+    }else{
+      console.warn( 'hydra was not loaded' )
     }
-
-    screamer.libs.hydra = hydra
-    screamer.textures.hydra = props => hydra.synth.texture( props )
   },
 
   libs: {}

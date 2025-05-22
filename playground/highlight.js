@@ -8,7 +8,7 @@ window.bitty.rules = {
   
   comments: /(\/\/.*)/g,
   
-  keywords: /\b(fog|background|render|post|fft|camera|lighting|voxel)(?=[^\w])/g,
+  keywords: /\b(fog|background|render|post|fft|camera|lighting|voxel|shadow)(?=[^\w])/g,
 
   variables: /\b(time|mousex|mousey|i|low|mid|high)(?=[^\w])/g,
 
