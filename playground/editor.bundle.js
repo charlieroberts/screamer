@@ -1512,18 +1512,25 @@ const setupEditor = function() {
     }else if( e.altKey && e.code === 'KeyL' ) {
       loadDemo();  
       e.preventDefault();
+      e.stopImmediatePropagation();
     }else if( e.key === '$' ) {
       bitty.runBlock();
       e.preventDefault();
     }else if( e.altKey && e.code === 'KeyC' ) ;else if( Marching.keys[ e.key ] !== undefined && Marching.cameraEnabled ) {
       Marching.keys[ e.key ] = 1;
-    }else if( e.altKey && e.key === '=' ) {
+    }else if( e.altKey && (e.key === '=' || e.key === '≠') ) {
       bitty.instances[0].changeFontSize( 2 );
-    }else if( e.altKey && e.key === '-' ) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+    }else if( e.altKey && e.key === '-' || e.key === '–') {
+      e.stopImmediatePropagation();
+      e.preventDefault();
       bitty.instances[0].changeFontSize( -2 );
-    }else if( e.altKey && e.key === '/' ) {
+    }else if( e.altKey && (e.key === '/' || e.keyy === '÷' ) ) {
       const help = document.querySelector('#help');
       help.style.display = 'none';
+      e.stopImmediatePropagation();
+      e.preventDefault();
     }
 
     return false
@@ -1542,7 +1549,8 @@ const setupEditor = function() {
 
 
   window.addEventListener( 'keydown', e => {
-    if( e.key === 'c' && e.altKey === true ) {
+    console.log( e );
+    if( ( e.key === 'c' || e.key === 'ç' ) && e.altKey === true ) {
       toggleCamera();
     }else if( e.key === '.' && e.ctrlKey === true && e.shiftKey === true ) {
       Marching.pause();
