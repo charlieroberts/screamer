@@ -9,7 +9,8 @@
   z-index:       1;
   font-size:     1rem;
   position:      absolute;
-  color:         #6fb3d2;
+  color:         #ddd;
+  /*color:         #6fb3d2;*/
 }
 
 .bitty-editor div { 
@@ -20,12 +21,19 @@
 }
 
 /* syntax coloring rules */
-.bitty-keywords  { color:#fda331; }
-.bitty-variables { color:#fda331 }
+/*.bitty-keywords  { color:#fda331; }*/
+/*.bitty-variables { color:#fda331 }*/
+/*.bitty-strings   { font-style:italic; }*/
+/*.bitty-comments  { font-style:italic; color:#aaa }*/
+/*.bitty-numbers   { color:#fda331; }*/
+/*.bitty-operators { color:#cc99cc; }*/
+
+.bitty-keywords  { color:#000; background-color:rgba(255,255,255,.5); font-weight:bolder }
+.bitty-variables { color:#ddd }
 .bitty-strings   { font-style:italic; }
 .bitty-comments  { font-style:italic; color:#aaa }
-.bitty-numbers   { color:#fda331; }
-.bitty-operators { color:#cc99cc; }
+.bitty-numbers   { color:#ddd; }
+.bitty-operators { color:white; font-weight:bolder }
 
 /* active line highlight */
-.bitty-active { background:#222 }
+.bitty-active { background:#444 }

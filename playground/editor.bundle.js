@@ -666,7 +666,22 @@ const screamer = {
           // before webgl is initialized will create problems
           // this means that all postprocessing properties are
           // reactive by default
-          const out = func();
+          let cargs = null;
+          if( v[1] !== null ) {
+            cargs = v[1].map( vv => {
+              let rvalue = 0;
+              if( Array.isArray(vv) && vv[0].indexOf('vec') !== -1 ) {
+                rvalue = vv[1].map( vvv => isNaN(vvv) ? 0 : vvv );
+              }else if( !isNaN(vv) ) {
+                rvalue = vv;
+              }
+              return rvalue
+            });
+          }
+          const out = v[1] === null 
+            ? func() 
+            : func( ...cargs  );
+
           const desc = Object.getOwnPropertyDescriptors( out );
 
           let idx = 0;
@@ -704,10 +719,12 @@ const screamer = {
             if( camerafncs[2].varies ) camera.pos.z = camerafncs[2]( time );
           });
         }else {
+          screamer.DO_NOT_RESET_CAMERA=true;
           setTimeout( ()=> {
-          camera.pos.x = camerafncs[0]( 0 );
-          camera.pos.y = camerafncs[1]( 0 );
-          camera.pos.z = camerafncs[2]( 0 );
+            camera.pos.x = camerafncs[0]( 0 );
+            camera.pos.y = camerafncs[1]( 0 );
+            camera.pos.z = camerafncs[2]( 0 );
+            screamer.DO_NOT_RESET_CAMERA=false;
           }, 0 );
         }
 
@@ -746,7 +763,6 @@ const screamer = {
       if( obj[1] === 'foreground' ) {
         const c = obj[2].values;
         const m = Material( 'phong', Vec3(...(c.map( v=>v*.1))), Vec3(...c), Vec3(1), c[3] || 32, Vec3(0));
-        console.log( 'foreground', m );
         screamer.config.foreground = m; 
       }
 
@@ -1215,12 +1231,11 @@ const screamer = {
           .shadow( config.shadow );
 
           
-        console.log( 'SHADOW:', config.shadow );
         if( config.lighting !== null ) {
           Marching.lighting.lights = [];
           m = m.light( ...config.lighting ); 
         }
-        
+
         m = m.post( ...config.post );
 
         if( dims !== null ) m = m.setdim( dims[0], dims[1] );
@@ -1311,9 +1326,9 @@ const init = async function() {
     btn.onclick = loadDemo;
   }
 
-  introEle = showIntro();
-
   const help = document.querySelector('#help');
+
+  introEle = showIntro();
 
   help.addEventListener( 'click',  e => {
     introEle = showIntro();
@@ -1346,6 +1361,7 @@ const showIntro = function() {
       return introEle
     }
   }else {
+    document.querySelector('#help').remove();
     return introEle
   }
 };
@@ -1353,7 +1369,8 @@ const showIntro = function() {
 
 const showError = function( msg ) {
   const div = document.createElement('div');
-  div.style = `width:calc(100% - 1em); margin:0; padding:.5rem; height:2.5rem; position:absolute; bottom:0; left:0; background:rgb(127,0,0); color:white; z-index:1000; font-family:monospace; font-size:1.5rem;`;
+  const size = bitty.instances.baseFontSize;
+  div.style = `width:calc(100% - ${size*2}px); margin:0; padding:.5rem; height:${4*size}px; position:absolute; bottom:0; left:0; background:rgb(127,0,0); color:white; z-index:1000; font-family:monospace; font-size:${size}px;`;
   div.textContent = msg;
   document.body.append( div );
   setTimeout( t=> {
@@ -1462,7 +1479,7 @@ const updateLocation = function( code ) {
   window.history.replaceState( {} , 'screamer', link );
 };
 
-const prefix = `fog = (0 0 0 0) post = () background = (0 0 0 ) render = med shadow=0.1\n`;
+const prefix = `fog = (0 0 0 0) post = () background = (0 0 0 ) render=med shadow=0.1\n`;
 
 const setupEditor = function() {
   const intro = getStarterCode();
@@ -1472,12 +1489,18 @@ const setupEditor = function() {
 
   b.subscribe( 'run', code => {
     const __code = prefix+code.trim();
-    const pos = Marching.camera.__camera.position.slice(0);
-    const rot = Marching.camera.__camera.rotation.slice(0);
-    screamer.run( __code );
-    Marching.camera.__camera.position = pos;
-    Marching.camera.__camera.rotation = rot;
-    Marching.camera.update();
+    if( Marching.camera.__camera !== undefined ) {
+      const pos = Marching.camera.__camera.position.slice(0);
+      const rot = Marching.camera.__camera.rotation.slice(0);
+      screamer.run( __code );
+      if( screamer.DO_NOT_RESET_CAMERA === false ) {
+        Marching.camera.__camera.position = pos;
+        Marching.camera.__camera.rotation = rot;
+        Marching.camera.update();
+      }else {
+        Marching.camera.__camera.rotation = [0,Math.PI, Math.PI];
+      }
+    }
     updateLocation( code.trim() );
   }); 
 

@@ -45,9 +45,9 @@ const init = async function() {
     btn.onclick = loadDemo
   }
 
-  introEle = showIntro()
-
   const help = document.querySelector('#help')
+
+  introEle = showIntro()
 
   help.addEventListener( 'click',  e => {
     introEle = showIntro()
@@ -80,6 +80,7 @@ const showIntro = function() {
       return introEle
     }
   }else{
+    document.querySelector('#help').remove()
     return introEle
   }
 }
@@ -87,7 +88,8 @@ const showIntro = function() {
 
 const showError = function( msg ) {
   const div = document.createElement('div')
-  div.style = `width:calc(100% - 1em); margin:0; padding:.5rem; height:2.5rem; position:absolute; bottom:0; left:0; background:rgb(127,0,0); color:white; z-index:1000; font-family:monospace; font-size:1.5rem;`
+  const size = bitty.instances.baseFontSize
+  div.style = `width:calc(100% - ${size*2}px); margin:0; padding:.5rem; height:${4*size}px; position:absolute; bottom:0; left:0; background:rgb(127,0,0); color:white; z-index:1000; font-family:monospace; font-size:${size}px;`
   div.textContent = msg
   document.body.append( div )
   setTimeout( t=> {
@@ -201,7 +203,7 @@ const updateLocation = function( code ) {
   window.history.replaceState( {} , 'screamer', link );
 }
 
-const prefix = `fog = (0 0 0 0) post = () background = (0 0 0 ) render = med shadow=0.1\n`
+const prefix = `fog = (0 0 0 0) post = () background = (0 0 0 ) render=med shadow=0.1\n`
 
 const setupEditor = function() {
   const intro = getStarterCode()
@@ -211,12 +213,18 @@ const setupEditor = function() {
 
   b.subscribe( 'run', code => {
     const __code = prefix+code.trim()
-    const pos = Marching.camera.__camera.position.slice(0)
-    const rot = Marching.camera.__camera.rotation.slice(0)
-    screamer.run( __code )
-    Marching.camera.__camera.position = pos
-    Marching.camera.__camera.rotation = rot
-    Marching.camera.update()
+    if( Marching.camera.__camera !== undefined ) {
+      const pos = Marching.camera.__camera.position.slice(0)
+      const rot = Marching.camera.__camera.rotation.slice(0)
+      screamer.run( __code )
+      if( screamer.DO_NOT_RESET_CAMERA === false ) {
+        Marching.camera.__camera.position = pos
+        Marching.camera.__camera.rotation = rot
+        Marching.camera.update()
+      }else{
+        Marching.camera.__camera.rotation = [0,Math.PI, Math.PI]
+      }
+    }
     updateLocation( code.trim() )
   }) 
 

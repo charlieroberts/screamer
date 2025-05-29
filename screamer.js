@@ -384,7 +384,22 @@ const screamer = {
           // before webgl is initialized will create problems
           // this means that all postprocessing properties are
           // reactive by default
-          const out = func()
+          let cargs = null
+          if( v[1] !== null ) {
+            cargs = v[1].map( vv => {
+              let rvalue = 0
+              if( Array.isArray(vv) && vv[0].indexOf('vec') !== -1 ) {
+                rvalue = vv[1].map( vvv => isNaN(vvv) ? 0 : vvv )
+              }else if( !isNaN(vv) ) {
+                rvalue = vv
+              }
+              return rvalue
+            })
+          }
+          const out = v[1] === null 
+            ? func() 
+            : func( ...cargs  )
+
           const desc = Object.getOwnPropertyDescriptors( out )
 
           let idx = 0
@@ -422,10 +437,12 @@ const screamer = {
             if( camerafncs[2].varies ) camera.pos.z = camerafncs[2]( time )
           })
         }else{
+          screamer.DO_NOT_RESET_CAMERA=true
           setTimeout( ()=> {
-          camera.pos.x = camerafncs[0]( 0 )
-          camera.pos.y = camerafncs[1]( 0 )
-          camera.pos.z = camerafncs[2]( 0 )
+            camera.pos.x = camerafncs[0]( 0 )
+            camera.pos.y = camerafncs[1]( 0 )
+            camera.pos.z = camerafncs[2]( 0 )
+            screamer.DO_NOT_RESET_CAMERA=false
           }, 0 )
         }
 
@@ -464,7 +481,6 @@ const screamer = {
       if( obj[1] === 'foreground' ) {
         const c = obj[2].values
         const m = Material( 'phong', Vec3(...(c.map( v=>v*.1))), Vec3(...c), Vec3(1), c[3] || 32, Vec3(0))
-        console.log( 'foreground', m )
         screamer.config.foreground = m 
       }
 
@@ -933,12 +949,11 @@ const screamer = {
           .shadow( config.shadow )
 
           
-        console.log( 'SHADOW:', config.shadow )
         if( config.lighting !== null ) {
           Marching.lighting.lights = []
           m = m.light( ...config.lighting ) 
         }
-        
+
         m = m.post( ...config.post )
 
         if( dims !== null ) m = m.setdim( dims[0], dims[1] )
