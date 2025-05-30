@@ -67,6 +67,9 @@ group "group" = _ '(' body:expr ')' _ {
 expr "expr" = operation / group / loop  / geometry / operand / mathoperand
 
 operation = 
+  chamferunion /
+  chamferdifference/
+  chamferintersection/
   stairsunion /
   roundunion /
   union /
@@ -106,6 +109,15 @@ stairsunion "sunion"  = a:operand _ '++++' args:operandargs? _ b:expr? {
   }
   return ['combinator', 'StairsUnion', a,b,args ] 
 }
+chamferunion "cunion"  = a:operand _ '+++++' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your chamfer union is missing an argument to the left of the +++++ operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your chamfer union is missing an argument to the right of the +++++ operator.`)
+  }
+  return ['combinator', 'ChamferUnion', a,b,args ] 
+}
 
 // difference
 difference "difference" = a:operand? _ '--' args:operandargs? _ b:expr? {
@@ -135,6 +147,15 @@ stairsdifference "sdifference"  = a:operand? _ '----' args:operandargs? _ b:expr
   }
 
   return ['combinator', 'StairsDifference', a,b,args ] 
+}
+chamferdifference "cdiff"  = a:operand _ '-----' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your chamfer union is missing an argument to the left of the ----- operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your chamfer union is missing an argument to the right of the ----- operator.`)
+  }
+  return ['combinator', 'ChamferDifference', a,b,args ] 
 }
 
 // intersection
@@ -166,6 +187,15 @@ stairsintersection "sintersection"  = a:operand? _ '****' args:operandargs? _ b:
   }
 
   return ['combinator', 'StairsIntersection', a,b,args ] 
+}
+chamferintersection "cintersect"  = a:operand _ '*****' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your chamfer intersection is missing an argument to the left of the ***** operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your chamfer intersection is missing an argument to the right of the ***** operator.`)
+  }
+  return ['combinator', 'ChamferIntersection', a,b,args ] 
 }
 
 mathoperand "mathoperand" = audio / mathgroup / number / variable / function 
