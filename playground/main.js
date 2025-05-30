@@ -275,7 +275,6 @@ const setupEditor = function() {
 
 
   window.addEventListener( 'keydown', e => {
-    console.log( e )
     if( ( e.key === 'c' || e.key === 'ç' ) && e.altKey === true ) {
       toggleCamera()
     }else if( e.key === '.' && e.ctrlKey === true && e.shiftKey === true ) {
