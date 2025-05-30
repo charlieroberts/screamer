@@ -27,6 +27,7 @@ const vecMembers = ['x','y','z','w']
 
 const screamer = {
   __i:0,
+  DO_NOT_RESET_CAMERA:false,
   
   config : {
     shadow: .2,
