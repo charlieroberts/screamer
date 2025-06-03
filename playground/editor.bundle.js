@@ -1490,7 +1490,6 @@ const setupEditor = function() {
 
   b.subscribe( 'run', code => {
     const __code = prefix+code.trim();
-    debugger
     if( Marching.camera.__camera !== undefined ) {
       const pos = Marching.camera.__camera.position.slice(0);
       const rot = Marching.camera.__camera.rotation.slice(0);
