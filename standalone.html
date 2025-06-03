@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang=en>
+  <head>
+    <meta charset='utf-8'>
+
+    <!-- load marching.js and the screamer grammar, must defer -->
+    <script 
+      src='https://cdn.jsdelivr.net/gh/charlieroberts/marching@main/dist/index.js' 
+      defer
+    ></script>
+
+    <script src='screamer-lang.js' defer></script>
+
+    <style> body { margin:0 } </style>
+
+    <!-- get rid of favicon -->
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
+  </head>
+  <body>
+    <canvas></canvas>
+    <script type='module'>
+      import screamer from './screamer.js'
+      screamer.init()
+
+      const c  = document.querySelector('canvas')
+      c.width  = window.innerWidth
+      c.height = window.innerHeight
+      c.style.width  = c.width  + 'px'
+      c.style.height = c.height + 'px'
+
+      Marching.init( c )
+      // you currently must export marching.js variables into window
+      Marching.export( window )
+
+      screamer.run(`
+
+fg     = (1 1 1)
+fog    = .1
+render = repeat.med
+post   = (edge(1 1) focus)
+
+s = (sphere(.1) #.5) 
+s >z time/4 ++++ sphere(2)
+
+`)
+    </script>
+  </body>
+</html>
