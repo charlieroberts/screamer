@@ -67,6 +67,9 @@ group "group" = _ '(' body:expr ')' _ {
 expr "expr" = operation / group / loop  / geometry / operand / mathoperand
 
 operation = 
+  columnsunion /
+  columnsdifference /
+  columnsintersection /
   chamferunion /
   chamferdifference/
   chamferintersection/
@@ -118,6 +121,16 @@ chamferunion "cunion"  = a:operand _ '+++++' args:operandargs? _ b:expr? {
   }
   return ['combinator', 'ChamferUnion', a,b,args ] 
 }
+columnsunion "colunion"  = a:operand _ '++++++' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your columns union is missing an argument to the left of the +++++ operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your columns union is missing an argument to the right of the +++++ operator.`)
+  }
+  return ['combinator', 'ColumnsUnion', a,b,args ] 
+}
+
 
 // difference
 difference "difference" = a:operand? _ '--' args:operandargs? _ b:expr? {
@@ -157,7 +170,15 @@ chamferdifference "cdiff"  = a:operand _ '-----' args:operandargs? _ b:expr? {
   }
   return ['combinator', 'ChamferDifference', a,b,args ] 
 }
-
+columnsdifference "coldiff"  = a:operand _ '------' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your columns union is missing an argument to the left of the ----- operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your columns union is missing an argument to the right of the ----- operator.`)
+  }
+  return ['combinator', 'ColumnsDifference', a,b,args ] 
+}
 // intersection
 intersection "intersection" = a:operand? _ '**' args:operandargs? _ b:expr? {
   if( a===null ) { 
@@ -197,7 +218,15 @@ chamferintersection "cintersect"  = a:operand _ '*****' args:operandargs? _ b:ex
   }
   return ['combinator', 'ChamferIntersection', a,b,args ] 
 }
-
+columnsintersection "colintersect"  = a:operand _ '******' args:operandargs? _ b:expr? { 
+  if( a===null ) { 
+    throw SyntaxError(`Your columns intersection is missing an argument to the left of the ***** operator.`)
+  }
+  if( b===null ) { 
+    throw SyntaxError(`Your columns intersection is missing an argument to the right of the ***** operator.`)
+  }
+  return ['combinator', 'ColumnsIntersection', a,b,args ] 
+}
 mathoperand "mathoperand" = audio / mathgroup / number / variable / function 
 mathchar = '+' / '-' / '/' / '*'/ '%' / '^'
 mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)? {
