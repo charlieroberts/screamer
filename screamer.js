@@ -39,7 +39,8 @@ const screamer = {
     voxel:.1,
     camera: [0,0,5],
     fft: 512,
-    lighting:null
+    lighting:null,
+    zoom:null
   },
 
   textures: {},
@@ -962,6 +963,10 @@ const screamer = {
         if( config.render.indexOf( 'voxel' ) !== -1 ) {
           m = m.voxel( config.voxel )
         } 
+
+        if( config.zoom !== null ) {
+          m = m.resolution( config.zoom )
+        }
 
         m.render( config.render )
          .camera( ...config.camera )

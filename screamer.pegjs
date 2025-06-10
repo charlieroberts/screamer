@@ -15,7 +15,7 @@ config "config" = name:config_name _ '=' _ value:(number / word / pp / listparen
   return ['config', name, value ]
 }
 
-config_name = name:("render" / "fog" / "background" / "post" / "camera" / "fft" / "lighting" / "voxel" / "shadow" / "foreground" / "fg" / "bg" ) {
+config_name = name:("render" / "fog" / "background" / "post" / "camera" / "fft" / "lighting" / "voxel" / "shadow" / "foreground" / "fg" / "bg" / "zoom" ) {
   if( name === "fg" ) { 
     name = 'foreground' 
   }else if( name === "bg" ) {
