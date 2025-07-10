@@ -968,7 +968,7 @@ const screamer = {
           m = m.resolution( config.zoom )
         }
 
-        m.render( config.render )
+        screamer.scene = m.render( config.render )
          .camera( ...config.camera )
       }
   },
