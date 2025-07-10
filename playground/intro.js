@@ -14,9 +14,13 @@ key in macOS):</p>
 <li><pre>alt + l</pre> loads the next demo
 <li><pre>ctrl + enter</pre> executes a line
 <li><pre>alt + enter</pre> executes a block
-<li><pre>shift + enter</pre> executes a block and resets default config
+<li><pre>alt + shift + enter</pre> executes a block and resets camera
 <li><pre>ctrl + .</pre> clears the scene
-<li><pre>alt + c</pre> enables WASD + arrow keys camera control
+<li><pre>shift + ctrl + .</pre> pauses / unpauses the scene
+<li><pre>alt + /</pre> removes the help button
+<li><pre>alt + c</pre> hides code and enables WASD + arrow keys camera controls
+<li><pre>alt + -</pre> decrease code font size
+<li><pre>alt + =</pre> increase code font size
 </ul>
 
 Whenver code is executed, the URL for the site is updated to include your code; just copy the link from your address bar to share your creation.
@@ -26,6 +30,6 @@ Whenver code is executed, the URL for the site is updated to include your code; 
 <a href="https://charlieroberts.github.io/screamer/playground/?tutorial" target=_blank>Tutorial</a><br>
 <a href="https://discord.gg/JfFVSr8RhH">Discord server</a><br>
 
-<p>Click outside this panel to dismiss it. Have fun!</p>`
+<p>Click in code outside this panel to dismiss it. Have fun!</p>`
 
 export default intro 
