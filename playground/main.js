@@ -207,12 +207,20 @@ const prefix = `fog = (0 0 0 0) post = () background = (0 0 0 ) render=med shado
 
 const setupEditor = function() {
   const intro = getStarterCode()
-  const processed = bitty.process( intro, true )
+  //const processed = bitty.process( intro, true )
 
-  const b = bitty.create({ value:intro })
+  const b = bitty.create({ value:intro, flashColor:'black' })
 
-  b.subscribe( 'run', code => {
+  b.subscribe( 'run', (code,evt) => {
+    let cameraResetFlag = false
     const __code = prefix+code.trim()
+
+    // reset camera if shift key is held
+    if( evt.shiftKey === true ) {
+      cameraResetFlag = true 
+      screamer.DO_NOT_RESET_CAMERA = true
+    }
+
     if( Marching.camera.__camera !== undefined ) {
       const pos = Marching.camera.__camera.position.slice(0)
       const rot = Marching.camera.__camera.rotation.slice(0)
@@ -223,13 +231,16 @@ const setupEditor = function() {
         Marching.camera.update()
       }else{
         Marching.camera.__camera.rotation = [0,Math.PI, Math.PI]
+        screamer.DO_NOT_RESET_CAMERA = false
       }
     }
     updateLocation( code.trim() )
   }) 
 
   b.subscribe( 'keydown', e => {
-    if( e.ctrlKey && e.key === '.' ) {
+    if( e.ctrlKey && e.shiftKey && e.key === '>' ) {
+      Marching.pause()
+    }else if( e.ctrlKey && e.key === '.' ) {
       Marching.clear( true )
       Marching.lighting.lights.length = 0
       screamer.config.lighting = null
@@ -240,8 +251,6 @@ const setupEditor = function() {
     }else if( e.key === '$' ) {
       bitty.runBlock()
       e.preventDefault()
-    }else if( e.altKey && e.code === 'KeyC' ) {
-      //toggleCamera()
     }else if( Marching.keys[ e.key ] !== undefined && Marching.cameraEnabled ) {
       Marching.keys[ e.key ] = 1
     }else if( e.altKey && (e.key === '=' || e.key === '≠') ) {
@@ -252,7 +261,7 @@ const setupEditor = function() {
       e.stopImmediatePropagation()
       e.preventDefault()
       bitty.instances[0].changeFontSize( -2 )
-    }else if( e.altKey && (e.key === '/' || e.keyy === '÷' ) ) {
+    }else if( e.altKey && (e.key === '/' || e.key === '÷' ) ) {
       const help = document.querySelector('#help')
       help.style.display = 'none'
       e.stopImmediatePropagation()
@@ -272,7 +281,6 @@ const setupEditor = function() {
       }
     } 
   })
-
 
   window.addEventListener( 'keydown', e => {
     if( ( e.key === 'c' || e.key === 'ç' ) && e.altKey === true ) {
