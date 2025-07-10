@@ -4,13 +4,16 @@ window.bitty.rules = {
   // <span> elements and will be caught by
   // this rule after other rules have run;
   // works fine if it is run first.
-    operators: /( #+|-{2,4}(x|y|z)+| \|\|(x|y|z)+| \|(x|y|z)+ | >(x|y|z)+|@@|@(x|y|z)+|@|\+{2,6}|\*{2,6}|#+|-{2,6}|%|\>|\|\|)/g,
-  
-  comments: /(\/\/.*)/g,
+  operators: /( #+|-{2,4}(x|y|z)+|\:\:|\:|\|\|(x|y|z)+| \|(x|y|z)+ | >(x|y|z)+|@@|@(x|y|z)+|@|\+{2,6}|\*{2,6}|#+|-{2,6}|%|\>|\|\|)/g,
   
   keywords: /\b(zoom|fog|background|render|post|fft|camera|lighting|voxel|shadow|foreground|bg|fg)(?=[^\w])/g,
 
   variables: /\b(time|mousex|mousey|i|low|mid|high)(?=[^\w])/g,
 
   numbers: /\b(\d+)/g,
+
+  // comments go last so they override any other rules that have been applied.
+  // for example, if a comment has a number or keyword in it, the highlighting
+  // for these will be overwritten by the comment.
+  comments: /(\/\/.*)/g
 }
