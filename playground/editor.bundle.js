@@ -269,9 +269,13 @@ key in macOS):</p>
 <li><pre>alt + l</pre> loads the next demo
 <li><pre>ctrl + enter</pre> executes a line
 <li><pre>alt + enter</pre> executes a block
-<li><pre>shift + enter</pre> executes a block and resets default config
+<li><pre>alt + shift + enter</pre> executes a block and resets camera
 <li><pre>ctrl + .</pre> clears the scene
-<li><pre>alt + c</pre> enables WASD + arrow keys camera control
+<li><pre>shift + ctrl + .</pre> pauses / unpauses the scene
+<li><pre>alt + /</pre> removes the help button
+<li><pre>alt + c</pre> hides code and enables WASD + arrow keys camera controls
+<li><pre>alt + -</pre> decrease code font size
+<li><pre>alt + =</pre> increase code font size
 </ul>
 
 Whenver code is executed, the URL for the site is updated to include your code; just copy the link from your address bar to share your creation.
@@ -281,7 +285,7 @@ Whenver code is executed, the URL for the site is updated to include your code; 
 <a href="https://charlieroberts.github.io/screamer/playground/?tutorial" target=_blank>Tutorial</a><br>
 <a href="https://discord.gg/JfFVSr8RhH">Discord server</a><br>
 
-<p>Click outside this panel to dismiss it. Have fun!</p>`;
+<p>Click in code outside this panel to dismiss it. Have fun!</p>`;
 
 const globals = {};
 
@@ -1250,7 +1254,7 @@ const screamer = {
           m = m.resolution( config.zoom );
         }
 
-        m.render( config.render )
+        screamer.scene = m.render( config.render )
          .camera( ...config.camera );
       }
   },
@@ -1489,12 +1493,18 @@ const prefix = `fog = (0 0 0 0) post = () background = (0 0 0 ) render=med shado
 
 const setupEditor = function() {
   const intro = getStarterCode();
-  bitty.process( intro, true );
+  //const processed = bitty.process( intro, true )
 
-  const b = bitty.create({ value:intro });
+  const b = bitty.create({ value:intro, flashColor:'black' });
 
-  b.subscribe( 'run', code => {
+  b.subscribe( 'run', (code,evt) => {
     const __code = prefix+code.trim();
+
+    // reset camera if shift key is held
+    if( evt.shiftKey === true ) {
+      screamer.DO_NOT_RESET_CAMERA = true;
+    }
+
     if( Marching.camera.__camera !== undefined ) {
       const pos = Marching.camera.__camera.position.slice(0);
       const rot = Marching.camera.__camera.rotation.slice(0);
@@ -1505,13 +1515,16 @@ const setupEditor = function() {
         Marching.camera.update();
       }else {
         Marching.camera.__camera.rotation = [0,Math.PI, Math.PI];
+        screamer.DO_NOT_RESET_CAMERA = false;
       }
     }
     updateLocation( code.trim() );
   }); 
 
   b.subscribe( 'keydown', e => {
-    if( e.ctrlKey && e.key === '.' ) {
+    if( e.ctrlKey && e.shiftKey && e.key === '>' ) {
+      Marching.pause();
+    }else if( e.ctrlKey && e.key === '.' ) {
       Marching.clear( true );
       Marching.lighting.lights.length = 0;
       screamer.config.lighting = null;
@@ -1522,7 +1535,7 @@ const setupEditor = function() {
     }else if( e.key === '$' ) {
       bitty.runBlock();
       e.preventDefault();
-    }else if( e.altKey && e.code === 'KeyC' ) ;else if( Marching.keys[ e.key ] !== undefined && Marching.cameraEnabled ) {
+    }else if( Marching.keys[ e.key ] !== undefined && Marching.cameraEnabled ) {
       Marching.keys[ e.key ] = 1;
     }else if( e.altKey && (e.key === '=' || e.key === '≠') ) {
       bitty.instances[0].changeFontSize( 2 );
@@ -1532,7 +1545,7 @@ const setupEditor = function() {
       e.stopImmediatePropagation();
       e.preventDefault();
       bitty.instances[0].changeFontSize( -2 );
-    }else if( e.altKey && (e.key === '/' || e.keyy === '÷' ) ) {
+    }else if( e.altKey && (e.key === '/' || e.key === '÷' ) ) {
       const help = document.querySelector('#help');
       help.style.display = 'none';
       e.stopImmediatePropagation();
@@ -1552,7 +1565,6 @@ const setupEditor = function() {
       }
     } 
   });
-
 
   window.addEventListener( 'keydown', e => {
     if( ( e.key === 'c' || e.key === 'ç' ) && e.altKey === true ) {
