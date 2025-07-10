@@ -9,31 +9,22 @@
   z-index:       1;
   font-size:     1rem;
   position:      absolute;
-  color:         #ddd;
+  color:         #ccc;
   /*color:         #6fb3d2;*/
 }
 
 .bitty-editor div { 
   position: relative; 
   display:block;
-  background-color:rgba(0,0,0,.65);
+  background:rgba(0,0,0,.65);
   width:fit-content;
 }
 
-/* syntax coloring rules */
-/*.bitty-keywords  { color:#fda331; }*/
-/*.bitty-variables { color:#fda331 }*/
-/*.bitty-strings   { font-style:italic; }*/
-/*.bitty-comments  { font-style:italic; color:#aaa }*/
-/*.bitty-numbers   { color:#fda331; }*/
-/*.bitty-operators { color:#cc99cc; }*/
-
-.bitty-keywords  { color:#000; background-color:rgba(255,255,255,.5); font-weight:bolder }
-.bitty-variables { color:#ddd }
-.bitty-strings   { font-style:italic; }
-.bitty-comments  { font-style:italic; color:#aaa }
-.bitty-numbers   { color:#ddd; }
-.bitty-operators { color:white; font-weight:bolder }
+::highlight(keywords)  { color:#000; background-color:rgba(255,255,255,.5); }
+::highlight(variables) { color:#ccc }
+::highlight(comments)  { font-style:italic; color:#aaa }
+::highlight(numbers)   { color:#ccc; }
+::highlight(operators) { color:#fff; }
 
 /* active line highlight */
 .bitty-active { background:#444 }
