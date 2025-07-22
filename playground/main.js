@@ -3,6 +3,8 @@ import tutorial from './tutorial.js'
 import intro    from './intro.js'
 import screamer from '../screamer.js'
 
+demos.unshift( tutorial )
+
 const isMobile = /iPhone|iPad|iPod|Android/i.test( navigator.userAgent )
 
 let run
@@ -54,7 +56,31 @@ const init = async function() {
     return true
   })
 
+  const share=  document.querySelector('#share')
+  share.addEventListener('click', e => {
+    getlink()
+  })
+
   window.screamer = screamer
+  setupDemos()
+}
+
+const reset = `camera = (0 0 5) zoom=.5 render = med fog = (0 0 0 0) post = () background = (0 0 0) lighting = ()\n`
+const setupDemos = function() {
+  const menu = document.querySelector('select')
+  menu.onchange = e => {
+    const idx = e.target.selectedIndex
+    const code = demos[ idx ]
+    Marching.clear( true )
+    Marching.lighting.lights.length = 0
+    screamer.config.lighting = null
+
+    // do not include reset code in editor, but run it
+    editor.value = code
+
+    if( idx !== 0 )
+      screamer.run( reset+code )
+  }
 }
 
 const showIntro = function() {
@@ -176,7 +202,7 @@ const getStarterCode = function() {
       screamer.run( out )
     }
   }else{
-    const code = demos[ 0 ]
+    const code = demos[ 1 ]
     out = code
     screamer.run( code )
   }
@@ -184,7 +210,6 @@ const getStarterCode = function() {
   return out
 }
 
-const reset = `camera = (0 0 5) render = med fog = (0 0 0 0) post = () background = (0 0 0) lighting = ()\n`
 const loadDemo = function() {
   Marching.postrendercallbacks.length = 0
 
@@ -234,7 +259,7 @@ const setupEditor = function() {
         screamer.DO_NOT_RESET_CAMERA = false
       }
     }
-    updateLocation( code.trim() )
+    //updateLocation( code.trim() )
   }) 
 
   b.subscribe( 'keydown', e => {
@@ -264,6 +289,11 @@ const setupEditor = function() {
     }else if( e.altKey && (e.key === '/' || e.key === '÷' ) ) {
       const help = document.querySelector('#help')
       help.style.display = 'none'
+      const share = document.querySelector('#share')
+      share.style.display = 'none'
+      const sel = document.querySelector('select')
+      sel.style.display = 'none'
+
       e.stopImmediatePropagation()
       e.preventDefault()
     }
@@ -305,4 +335,59 @@ const setupEditor = function() {
   b.focus()
 
   return b
+}
+
+// taken wih gratitude from https://stackoverflow.com/a/52082569
+function copyToClipboard(text) {
+    let selected = false
+    const el = document.createElement('textarea')
+    el.value = text
+    el.setAttribute('readonly', '')
+    el.style.position = 'absolute'
+    el.style.left = '-9999px'
+    document.body.appendChild(el)
+    if (document.getSelection().rangeCount > 0) {
+      selected = document.getSelection().getRangeAt(0)
+    }
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild( el )
+    if( selected ) {
+      document.getSelection().removeAllRanges()
+      document.getSelection().addRange(selected)
+    }
+}
+
+window.getlink = function( name='link' ) {
+  const code = btoa( bitty.instances[0].value )
+  const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${code}`
+
+  copyToClipboard( link )
+
+  // DRY... also used for gabber button
+  const menu = document.createElement('div')
+  menu.setAttribute('id', 'connectmenu')
+  menu.setAttribute('class', 'menu' )
+  menu.style.width = '12.5em'
+  menu.style.height = '4.5em'
+  menu.style.position = 'absolute'
+  menu.style.display = 'block'
+  menu.style.border = '1px white solid'
+  menu.style.borderTop = 0
+  menu.style.top = '1.75em'
+  menu.style.right = 0 
+  menu.style.zIndex = 1000
+  menu.style.background='black'
+
+  menu.innerHTML = `<p style='font-size:.7em; margin:.5em; margin-bottom:1.5em; color:var(--f_inv)'>A link containing your code has been copied to the clipboad.</p><button id='closelink' style='float:right; margin-right:.5em'>close</buttton>`
+
+  document.body.appendChild( menu )
+  document.querySelector('#connectmenu').style.left = document.querySelector('#share').offsetLeft -100 + 'px'
+
+  const blurfnc = ()=> {
+    menu.remove()
+  }
+  document.querySelector('#closelink').onclick = blurfnc
+
+  return link
 }

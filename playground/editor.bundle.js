@@ -2,9 +2,21 @@ const demos = [
 `render = repeat.low 
 fog = .5
  
-field = sphere(.1)::dots(30) @time*40 # .4 
+field = sphere(.1):black::dots(30) @time*40 # .4 
 field >z time * -.125`,
 
+`camera = (0 0 3)
+post = (antialias)
+zoom = .4
+background = (1 1 1) 
+foreground = (5 0 0) 
+ 
+s = [cylinder((.01,.1)) 7 >.0125+i*.05 @sin(i+time/20)*360 ||.0001]
+s = sphere(1.5)---s@time*10
+s = s::rainbow(5 (0 .0 0) .25)
+s +++ plane((0 0 1)):color(5 0 0)`,
+
+/*
 `render = fractal.med
 lighting = ( light( (0 0 5) (1 1 1 ) .25) )
 (julia(time/5):color(1 0 0) || >.5 || .25 ||) @y time*10 ' 1.25`,
@@ -14,6 +26,15 @@ fog = (.4 .25 0 0) background = (.25 0 0)
 ring = cylinder((.125,3)) ###(20 1)
 ring:red::stripes(5 (0 time/6 0)) 
 ring @x 90 @y time*20 ++ plane::checkers`,
+*/
+
+`post = ( antialias focus(.1) bloom(.9 1.3) )
+camera = (0 0 5)
+fg = (1 1 1)
+fog = -.15
+zoom = .25
+m = mandelbox(.1 3 5) @z time*10 ## 3
+m >z time/3`,
 
 `render = fractal.kindaclose
 fog = (1 0 0 0)
@@ -27,6 +48,18 @@ background = (0 .3 0)
 camera = (0 0 time*-.1)
 post = (invert(1), focus(.0, .05) )
 sphere ::rainbow( .5 ) '1.5 + sin(time/4) * .2 # 3`,
+
+`// hit alt+c (option+c in macos) and then use
+// the wasd and arrow keys to navigate the scene.
+// hit alt+c again when you're done
+render = repeat.med
+fog = .15
+post = (edge invert(1) bloom(.8 1.3) motionblur(.75))
+camera=(1 1 5)
+zoom = .4
+fg = (1 0 0)
+s=[sphere(.025+low*.025) >0 9 >i*i*.1 @i*i+time ||.00025]
+s+++sphere(2.5+low(.95))`,
 
 `// this demo uses the hydra live coding language
 // to texture a fractal. 
@@ -47,8 +80,9 @@ container --- fractal`,
 
 ` // move your mouse around the window center
 post = ( edge, invert(1) )
-( box:red -- box:green'mousey/4 #.2+mousex/3 ) '1.6 @yz time*15`,
+( box:red ---- box:green'mousey/4 #.2+mousex/3 ) '1.6 @yz time*15`,
 
+/*
 `render = repeat.low
 camera = (0 0 time*-.15)
 fog = (.5 0 0 0)
@@ -63,16 +97,17 @@ cross # .75`,
 fog = .05
 s = sphere(1.5):red:::voronoi(0.1 3+sin(time/4)*2 (time/4 0 0)) @ time*20
 s ++ plane((0 0 1) .25 ):red::cellular(1 (time/4 0 0))`,
+*/
 
 `// requires microphone access
 // shushing sounds work great!
 render = fractal.med
-fft = 4096
-mandalay( high*5, .25, 4 )'.75 @z time*5 ::rainbow(.3)`,
-
+zoom = .35
+mandalay( high(.9)*5, .25, 4 )'.75 @z time*5 ::rainbow(.3)`,
 
 `fog = (.05 1 0 0)
 background = (.5 0 .25)
+zoom = .35
 post = ( antialias )
  
 head = sphere :magenta
@@ -250,20 +285,12 @@ post = ( antialias, focus(.1,.025) )
 [octahedron(.125) 8 >(.25,.1,.05) @@(45,cos(i+time/3),0,1) | ]
 
 // for a more complete reference see
-// https://charlieroberts.github.io/screamer
+// https://charlieroberts.github.io/screamer-docs/index.html
 `;
 
 const intro = `<p>Welcome to <i>screamer</i>, a live-coding language for strange art. A screamer is a sped-up circus march composed to <a href="https://en.wikipedia.org/wiki/Screamer_(march)" target=_blank>"to stir audiences into a frenzy"</a>; this language uses a technique called raymarching to render graphical oddities.</p>
 
-<p>Coding on this site targets desktops, but mobile users can
-click through demos using the "Next Demo >>" button in 
-the top right corner (this button is only available
-on mobile, desktop users can hit alt+l). Adventurous mobile users
-can also evaluate code using the $ key, or normal key
-combos if you have an external keyboard connected to your mobile device.</p>
-
-<p>Key commands are as follows (replace "alt" key with "option"
-key in macOS):</p>
+<p>The dropdown menu contains demos and tutorials. Key commands are as follows (replace "alt" key with "option" key in macOS):</p>
 
 <ul>
 <li><pre>alt + l</pre> loads the next demo
@@ -278,12 +305,11 @@ key in macOS):</p>
 <li><pre>alt + =</pre> increase code font size
 </ul>
 
-Whenver code is executed, the URL for the site is updated to include your code; just copy the link from your address bar to share your creation.
+Hit the share button to generate a link that shares your sketch.
 
 <p>For more help, see:</p>
-<a href="https://charlieroberts.github.io/screamer-docs">Interactive reference</a><br>
-<a href="https://charlieroberts.github.io/screamer/playground/?tutorial" target=_blank>Tutorial</a><br>
-<a href="https://discord.gg/JfFVSr8RhH">Discord server</a><br>
+<a href="https://charlieroberts.github.io/screamer-docs" target=_blank>Interactive reference</a><br>
+<a href="https://discord.gg/JfFVSr8RhH" target=_blank>Discord server</a><br>
 
 <p>Click in code outside this panel to dismiss it. Have fun!</p>`;
 
@@ -1296,6 +1322,8 @@ const screamer = {
   libs: {}
 };
 
+demos.unshift( tutorial );
+
 const isMobile = /iPhone|iPad|iPod|Android/i.test( navigator.userAgent );
 let introEle = null;
 
@@ -1345,7 +1373,31 @@ const init = async function() {
     return true
   });
 
+  const share=  document.querySelector('#share');
+  share.addEventListener('click', e => {
+    getlink();
+  });
+
   window.screamer = screamer;
+  setupDemos();
+};
+
+const reset = `camera = (0 0 5) zoom=.5 render = med fog = (0 0 0 0) post = () background = (0 0 0) lighting = ()\n`;
+const setupDemos = function() {
+  const menu = document.querySelector('select');
+  menu.onchange = e => {
+    const idx = e.target.selectedIndex;
+    const code = demos[ idx ];
+    Marching.clear( true );
+    Marching.lighting.lights.length = 0;
+    screamer.config.lighting = null;
+
+    // do not include reset code in editor, but run it
+    editor.value = code;
+
+    if( idx !== 0 )
+      screamer.run( reset+code );
+  };
 };
 
 const showIntro = function() {
@@ -1462,7 +1514,7 @@ const getStarterCode = function() {
       screamer.run( out );
     }
   }else {
-    const code = demos[ 0 ];
+    const code = demos[ 1 ];
     out = code;
     screamer.run( code );
   }
@@ -1470,7 +1522,6 @@ const getStarterCode = function() {
   return out
 };
 
-const reset = `camera = (0 0 5) render = med fog = (0 0 0 0) post = () background = (0 0 0) lighting = ()\n`;
 const loadDemo = function() {
   Marching.postrendercallbacks.length = 0;
 
@@ -1480,13 +1531,6 @@ const loadDemo = function() {
   
   editor.value = code;
   screamer.run( reset + code );
-};
-
-const updateLocation = function( code ) {
-  //const code = bitty.value//.join('\n')
-  const codeCompressed = btoa( code );
-  const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${codeCompressed}`;
-  window.history.replaceState( {} , 'screamer', link );
 };
 
 const prefix = `fog = (0 0 0 0) post = () background = (0 0 0 ) render=med shadow=0.1\n`;
@@ -1518,7 +1562,7 @@ const setupEditor = function() {
         screamer.DO_NOT_RESET_CAMERA = false;
       }
     }
-    updateLocation( code.trim() );
+    //updateLocation( code.trim() )
   }); 
 
   b.subscribe( 'keydown', e => {
@@ -1548,6 +1592,11 @@ const setupEditor = function() {
     }else if( e.altKey && (e.key === '/' || e.key === '÷' ) ) {
       const help = document.querySelector('#help');
       help.style.display = 'none';
+      const share = document.querySelector('#share');
+      share.style.display = 'none';
+      const sel = document.querySelector('select');
+      sel.style.display = 'none';
+
       e.stopImmediatePropagation();
       e.preventDefault();
     }
@@ -1589,4 +1638,59 @@ const setupEditor = function() {
   b.focus();
 
   return b
+};
+
+// taken wih gratitude from https://stackoverflow.com/a/52082569
+function copyToClipboard(text) {
+    let selected = false;
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    if (document.getSelection().rangeCount > 0) {
+      selected = document.getSelection().getRangeAt(0);
+    }
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild( el );
+    if( selected ) {
+      document.getSelection().removeAllRanges();
+      document.getSelection().addRange(selected);
+    }
+}
+
+window.getlink = function( name='link' ) {
+  const code = btoa( bitty.instances[0].value );
+  const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${code}`;
+
+  copyToClipboard( link );
+
+  // DRY... also used for gabber button
+  const menu = document.createElement('div');
+  menu.setAttribute('id', 'connectmenu');
+  menu.setAttribute('class', 'menu' );
+  menu.style.width = '12.5em';
+  menu.style.height = '4.5em';
+  menu.style.position = 'absolute';
+  menu.style.display = 'block';
+  menu.style.border = '1px white solid';
+  menu.style.borderTop = 0;
+  menu.style.top = '1.75em';
+  menu.style.right = 0; 
+  menu.style.zIndex = 1000;
+  menu.style.background='black';
+
+  menu.innerHTML = `<p style='font-size:.7em; margin:.5em; margin-bottom:1.5em; color:var(--f_inv)'>A link containing your code has been copied to the clipboad.</p><button id='closelink' style='float:right; margin-right:.5em'>close</buttton>`;
+
+  document.body.appendChild( menu );
+  document.querySelector('#connectmenu').style.left = document.querySelector('#share').offsetLeft -100 + 'px';
+
+  const blurfnc = ()=> {
+    menu.remove();
+  };
+  document.querySelector('#closelink').onclick = blurfnc;
+
+  return link
 };

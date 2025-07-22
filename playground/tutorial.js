@@ -155,6 +155,6 @@ post = ( antialias, focus(.1,.025) )
 [octahedron(.125) 8 >(.25,.1,.05) @@(45,cos(i+time/3),0,1) | ]
 
 // for a more complete reference see
-// https://charlieroberts.github.io/screamer
+// https://charlieroberts.github.io/screamer-docs/index.html
 `
 export default tutorial

@@ -7,7 +7,7 @@
 
     <!--<script src='../../bitty/bitty.js' defer></script>-->
 
-    <script src='https://cdn.jsdelivr.net/gh/charlieroberts/bitty@highlight/bitty.js' defer></script>
+    <script src='https://cdn.jsdelivr.net/gh/charlieroberts/bitty@latest/bitty.js' defer></script>
     <script src='editor.bundle.js' type='module'></script>
     <script src='highlight.js' defer ></script>
     <script src='../screamer-lang.js' defer></script>
@@ -25,7 +25,25 @@
   <body>
     <div class='bitty-editor' contenteditable=true spellcheck=false></div>
     <canvas></canvas>
-    <button id='help'>?</button>
+    <button id='share'>share</button>
+    <button id='help'>help</button>
+    <select>
+      <optgroup label='tutorials'>
+        <option>intro tutorial</option>
+      </optgroup>
+      <optgroup label='demos'>
+        <option selected>endless</option>
+        <option>blobby</option>
+        <option>fractal tunnel</option>
+        <option>folding</option>
+        <option>voxels</option>
+        <option>cellular?</option>
+        <option>with hydra</option>
+        <option>wiggle your mouse</option>
+        <option>make noise</option>
+        <option>caterpillar?</option>
+      </optgroup>
+    </select>
   </body>
 
 </html>

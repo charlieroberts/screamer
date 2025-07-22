@@ -37,7 +37,34 @@ a:visited { color: gray }
   color:white;
   font-weight:bold;
   z-index:10000;
-}}
+}
+
+#help, #share, #presets, select {
+  position:fixed;
+  top:0;
+  right:0;
+  border:#aaa 1px solid;
+  width:5rem;
+  height:1.75rem;
+  background:rgba(0,0,0,.55);
+  font-size:1rem;
+  color:white;
+  font-weight:bold;
+  z-index:10;
+}
+
+#share {
+  right:5em;
+}
+
+select {
+  vertical-align:top;
+  right:10rem;
+  width:15rem;
+  font-size:1rem;
+  font-weight:normal;
+  padding: .25rem;
+}
 
 @keyframes slidein {
   from {
