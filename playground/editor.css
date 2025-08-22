@@ -1,4 +1,4 @@
-.bitty-editor { 
+.teeny-editor { 
   font-family:   'Menlo', 'Monaco', 'Lucida Console', monospace;
   font-size:     12px; 
   outline:       none; 
@@ -14,7 +14,7 @@
   /*color:         #6fb3d2;*/
 }
 
-.bitty-editor div { 
+.teeny-editor div { 
   position: relative; 
   display:block;
   background:rgba(0,0,0,.65);
@@ -28,4 +28,4 @@
 ::highlight(operators) { color:#fff; }
 
 /* active line highlight */
-.bitty-active { background:#444 }
+.teeny-active { background:#444 }

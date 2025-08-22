@@ -1,4 +1,4 @@
-window.bitty.rules = {
+window.teeny.rules = {
   // make sure operators are first as hyphens
   // and <> signs are used in surrounding
   // <span> elements and will be caught by

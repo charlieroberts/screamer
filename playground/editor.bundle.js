@@ -1336,7 +1336,7 @@ const removeIntro = function() {
   }
 };
 
-let bitty = null, editor = null;
+let teeny = null, editor = null;
 const init = async function() {
   screamer.init();
   setupMarching();
@@ -1353,7 +1353,7 @@ const init = async function() {
     warning( e );
   };
 
-  bitty = window.bitty;
+  teeny = window.teeny;
   editor = setupEditor();
   
   if( isMobile ) {
@@ -1431,7 +1431,7 @@ const showIntro = function() {
 
 const showError = function( msg ) {
   const div = document.createElement('div');
-  const size = bitty.instances.baseFontSize;
+  const size = teeny.instances.baseFontSize;
   div.style = `width:calc(100% - ${size*2}px); margin:0; padding:.5rem; height:${4*size}px; position:absolute; bottom:0; left:0; background:rgb(127,0,0); color:white; z-index:1000; font-family:monospace; font-size:${size}px;`;
   div.textContent = msg;
   document.body.append( div );
@@ -1539,7 +1539,7 @@ const setupEditor = function() {
   const intro = getStarterCode();
   //const processed = bitty.process( intro, true )
 
-  const b = bitty.create({ value:intro, flashColor:'black' });
+  const b = teeny.create({ value:intro, flashColor:'black' });
 
   b.subscribe( 'run', (code,evt) => {
     const __code = prefix+code.trim();
@@ -1577,18 +1577,18 @@ const setupEditor = function() {
       e.preventDefault();
       e.stopImmediatePropagation();
     }else if( e.key === '$' ) {
-      bitty.runBlock();
+      teeny.runBlock();
       e.preventDefault();
     }else if( Marching.keys[ e.key ] !== undefined && Marching.cameraEnabled ) {
       Marching.keys[ e.key ] = 1;
     }else if( e.altKey && (e.key === '=' || e.key === '≠') ) {
-      bitty.instances[0].changeFontSize( 2 );
+      teeny.instances[0].changeFontSize( 2 );
       e.stopImmediatePropagation();
       e.preventDefault();
     }else if( e.altKey && e.key === '-' || e.key === '–') {
       e.stopImmediatePropagation();
       e.preventDefault();
-      bitty.instances[0].changeFontSize( -2 );
+      teeny.instances[0].changeFontSize( -2 );
     }else if( e.altKey && (e.key === '/' || e.key === '÷' ) ) {
       const help = document.querySelector('#help');
       help.style.display = 'none';
@@ -1662,7 +1662,7 @@ function copyToClipboard(text) {
 }
 
 window.getlink = function( name='link' ) {
-  const code = btoa( bitty.instances[0].value );
+  const code = btoa( teeny.instances[0].value );
   const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?${code}`;
 
   copyToClipboard( link );
