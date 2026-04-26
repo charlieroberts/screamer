@@ -56,7 +56,7 @@ const init = async function() {
     return true
   })
 
-  const share=  document.querySelector('#share')
+  const share = document.querySelector('#share')
   share.addEventListener('click', e => {
     getlink()
   })
