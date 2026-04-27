@@ -337,7 +337,7 @@ const mods = {
 };
  
 const mouse = { x:0, y:0 };
-
+const osc = {};
 const vecMembers = ['x','y','z','w'];
 
 const screamer = {
@@ -497,6 +497,24 @@ const screamer = {
               }
             };
             varies( out, true );
+            break
+
+          case 'osc':
+            let addr = obj[2][0][1];
+            for( let i = 1; i < obj[2].length; i++ ) {
+              addr += obj[2][i];
+            }
+            debugger
+            if( osc[ addr ] === undefined ) {
+              osc[ addr ] = 0;
+              if( OSC.client === null ) {
+                OSC.messageCallback = function( msg ) {
+                  osc[ msg.address.slice(1) ] = msg.args.value;
+                };
+                OSC.start( 'ws://localhost:8081' );
+              }
+            }
+            out = t=> {  return osc[ addr ] };
             break
         }
       }else {
@@ -859,6 +877,12 @@ const screamer = {
     },
 
     math( obj ) { return screamer.mathwalk( obj ) },
+
+    osc( obj ) {
+      const addr = obj[2][0][1];
+      if( osc[ addr ] === undefined ) osc[ addr ] = 0;
+      return obj
+    },
 
     mod( obj, __geo = null ) {
       let out = null;
@@ -1373,7 +1397,7 @@ const init = async function() {
     return true
   });
 
-  const share=  document.querySelector('#share');
+  const share = document.querySelector('#share');
   share.addEventListener('click', e => {
     getlink();
   });

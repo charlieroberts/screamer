@@ -240,6 +240,13 @@ mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)? {
   return isFinalTerm ? a : ['math',b[0], a,b[2] ] 
 }
 
+/*
+osc = '\\' address:(numword/'/')+ {
+  console.log( 'OSC PEGJS:', address )
+  return ['osc', address]
+}
+*/
+
 modspecial = modchar $moddims+
 moddims = [xyz]
 
@@ -293,7 +300,8 @@ math =
   "floor" /
   "random" /
   "ceil" /
-  "fade" 
+  "fade" /
+  "osc" 
   
 
 geometry_name = _ name:(
@@ -385,14 +393,19 @@ arguments = list / _
 list = l:(argument ','? _ )+ {
   return l.map( v => v[0] )
 }
-argument = mathoperation / mathoperand / light / vec
+argument = mathoperation / mathoperand / light / vec / word / oscaddress
+
+oscaddress = '\\' oscword
 
 rp = _')'_ { return ')' }
 lp = _'('_ { return '(' }
 
+numword = _ letters:numchar+ _ { return letters.join('') } 
+numchar = [a-zA-Z.]/number
 number = "-"? (([0-9]+ "." [0-9]*) / ("."? [0-9]+)) { return +text() }
 int = num:$[0-9]+ { return parseInt( num ) }
 
+oscword = _ letters:(char / '/')+ _ { return letters.join('') } 
 word = _ letters:char+ _ { return letters.join('') } 
 char = [a-zA-Z.]
 
