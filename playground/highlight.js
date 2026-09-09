@@ -1,4 +1,4 @@
-window.teeny.rules = {
+const rules = {
   // make sure operators are first as hyphens
   // and <> signs are used in surrounding
   // <span> elements and will be caught by
@@ -17,3 +17,5 @@ window.teeny.rules = {
   // for these will be overwritten by the comment.
   comments: /(\/\/.*)/g
 }
+
+export default rules
