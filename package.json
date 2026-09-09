@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "grammar": "npx peggy screamer.pegjs -o screamer-lang.js -e walking --format globals",
+    "grammar": "npx peggy screamer.pegjs -o screamer-lang.js -e screamerlang --format globals",
     "build": "node_modules/.bin/rollup ./playground/main.js -o playground/editor.bundle.js -p @rollup/plugin-node-resolve -p @rollup/plugin-commonjs -p @rollup/plugin-json"
   },
   "keywords": [
