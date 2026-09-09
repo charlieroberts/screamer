@@ -395,7 +395,7 @@ list = l:(argument ','? _ )+ {
 }
 argument = mathoperation / mathoperand / light / vec / word / oscaddress
 
-oscaddress = '\\' oscword
+oscaddress = '/' oscword
 
 rp = _')'_ { return ')' }
 lp = _'('_ { return '(' }

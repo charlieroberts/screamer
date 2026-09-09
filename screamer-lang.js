@@ -303,7 +303,7 @@ function peg$parse(input, options) {
   var peg$c124 = "contrast";
   var peg$c125 = "glow";
   var peg$c126 = "light";
-  var peg$c127 = "\\";
+  var peg$c127 = "/";
   var peg$c128 = "-";
   var peg$c129 = ".";
 
@@ -476,7 +476,7 @@ function peg$parse(input, options) {
   var peg$e157 = peg$literalExpectation("contrast", false);
   var peg$e158 = peg$literalExpectation("glow", false);
   var peg$e159 = peg$literalExpectation("light", false);
-  var peg$e160 = peg$literalExpectation("\\", false);
+  var peg$e160 = peg$literalExpectation("/", false);
   var peg$e161 = peg$classExpectation([["a", "z"], ["A", "Z"], "."], false, false);
   var peg$e162 = peg$literalExpectation("-", false);
   var peg$e163 = peg$classExpectation([["0", "9"]], false, false);
@@ -4125,7 +4125,7 @@ function peg$parse(input, options) {
     var s0, s1, s2;
 
     s0 = peg$currPos;
-    if (input.charCodeAt(peg$currPos) === 92) {
+    if (input.charCodeAt(peg$currPos) === 47) {
       s1 = peg$c127;
       peg$currPos++;
     } else {
@@ -4566,7 +4566,7 @@ function peg$parse(input, options) {
   }
 }
 
-  root.walking = {
+  root.screamerlang = {
     StartRules: ["out"],
     SyntaxError: peg$SyntaxError,
     parse: peg$parse
