@@ -2,6 +2,7 @@ import { demos } from './demos.js'
 import tutorial from './tutorial.js' 
 import intro    from './intro.js'
 import screamer from '../screamer.js'
+import rules from './highlight.js'
 
 demos.unshift( tutorial )
 
@@ -49,17 +50,19 @@ const init = async function() {
 
   const help = document.querySelector('#help')
 
-  introEle = showIntro()
+  //introEle = showIntro()
 
-  help.addEventListener( 'click',  e => {
-    introEle = showIntro()
-    return true
-  })
+  if( help !== null ) {
+    help.addEventListener( 'click',  e => {
+      introEle = showIntro()
+      return true
+    })
 
-  const share = document.querySelector('#share')
-  share.addEventListener('click', e => {
-    getlink()
-  })
+    const share = document.querySelector('#share')
+    share.addEventListener('click', e => {
+      getlink()
+    })
+  }
 
   window.screamer = screamer
   setupDemos()
@@ -68,18 +71,20 @@ const init = async function() {
 const reset = `camera = (0 0 5) zoom=.5 render = med fog = (0 0 0 0) post = () background = (0 0 0) lighting = ()\n`
 const setupDemos = function() {
   const menu = document.querySelector('select')
-  menu.onchange = e => {
-    const idx = e.target.selectedIndex
-    const code = demos[ idx ]
-    Marching.clear( true )
-    Marching.lighting.lights.length = 0
-    screamer.config.lighting = null
+  if( menu !== null ) {
+    menu.onchange = e => {
+      const idx = e.target.selectedIndex
+      const code = demos[ idx ]
+      Marching.clear( true )
+      Marching.lighting.lights.length = 0
+      screamer.config.lighting = null
 
-    // do not include reset code in editor, but run it
-    editor.value = code
+      // do not include reset code in editor, but run it
+      editor.value = code
 
-    if( idx !== 0 )
-      screamer.run( reset+code )
+      if( idx !== 0 )
+        screamer.run( reset+code )
+    }
   }
 }
 
@@ -139,7 +144,6 @@ const showWarning = function( msg ) {
   setTimeout( t=> { div.style.background='rgba(0,0,0,.75)' }, 250 )
 }
 
-
 const setupMarching = function() {
   const c = document.querySelector('canvas')
   Marching.init( c )
@@ -155,7 +159,7 @@ const setupMarching = function() {
   return c
 }
 
-window.onload = init
+window.addEventListener( 'load', init )
 
 const getAllCode = editor => editor.state.doc.toString()
 const getCurrentLine = e => { 
@@ -234,7 +238,9 @@ const setupEditor = function() {
   const intro = getStarterCode()
   //const processed = bitty.process( intro, true )
 
-  const b = teeny.create({ value:intro, flashColor:'black' })
+  const b = teeny.create({ value:intro, flashColor:'black', el:document.querySelector('#screamer'), rules })
+
+  screamer.editor = b
 
   b.subscribe( 'run', (code,evt) => {
     let cameraResetFlag = false
