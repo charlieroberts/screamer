@@ -186,10 +186,11 @@ const screamer = {
 
           case 'osc':
             let addr = obj[2][0][1]
+            
             for( let i = 1; i < obj[2].length; i++ ) {
               addr += obj[2][i]
             }
-            debugger
+            
             if( osc[ addr ] === undefined ) {
               osc[ addr ] = 0
               if( OSC.client === null ) {
@@ -953,7 +954,7 @@ const screamer = {
       console.log( 'screamer:', code )
       let tree = null
       try{
-        tree = walking.parse( code )
+        tree = screamerlang.parse( code )
       }catch(e) {
         console.error( e.toString() )
         return
