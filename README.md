@@ -29,4 +29,4 @@ I also wrote [a paper on screamer](https://zenodo.org/records/15527465) for anyo
 ## Credits
 - [marching.js](https://charlieroberts.github.io/marching), the rendering engine
 - [peggy.js](https://peggyjs.org), provides the Parsing Expression Grammar the language is written in
-- [bitty.js](https://charlieroberts.github.io/bitty), the code editor used by screamer
+- [teeny.js](https://codeberg.org/charlieroberts/teeny), the code editor used by screamer
