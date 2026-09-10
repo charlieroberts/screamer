@@ -227,7 +227,7 @@ columnsintersection "colintersect"  = a:operand _ '******' args:operandargs? _ b
   }
   return ['combinator', 'ColumnsIntersection', a,b,args ] 
 }
-mathoperand "mathoperand" = audio / mathgroup / number / variable / function 
+mathoperand "mathoperand" = audio / oscaddress / mathgroup / number / variable / function 
 mathchar = '+' / '-' / '/' / '*'/ '%' / '^'
 mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)? {
   // operations are represented as arrays. 
@@ -240,12 +240,11 @@ mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)? {
   return isFinalTerm ? a : ['math',b[0], a,b[2] ] 
 }
 
-/*
-osc = '\\' address:(numword/'/')+ {
-  console.log( 'OSC PEGJS:', address )
+
+/*osc = '\\' address:(numword/'/')+ {
   return ['osc', address]
-}
-*/
+}*/
+
 
 modspecial = modchar $moddims+
 moddims = [xyz]
@@ -393,9 +392,11 @@ arguments = list / _
 list = l:(argument ','? _ )+ {
   return l.map( v => v[0] )
 }
-argument = mathoperation / mathoperand / light / vec / word / oscaddress
+argument = oscaddress / mathoperation / mathoperand / light / vec / word 
 
-oscaddress = '/' oscword
+oscaddress = '\\' addr:oscword { 
+  return ['math', 'osc', '\\'+addr ] 
+}
 
 rp = _')'_ { return ')' }
 lp = _'('_ { return '(' }

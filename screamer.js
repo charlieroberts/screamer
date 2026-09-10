@@ -185,81 +185,82 @@ const screamer = {
             break
 
           case 'osc':
-            let addr = obj[2][0][1]
-            
-            for( let i = 1; i < obj[2].length; i++ ) {
-              addr += obj[2][i]
-            }
-            
-            if( osc[ addr ] === undefined ) {
-              osc[ addr ] = 0
-              if( OSC.client === null ) {
-                OSC.messageCallback = function( msg ) {
-                  osc[ msg.address.slice(1) ] = msg.args.value
-                }
-                OSC.start( 'ws://localhost:8081' )
-              }
-            }
-            out = t=> {  return osc[ addr ] }
+            out = t => osc[ obj[2].slice(1) ]
+            varies( out, true )
             break
-        }
+                    }
       }else{
         out = screamer.mathwalk( obj[0] )
       }
     }else if( typeof obj === 'string' ) {       
-      switch( obj ) {
-        case 'i' : 
-          const i = screamer.__i
-          out = t => i
-          break
-        case 'time': 
-          out = t => t
-          varies( out, true )
-          break
-        case 'mousex': 
-          out = t => mouse.x
-          varies( out, true )
-          varies( out, true )
-          break
-        case 'mousey': 
-          out = t => mouse.y
-          varies( out, true )
-          break
-        case 'low':
-          // .start() is a null operation if audio
-          // has already been initialized
-          Marching.FFT.start()
-          Marching.FFT.windowSize = screamer.config.fft
-          out = t => Marching.FFT.low || 0 
-          varies( out, true )
-          break
-        case 'mid':
-          Marching.FFT.start()
-          Marching.FFT.windowSize = screamer.config.fft
-          out = t => Marching.FFT.mid || 0
-          varies( out, true )
-          break
-        case 'high':
-          Marching.FFT.start()
-          Marching.FFT.windowSize = screamer.config.fft
-          out = t => Marching.FFT.high || 0
-          varies( out, true )
-          break
-        default:
-          const isGlobal = globals[ obj ] !== undefined
-
-          if( !isGlobal ) {
-            if( obj === '.' ) {
-              throw SyntaxError(`Did you forget a number before or after a . ?`)
-            }else{
-              throw ReferenceError(`The word "${obj}" is not a keyword in screamer, and not a variable that has been assigned a value`)
+      if( obj[0] === '\\' ) {
+        const addr = obj.slice(1)
+        if( osc[ addr ] === undefined ) {
+          osc[ addr ] = 0
+          if( OSC.client === null ) {
+            OSC.messageCallback = function( msg ) {
+              osc[ msg.address.slice(1) ] = msg.args.value
             }
-          }else{
-            throw SyntaxError(`The variable "${obj}" contains a geometry or combinator, and cannot be used in a math expression.`)
+            OSC.start( 'ws://localhost:8080' )
           }
+        }
+        out = t => { return osc[ addr ] }
+        varies( out, true )
+      }else{
+        switch( obj ) {
+          case 'i' : 
+            const i = screamer.__i
+            out = t => i
+            break
+          case 'time': 
+            out = t => t
+            varies( out, true )
+            break
+          case 'mousex': 
+            out = t => mouse.x
+            varies( out, true )
+            varies( out, true )
+            break
+          case 'mousey': 
+            out = t => mouse.y
+            varies( out, true )
+            break
+          case 'low':
+            // .start() is a null operation if audio
+            // has already been initialized
+            Marching.FFT.start()
+            Marching.FFT.windowSize = screamer.config.fft
+            out = t => Marching.FFT.low || 0 
+            varies( out, true )
+            break
+          case 'mid':
+            Marching.FFT.start()
+            Marching.FFT.windowSize = screamer.config.fft
+            out = t => Marching.FFT.mid || 0
+            varies( out, true )
+            break
+          case 'high':
+            Marching.FFT.start()
+            Marching.FFT.windowSize = screamer.config.fft
+            out = t => Marching.FFT.high || 0
+            varies( out, true )
+            break
+          default:
+            const isGlobal = globals[ obj ] !== undefined
 
-          break
+            if( !isGlobal ) {
+              if( obj === '.' ) {
+                throw SyntaxError(`Did you forget a number before or after a . ?`)
+              }else{
+                throw ReferenceError(`The word "${obj}" is not a keyword in screamer, and not a variable that has been assigned a value`)
+              }
+            }else{
+              throw SyntaxError(`The variable "${obj}" contains a geometry or combinator, and cannot be used in a math expression.`)
+            }
 
+            break
+
+        }
       }
     }else{
       const val = obj === null ? null : parseFloat( obj )
