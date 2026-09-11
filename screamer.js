@@ -13,7 +13,8 @@ const mods = {
   '::': 'texture',
   ':::':'bump',
   '>':  'translate',
-  '>>': 'moveBy',
+  '>>': 'textureTranslate',
+  //'>>': 'moveBy',
   '@':  'rotateDims',
   '@@': 'rotate',
   '|':  'Mirror',
@@ -603,8 +604,7 @@ const screamer = {
           || name === 'translate' 
           || name === 'rotateDims'
           || name === 'rotate'
-          || name === 'scaleBy' 
-          || name === 'moveBy' ) {
+          || name === 'scaleBy' ) {
           let args, isList = false
           
           if( mod[1] === null ) {
@@ -694,12 +694,12 @@ const screamer = {
               }
             }
           }
-        }else if( name === 'material' || name === 'texture' || name === 'bump' ) {
+        }else if( name === 'material' || name === 'texture' || name === 'bump' || name === 'textureTranslate' ) {
           if( Array.isArray( mod[1] ) ) {
             const materialName = typeof mod[1][1] === 'string' ? mod[1][1] : mod[1][0]
 
             // if arguments are passed to texture...
-            if( name !== 'material' && mod[1][1] !== undefined && mod[1][1] !== null) {
+            if( name !== 'material' && name !== 'textureTranslate' &&  mod[1][1] !== undefined && mod[1][1] !== null) {
               let idx = name === 'bump' ? 2 : 1
 
               let scalefnc = null
@@ -771,7 +771,19 @@ const screamer = {
               }else if( name === 'bump' ) {
                 const t = Texture( materialName )
                 out = geo.texture( t ).bump( t, .1 )
-              }else{
+              } else if( name === 'textureTranslate' ) {
+                const dims = Array.isArray( mod[0] ) ? mod[0][1] : 'all'
+                const func = screamer.mathwalk( mod[1] )
+                Marching.postrendercallbacks.push( time => {
+                  const tex = (geo.tex !== undefined && geo.tex.uv !== undefined ) ? geo.tex : geo.texture
+                  if( func !== null && tex.uv !== undefined ) {
+                    const result = func( time )
+                    if( dims.indexOf('x') !== -1 || dims === 'all' ) tex.uv.x = result
+                    if( dims.indexOf('y') !== -1 || dims === 'all' ) tex.uv.y = result
+                    if( dims.indexOf('z') !== -1 || dims === 'all' ) tex.uv.z = result
+                  }
+                })
+              } else {
                 // material
                 if( Array.isArray( mod[1] )) {
                   // if color material is used with arguments...
@@ -783,7 +795,21 @@ const screamer = {
               }
             }
           }else{
-            out = geo[ name ]( mod[1] )
+            if( name === 'textureTranslate' ) {
+              const dims = Array.isArray( mod[0] ) ? mod[0][1] : 'all'
+              const func = screamer.mathwalk( mod[1] )
+              const tex = (geo.tex !== undefined && geo.tex.uv !== undefined ) ? geo.tex : geo.texture
+              Marching.postrendercallbacks.push( time => {
+                if( func !== null && tex.uv !== undefined ) {
+                  const result = func( time )
+                  if( dims.indexOf('x') !== -1 || dims === 'all' ) tex.uv.x = result
+                  if( dims.indexOf('y') !== -1 || dims === 'all' ) tex.uv.y = result
+                  if( dims.indexOf('z') !== -1 || dims === 'all' ) tex.uv.z = result
+                }
+              })           
+            }else{
+              out = geo[ name ]( mod[1] )
+            }
           }
         }else{
           // repeat / polarrepeat etc.
