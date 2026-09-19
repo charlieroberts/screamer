@@ -12,6 +12,7 @@ const mods = {
   ':':  'material',
   '::': 'texture',
   ':::':'bump',
+  '::::':'bump2',
   '>':  'translate',
   '>>': 'textureTranslate',
   //'>>': 'moveBy',
@@ -561,7 +562,7 @@ const screamer = {
       const count = obj[2]
       for( let i = 0; i < count; i++ ) {
         screamer.__i = i
-        out = screamer.walkers.mod( mods, out )
+        out = screamer.walkers.modchain( mods, out )
       }
 
       return out
@@ -575,7 +576,7 @@ const screamer = {
       return obj
     },
 
-    mod( obj, __geo = null ) {
+    modchain( obj, __geo = null ) {
       let out = null
       
       let geo = __geo === null 
@@ -694,13 +695,13 @@ const screamer = {
               }
             }
           }
-        }else if( name === 'material' || name === 'texture' || name === 'bump' || name === 'textureTranslate' ) {
+        }else if( name === 'material' || name === 'texture' || name === 'bump' || name === 'bump2' || name === 'textureTranslate' ) {
           if( Array.isArray( mod[1] ) ) {
             const materialName = typeof mod[1][1] === 'string' ? mod[1][1] : mod[1][0]
 
             // if arguments are passed to texture...
-            if( name !== 'material' && name !== 'textureTranslate' &&  mod[1][1] !== undefined && mod[1][1] !== null) {
-              let idx = name === 'bump' ? 2 : 1
+            if( name !== 'material' && name !== 'textureTranslate' &&  mod[1][1] !== undefined && mod[1][1] !== null || name === 'bump2' ) {
+              let idx = name === 'bump' || name === 'bump2' ? 2 : 1
 
               let scalefnc = null
               if( mod[1][idx] !== undefined ) scalefnc = screamer.mathwalk( mod[1][idx] )
@@ -738,7 +739,8 @@ const screamer = {
               if( name === 'bump' ) {
                 out = geo.texture( t ).bump( t, mod[1][1] )
               }else{
-                out = geo[ name ]( t ) 
+                if( name === 'bump2' ) name = 'bump'
+                out = geo[ name ]( t, mod[1][1] ) 
               }
             }else{
               if( name === 'texture' ) {
