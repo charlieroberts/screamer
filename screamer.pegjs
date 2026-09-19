@@ -1,7 +1,38 @@
+{{
+  const dict = {
+    '++':'Union',
+    '+++':'RoundUnion',
+    '++++':'StairsUnion',
+    '+++++': 'ChamferUnion',
+    '++++++': 'ColumnsUnion',
+    '--':'Difference',
+    '---':'RoundDifference',
+    '----':'StairsDifference',
+    '-----': 'ChamferDifference',
+    '-------': 'ColumnsDifference',
+    '**':'Intersection',
+    '***':'RoundIntersection',
+    '****':'StairsIntersection',
+    '*****': 'ChamferIntersection',
+    '******': 'ColumnsIntersection'
+  }
+  const vars = []
+  
+  function combo( a, op, args, b ) {
+  	const name = dict[ op ]
+    if( a===null ) { 
+      throw SyntaxError(`Your ${name} is missing an argument to the left of the ${op} operator.`)
+    } 
+    if( b===null ) { 
+      throw SyntaxError(`Your ${name} is missing an argument to the right of the ${op} operator.`)
+    }
+    return ['combinator', name, a,b,args ] 
+  }
+}}
+
 out "out" = body:statement+ 
 
 statement = _ __* body:(comment / hydra / config / assignment / color / expr  ) _ __* { 
-  //console.log( body )
   return body
 }
 
@@ -15,11 +46,13 @@ config "config" = name:config_name _ '=' _ value:(number / word / pp / listparen
   return ['config', name, value ]
 }
 
-config_name = name:("render" / "fog" / "background" / "post" / "camera" / "fft" / "lighting" / "voxel" / "shadow" / "foreground" / "fg" / "bg" / "zoom" ) {
+config_name = name:("render" / "fog" / "background" / "post" / "camera" / "fft" / "lighting" / "voxel" / "shadow" / "foreground" / "fg" / "bg" / "zoom" / "res" ) {
   if( name === "fg" ) { 
     name = 'foreground' 
   }else if( name === "bg" ) {
     name = 'background'
+  }else if( name === 'res' ) {
+    name = 'zoom'
   }
   
   return name
@@ -30,7 +63,6 @@ pp = lp fx:(post (lp arguments rp)? ','?)+ rp {
 }
 
 listparen = lp _ values:arguments _ b:rp? { 
-  
   if( b===null ) {
     throw SyntaxError('Are you missing a closing parenthesis for your list?')
   }
@@ -47,11 +79,14 @@ d:']'? _ {
   return ['loop', obj, num, mods]
 }
 
-assignment "assign" = name:word _ '=' _ statement:(expr/vector)? {
+assignment "assign" = name:word _ '=' _ statement:(expr)? {
   if( statement === null ) {
     throw SyntaxError(`You didn't assign anything to ${name}.`)
   }
-  return [ 'assignment', name, statement ]
+  const out = [ 'assignment', name, statement ]
+  vars.push( name )
+  
+  return out
 }
 
 vector = lp a:arguments rp { return a }
@@ -66,167 +101,17 @@ group "group" = _ '(' body:expr ')' _ {
 
 expr "expr" = operation / group / loop  / geometry / operand / mathoperand
 
-operation = 
-  columnsunion /
-  columnsdifference /
-  columnsintersection /
-  chamferunion /
-  chamferdifference/
-  chamferintersection/
-  stairsunion /
-  roundunion /
-  union /
-  stairsdifference /
-  rounddifference /
-  difference /
-  stairsintersection /
-  roundintersection /
-  intersection /
-  modoperation
+operation = comboexpr / modchain
 
-// union
-union "union"   = a:operand? _ '++' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your union is missing an argument to the left of the ++ operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your union is missing an argument to the right of the ++ operator.`)
-  }
-  return ['combinator', 'Union', a,b,args ] 
-}
-roundunion "runion"   = a:operand _ '+++' args:operandargs? _ b:expr? {
-  if( a===null ) { 
-    throw SyntaxError(`Your round union is missing an argument to the left of the ++ operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your round union is missing an argument to the right of the +++ operator.`)
-  }
-  return ['combinator', 'RoundUnion', a,b,args ] 
-}
-stairsunion "sunion"  = a:operand _ '++++' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your stairs union is missing an argument to the left of the ++ operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your stairs union is missing an argument to the right of the ++++ operator.`)
-  }
-  return ['combinator', 'StairsUnion', a,b,args ] 
-}
-chamferunion "cunion"  = a:operand _ '+++++' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your chamfer union is missing an argument to the left of the +++++ operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your chamfer union is missing an argument to the right of the +++++ operator.`)
-  }
-  return ['combinator', 'ChamferUnion', a,b,args ] 
-}
-columnsunion "colunion"  = a:operand _ '++++++' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your columns union is missing an argument to the left of the +++++ operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your columns union is missing an argument to the right of the +++++ operator.`)
-  }
-  return ['combinator', 'ColumnsUnion', a,b,args ] 
+combinator = 
+  '++++++' / '+++++' / '++++' / '+++' / '++' /
+	'------' / '-----' / '----' / '---' / '--' /
+  '******' / '*****' / '****' / '***' / '**'
+    
+comboexpr = a:operand? _ name:combinator args:operandargs? _ b:expr? {
+  return combo(a,name,args,b)
 }
 
-
-// difference
-difference "difference" = a:operand? _ '--' args:operandargs? _ b:expr? {
-  if( a===null ) { 
-    throw SyntaxError(`Your difference is missing an argument to the left of the -- operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your difference is missing an argument to the right of the -- operator.`)
-  }
-  return ['combinator', 'Difference', a,b, args] 
-}
-rounddifference "rdifference"   = a:operand? _ '---' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your round difference is missing an argument to the left of the --- operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your round difference is missing an argument to the right of the --- operator.`)
-  }
-  return ['combinator', 'RoundDifference', a,b,args ] 
-}
-stairsdifference "sdifference"  = a:operand? _ '----' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your stairs difference is missing an argument to the left of the ---- operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your stairs difference is missing an argument to the right of the ---- operator.`)
-  }
-
-  return ['combinator', 'StairsDifference', a,b,args ] 
-}
-chamferdifference "cdiff"  = a:operand _ '-----' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your chamfer union is missing an argument to the left of the ----- operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your chamfer union is missing an argument to the right of the ----- operator.`)
-  }
-  return ['combinator', 'ChamferDifference', a,b,args ] 
-}
-columnsdifference "coldiff"  = a:operand _ '------' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your columns union is missing an argument to the left of the ----- operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your columns union is missing an argument to the right of the ----- operator.`)
-  }
-  return ['combinator', 'ColumnsDifference', a,b,args ] 
-}
-// intersection
-intersection "intersection" = a:operand? _ '**' args:operandargs? _ b:expr? {
-  if( a===null ) { 
-    throw SyntaxError(`Your intersection is missing an argument to the left of the ** operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your intersection is missing an argument to the right of the ** operator.`)
-  }
-  return ['combinator', 'Intersection', a,b,args ]
-}
-roundintersection "rintersection"   = a:operand? _ '***' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your round intersection is missing an argument to the left of the *** operator.`)
-  }
-  if( b===null ) { 
-     throw SyntaxError(`Your round intersection is missing an argument to the right of the *** operator.`)
-  }
-
-  return ['combinator', 'RoundIntersection', a,b,args ] 
-}
-stairsintersection "sintersection"  = a:operand? _ '****' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your stairs intersection is missing an argument to the left of the **** operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your stairs intersection is missing an argument to the right of the **** operator.`)
-  }
-
-  return ['combinator', 'StairsIntersection', a,b,args ] 
-}
-chamferintersection "cintersect"  = a:operand _ '*****' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your chamfer intersection is missing an argument to the left of the ***** operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your chamfer intersection is missing an argument to the right of the ***** operator.`)
-  }
-  return ['combinator', 'ChamferIntersection', a,b,args ] 
-}
-columnsintersection "colintersect"  = a:operand _ '******' args:operandargs? _ b:expr? { 
-  if( a===null ) { 
-    throw SyntaxError(`Your columns intersection is missing an argument to the left of the ***** operator.`)
-  }
-  if( b===null ) { 
-    throw SyntaxError(`Your columns intersection is missing an argument to the right of the ***** operator.`)
-  }
-  return ['combinator', 'ColumnsIntersection', a,b,args ] 
-}
 mathoperand "mathoperand" = audio / oscaddress / mathgroup / number / variable / function 
 mathchar = '+' / '-' / '/' / '*'/ '%' / '^'
 mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)? {
@@ -240,32 +125,57 @@ mathoperation "math" = a:mathoperand _ b:(mathchar _ mathoperation)? {
   return isFinalTerm ? a : ['math',b[0], a,b[2] ] 
 }
 
-
-/*osc = '\\' address:(numword/'/')+ {
-  return ['osc', address]
-}*/
-
-
-modspecial = modchar $moddims+
+modspecial = xyzchar $moddims+
 moddims = [xyz]
 
-modchar = "'" / ':::' / '::' / ':' / '@@' / '@' / '>>' / '>' / '###' / '##' / '#' / '||' / '|' / '~'
+modchar = xyzchar/rgbchar 
+rgbchar = '::::' / ':::' / '::' / ':' 
+xyzchar = '@@' / '@' / '>>' / '>' / '###' / '##' / '#' / '||' / '|' / '~' / "'"
 
-modoperation "modop" = a:(geometry/group/loop/word) _ b:((modspecial/modchar) _ (color/material/texture/listparen/mathoperation/modoperation)?)* {
+modoperation = rgbop/xyzop
+
+modchain = a:(geometry/group/loop/word) _ b:modoperation+ {
+  const mods = []
+  b.forEach( m => {
+    if( m.length === 1 ) 
+      mods.push( m[0] )
+    else
+      m.forEach( m1 => mods.push(m1) )
+  })
+  return ['modchain',a,mods]
+}
+
+rgbop "rgbop" = b:(rgbchar _ (color/material/texture/modoperation))+ {
   const isBNull = b === null
   if( !isBNull ) {
     const isFinalTerm = b !== null && b[0] === undefined
-    return isFinalTerm ? a : ['mod', a, b.map(v=>[v[0],v[2]]) ] 
+    return isFinalTerm ? b[0] : b.map(v=>[v[0],v[2]])
   }else{
-    return a
+    return b
+  }
+}
+
+// some xyz ops can be used without arguments, like | and ||
+xyzop "xyzdop" = b:((modspecial/xyzchar) _ (listparen/mathoperation/modoperation)?)+ {
+  const isBNull = b === null
+  if( !isBNull ) {
+    const isFinalTerm = b !== null && b[0] === undefined
+    return isFinalTerm ? b[0] : b.map(v=>[v[0],v[2]])
+  }else{
+    return b
   }
 }
 
 operandargs = lp alist:list rp { return alist }
-operand  "operand" = modoperation / group / geometry / loop / function
+operand  "operand" = modchain / group / geometry / loop / function / var
 
 variable = "time" / "mousex" / "mousey" / "i"
-
+var = a:word {
+  if( vars.indexOf( a ) === -1 ) {
+    throw SyntaxError(`The variable ${a} has not been declared`)
+  }
+  return a
+}
 function = maths / geometry
 
 maths "math" = name:math lp a:arguments rp {
