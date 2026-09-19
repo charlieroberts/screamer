@@ -741,6 +741,7 @@ const screamer = {
               }else{
                 if( name === 'bump2' ) name = 'bump'
                 out = geo[ name ]( t, mod[1][1] ) 
+                out.bumpTex = t
               }
             }else{
               if( name === 'texture' ) {
@@ -789,7 +790,13 @@ const screamer = {
                 // material
                 if( Array.isArray( mod[1] )) {
                   // if color material is used with arguments...
-                  const m = Material( 'phong', Vec3(...(mod[1][1].map( v=>v*.1))), Vec3(...mod[1][1]), Vec3(1), mod[1][1][3] || 32, Vec3(0))
+                  const m = Material( 'phong', 
+                    Vec3(...(mod[1][1].map( v=>v*.1))), 
+                    Vec3(...mod[1][1]), 
+                    Vec3(1),
+                    mod[1][1][3] || 32, 
+                    Vec3(0)
+                  )
                   out = geo[ name ]( m )
                 }else{
                   out = geo[ name ]( materialName )
@@ -800,7 +807,10 @@ const screamer = {
             if( name === 'textureTranslate' ) {
               const dims = Array.isArray( mod[0] ) ? mod[0][1] : 'all'
               const func = screamer.mathwalk( mod[1] )
-              const tex = (geo.tex !== undefined && geo.tex.uv !== undefined ) ? geo.tex : geo.texture
+              let tex = (geo.tex !== undefined && geo.tex.uv !== undefined ) ? geo.tex : geo.texture
+
+              // if a texture isn't really here but there is a bumpTex from a call to ::::
+              if( typeof tex === 'function' && geo.bumpTex !== undefined ) tex = geo.bumpTex
               Marching.postrendercallbacks.push( time => {
                 if( func !== null && tex.uv !== undefined ) {
                   const result = func( time )
