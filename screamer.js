@@ -778,7 +778,8 @@ const screamer = {
                 const dims = Array.isArray( mod[0] ) ? mod[0][1] : 'all'
                 const func = screamer.mathwalk( mod[1] )
                 Marching.postrendercallbacks.push( time => {
-                  const tex = (geo.tex !== undefined && geo.tex.uv !== undefined ) ? geo.tex : geo.texture
+                  let tex = (geo.tex !== undefined && geo.tex.uv !== undefined ) ? geo.tex : geo.texture
+                  if( typeof tex === 'function' && geo.bumpTex !== undefined ) tex = geo.bumpTex
                   if( func !== null && tex.uv !== undefined ) {
                     const result = func( time )
                     if( dims.indexOf('x') !== -1 || dims === 'all' ) tex.uv.x = result
